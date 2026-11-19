@@ -355,19 +355,25 @@ internal fun CutoutCanvasOverlay(
         val matte = controller.matte
         remember(matte) { matte?.let { outsideDimPixels(it).toEditorImageBitmap() } }
     }
+    val latestBoxW by rememberUpdatedState(boxW)
+    val latestBoxH by rememberUpdatedState(boxH)
     Box(
         modifier = modifier
-            .offset(x = layout.zoomedLeft, y = layout.zoomedTop)
-            .size(width = layout.zoomedWidth, height = layout.zoomedHeight)
+            .placedAt(
+                layout.zoomedLeft,
+                layout.zoomedTop,
+                layout.zoomedWidth,
+                layout.zoomedHeight
+            )
             .testTag(TAG_CUTOUT_SURFACE)
             .semantics { contentDescription = label }
-            .pointerInput(boxW, boxH) {
+            .pointerInput(Unit) {
                 detectTapGestures { position ->
                     val active = toolUi.cutout ?: return@detectTapGestures
                     if (active.busy || active.session == null) return@detectTapGestures
                     active.pins += EditorSegmentPoint(
-                        (position.x / boxW).coerceIn(0f, 1f),
-                        (position.y / boxH).coerceIn(0f, 1f),
+                        (position.x / latestBoxW).coerceIn(0f, 1f),
+                        (position.y / latestBoxH).coerceIn(0f, 1f),
                         active.include
                     )
                     scope.launch {

@@ -866,6 +866,81 @@ class PhotoEditorSessionTest {
     }
 
     @Test
+    fun `jumpToHistory moves through committed steps and publishes the snapshot`() =
+        runSessionTest { h ->
+        h.media.add("a")
+        h.session.open("a")
+        advanceUntilIdle()
+
+        h.session.applyEdits("first", edits(exposure = 1f))
+        h.session.applyEdits("second", edits(exposure = 2f, quarterTurns = 1))
+
+        var state = h.session.state.value
+        assertEquals(2, state.history.past.size)
+        assertEquals("first", state.history.past[0].label)
+        assertEquals("second", state.history.past[1].label)
+        assertTrue(state.history.undone.isEmpty())
+
+        // Jump back to one applied step: the document reverts to "first".
+        h.session.jumpToHistory(1)
+        state = h.session.state.value
+        assertEquals(1f, state.document?.adjustments?.exposureStops)
+        assertEquals(0, state.document?.geometry?.quarterTurns)
+        assertEquals(1, state.history.past.size)
+        assertEquals(1, state.history.undone.size)
+        assertEquals("second", state.history.undone.first().label)
+
+        // Forward again, then all the way to the original.
+        h.session.jumpToHistory(2)
+        assertEquals(2f, h.session.state.value.document?.adjustments?.exposureStops)
+        h.session.jumpToHistory(0)
+        state = h.session.state.value
+        assertEquals(0f, state.document?.adjustments?.exposureStops)
+        assertTrue(state.history.past.isEmpty())
+        assertEquals(2, state.history.undone.size)
+    }
+
+    @Test
+    fun `jumpToHistory clamps out-of-range counts`() = runSessionTest { h ->
+        h.media.add("a")
+        h.session.open("a")
+        advanceUntilIdle()
+        h.session.applyEdits("only", edits(exposure = 1f))
+
+        h.session.jumpToHistory(99)
+        assertEquals(1f, h.session.state.value.document?.adjustments?.exposureStops)
+        h.session.jumpToHistory(-3)
+        assertEquals(0f, h.session.state.value.document?.adjustments?.exposureStops)
+    }
+
+    @Test
+    fun `jumpToHistory is ignored while a tool transaction or draft is open`() =
+        runSessionTest { h ->
+        h.media.add("a")
+        h.session.open("a")
+        advanceUntilIdle()
+        h.session.applyEdits("first", edits(exposure = 1f))
+        h.session.applyEdits("second", edits(exposure = 2f))
+
+        // An open interaction draft blocks the jump.
+        h.session.beginEdit("drag")
+        h.session.jumpToHistory(0)
+        assertEquals(2f, h.session.state.value.document?.adjustments?.exposureStops)
+        h.session.cancelEdit()
+
+        // So does an open tool transaction — even though its outer draft
+        // mirrors into the global history.
+        h.session.beginToolEdit("Light")
+        h.session.jumpToHistory(0)
+        assertEquals(2f, h.session.state.value.document?.adjustments?.exposureStops)
+        h.session.applyToolEdit()
+
+        // And once both are closed the jump works again.
+        h.session.jumpToHistory(1)
+        assertEquals(1f, h.session.state.value.document?.adjustments?.exposureStops)
+    }
+
+    @Test
     fun `white balance sample reads the recipe before white balance`() =
         runSessionTest { h ->
         h.media.add("a", 16, 8, previewArgb = 0xFF9A8C80.toInt())

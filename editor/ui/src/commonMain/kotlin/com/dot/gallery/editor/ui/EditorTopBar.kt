@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,7 @@ import com.dot.gallery.editor.core.model.PhotoExportFormat
 import com.dot.gallery.editor.render.photo.PhotoEditorState
 import com.dot.gallery.editor.ui.generated.resources.Res
 import com.dot.gallery.editor.ui.generated.resources.editor_close
+import com.dot.gallery.editor.ui.generated.resources.editor_show_history
 import com.dot.gallery.editor.ui.generated.resources.editor_compare
 import com.dot.gallery.editor.ui.generated.resources.editor_export_heif
 import com.dot.gallery.editor.ui.generated.resources.editor_export_jpeg
@@ -45,9 +47,7 @@ import com.dot.gallery.editor.ui.generated.resources.editor_raw_export_tiff16
 import com.dot.gallery.editor.ui.generated.resources.editor_raw_export_tiff8
 import com.dot.gallery.editor.ui.generated.resources.editor_export_png
 import com.dot.gallery.editor.ui.generated.resources.editor_export_webp
-import com.dot.gallery.editor.ui.generated.resources.editor_more_options
 import com.dot.gallery.editor.ui.generated.resources.editor_redo
-import com.dot.gallery.editor.ui.generated.resources.editor_reset_edits
 import com.dot.gallery.editor.ui.generated.resources.editor_save
 import com.dot.gallery.editor.ui.generated.resources.editor_save_and_open
 import com.dot.gallery.editor.ui.generated.resources.editor_save_copy
@@ -58,7 +58,6 @@ import com.dot.gallery.editor.ui.icons.Close
 import com.dot.gallery.editor.ui.icons.Compare
 import com.dot.gallery.editor.ui.icons.EditorSymbols
 import com.dot.gallery.editor.ui.icons.KeyboardArrowDown
-import com.dot.gallery.editor.ui.icons.MoreVert
 import com.dot.gallery.editor.ui.icons.Redo
 import com.dot.gallery.editor.ui.icons.Undo
 import org.jetbrains.compose.resources.StringResource
@@ -70,6 +69,7 @@ internal const val TAG_REDO = "editor.redo"
 internal const val TAG_SAVE = "editor.save"
 internal const val TAG_SAVE_MENU_COPY = "editor.save.menu.copy"
 internal const val TAG_SAVE_MENU_OPEN = "editor.save.menu.open"
+internal const val TAG_SAVE_CHEVRON = "editor.save.chevron"
 
 /** One explicit-format save item per [PhotoExportFormat], tagged by name. */
 internal const val TAG_SAVE_MENU_FORMAT_PREFIX = "editor.save.menu.format."
@@ -110,94 +110,6 @@ private fun exportFormatLabel(format: PhotoExportFormat): StringResource = when 
 }
 
 /**
- * The photo top chrome on the shared 56 dp workbench header: Back, source
- * name with the output dimensions of the current geometry, Undo, Redo, the
- * overflow (Reset edits stays reachable there) and the one filled action —
- * Save copy. At ≥1.5× font on a narrow window the title and actions stack
- * into two rows so Save is never pushed off the edge.
- */
-@Composable
-internal fun EditorTopBar(
-    state: PhotoEditorState,
-    actions: PhotoEditorActions,
-    widthDp: Float,
-    compact: Boolean,
-    onBack: () -> Unit
-) {
-    val fontScale = LocalDensity.current.fontScale
-    val stacked = fontScale >= 1.5f && widthDp < 700f
-    WorkbenchHeader(
-        title = state.info?.displayName.orEmpty(),
-        onBack = onBack,
-        backTag = TAG_BACK,
-        stacked = stacked
-    ) {
-        var menuOpen by remember { mutableStateOf(false) }
-        if (!compact) {
-            WorkbenchIconButton(
-                icon = EditorSymbols.Undo,
-                label = stringResource(Res.string.editor_undo),
-                onClick = actions.undo,
-                enabled = state.canUndo,
-                modifier = Modifier.testTag(TAG_UNDO)
-            )
-            WorkbenchIconButton(
-                icon = EditorSymbols.Redo,
-                label = stringResource(Res.string.editor_redo),
-                onClick = actions.redo,
-                enabled = state.canRedo,
-                modifier = Modifier.testTag(TAG_REDO)
-            )
-        }
-        Box {
-            WorkbenchIconButton(
-                icon = EditorSymbols.MoreVert,
-                label = stringResource(Res.string.editor_more_options),
-                onClick = { menuOpen = true },
-                enabled = state.document != null,
-                modifier = Modifier.testTag(TAG_OVERFLOW)
-            )
-            DropdownMenu(
-                expanded = menuOpen,
-                onDismissRequest = { menuOpen = false }
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Text(stringResource(Res.string.editor_reset_edits))
-                    },
-                    enabled = state.document != null &&
-                        !state.interactionActive,
-                    onClick = {
-                        menuOpen = false
-                        actions.reset()
-                    },
-                    modifier = Modifier.testTag(TAG_RESET_ALL)
-                )
-                PhotoExportMenuItems(actions) { menuOpen = false }
-            }
-        }
-        if (compact) {
-            WorkbenchFilledIconButton(
-                icon = EditorSymbols.Check,
-                label = stringResource(Res.string.editor_save_copy),
-                onClick = actions.saveCopy,
-                enabled = state.document != null && !state.exporting &&
-                    !state.isDrafting && !state.opening,
-                modifier = Modifier.testTag(TAG_SAVE)
-            )
-        } else {
-            WorkbenchPrimaryAction(
-                label = stringResource(Res.string.editor_save_copy),
-                onClick = actions.saveCopy,
-                enabled = state.document != null && !state.exporting &&
-                    !state.isDrafting && !state.opening,
-                modifier = Modifier.testTag(TAG_SAVE)
-            )
-        }
-    }
-}
-
-/**
  * The floating glass capsule the compact chrome rides in — one 56 dp
  * capsule material for every compact header variant (the home command
  * header, the tool context header). The shape and blur are shared; the
@@ -221,16 +133,18 @@ internal fun EditorFloatingHeaderCapsule(
 
 /**
  * The compact home's header — the approved Stitch anatomy: a separate
- * 48 dp glass Close circle, the commands capsule (Undo, Redo, a 1 dp
- * divider, Compare) and the single filled Save copy pill. Close funnels
- * the shared [onBack] unwind (draft, dirty confirm, export); Undo/Redo
+ * 48 dp glass Close circle and the mode switch leading, the commands
+ * (an Undo/Redo capsule and a Compare circle) centred, and the save
+ * action trailing — the labelled split pill on wide windows, the split
+ * check + chevron under 400 dp or at 1.5× text. Close funnels the
+ * shared [onBack] unwind (draft, dirty confirm, export); Undo/Redo
  * gate on the session's history; the compare toggle drives the
  * viewport's split compare.
  *
  * The same slot carries the document's Save (enabled only while the
  * session is dirty, D8) and — while a tool owns the draft — that tool's
- * single commit, so the card itself never needs a footer row. Tap the Save
- * pill for its options; tap Apply to commit and collapse.
+ * single commit, so the card itself never needs a footer row. Tap the
+ * chevron for the save options; the check saves the copy directly.
  */
 @Composable
 internal fun EditorHomeHeader(
@@ -238,6 +152,7 @@ internal fun EditorHomeHeader(
     actions: PhotoEditorActions,
     viewport: EditorViewportState,
     imageReady: Boolean,
+    widthDp: Float,
     onBack: () -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
@@ -245,68 +160,82 @@ internal fun EditorHomeHeader(
     onApply: (() -> Unit)? = null,
     applyLabel: String? = null,
     /** Optional second save action: write the copy and open it. */
-    onSaveAndOpen: (() -> Unit)? = null
+    onSaveAndOpen: (() -> Unit)? = null,
+    /** Long-pressing Undo opens the history sheet. */
+    onShowHistory: (() -> Unit)? = null
 ) {
     val closeLabel = stringResource(Res.string.editor_close)
     val saveLabel = stringResource(Res.string.editor_save)
-    val saveEnabled = state.document != null && state.isDirty &&
-        !state.exporting && !state.isDrafting && !state.opening
+    // An open tool does not block Save: saving keeps the tool's changes
+    // first. Only a gesture still in flight does. While a tool is open,
+    // canUndo is the tool's own history, so it says whether the tool has
+    // changed anything yet.
+    val saveEnabled = state.document != null &&
+        (state.isDirty || (state.toolEditing && state.canUndo)) &&
+        !state.exporting && !state.interactionActive && !state.opening
+    // Under 400 dp — or at 1.5× text on any compact window — the fixed
+    // controls leave no room for the labelled pill, so the action
+    // collapses to its icon form.
+    val labelledAction = LocalDensity.current.fontScale < 1.5f && widthDp >= 400f
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        EditorFloatingPanel(
-            shape = CircleShape,
-            modifier = Modifier.size(48.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WorkbenchIconButton(
-                icon = EditorSymbols.Close,
-                label = closeLabel,
-                onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .testTag(TAG_BACK)
-            )
-        }
-        EditorFloatingPanel(
-            shape = CircleShape,
-            modifier = Modifier.height(48.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(48.dp)
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+            EditorFloatingPanel(
+                shape = CircleShape,
+                modifier = Modifier.size(48.dp)
             ) {
                 WorkbenchIconButton(
-                    icon = EditorSymbols.Undo,
-                    label = stringResource(Res.string.editor_undo),
-                    onClick = actions.undo,
-                    enabled = state.canUndo,
-                    modifier = Modifier.testTag(TAG_UNDO)
-                )
-                WorkbenchIconButton(
-                    icon = EditorSymbols.Redo,
-                    label = stringResource(Res.string.editor_redo),
-                    onClick = actions.redo,
-                    enabled = state.canRedo,
-                    modifier = Modifier.testTag(TAG_REDO)
-                )
-                Box(
+                    icon = EditorSymbols.Close,
+                    label = closeLabel,
+                    onClick = onBack,
                     modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(width = 1.dp, height = 20.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurface
-                                .copy(alpha = 0.24f)
-                        )
+                        .align(Alignment.Center)
+                        .testTag(TAG_BACK)
                 )
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            EditorFloatingPanel(
+                shape = RoundedCornerShape(26.dp),
+                modifier = Modifier.height(48.dp)
+            ) {
+                Row(modifier = Modifier.height(48.dp)) {
+                    WorkbenchIconButton(
+                        icon = EditorSymbols.Undo,
+                        label = stringResource(Res.string.editor_undo),
+                        onClick = actions.undo,
+                        enabled = state.canUndo,
+                        modifier = Modifier.testTag(TAG_UNDO),
+                        onLongClick = onShowHistory,
+                        onLongClickLabel = stringResource(Res.string.editor_show_history)
+                    )
+                    WorkbenchIconButton(
+                        icon = EditorSymbols.Redo,
+                        label = stringResource(Res.string.editor_redo),
+                        onClick = actions.redo,
+                        enabled = state.canRedo,
+                        modifier = Modifier.testTag(TAG_REDO)
+                    )
+                }
+            }
+            EditorFloatingPanel(
+                shape = CircleShape,
+                modifier = Modifier.size(48.dp)
+            ) {
                 // The compare toggle — the Before chip's tag and switch
-                // semantics ride the icon so the viewport compare contract
-                // stays one node.
+                // semantics ride the icon so the viewport compare
+                // contract stays one node.
                 WorkbenchIconButton(
                     icon = EditorSymbols.Compare,
                     label = stringResource(Res.string.editor_compare),
@@ -315,24 +244,39 @@ internal fun EditorHomeHeader(
                     },
                     enabled = imageReady,
                     selected = viewport.compareSplit,
-                    modifier = Modifier.testTag(TAG_BEFORE_CHIP)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .testTag(TAG_BEFORE_CHIP)
                 )
             }
         }
+        Spacer(Modifier.weight(1f))
         if (onApply != null && applyLabel != null) {
             EditorApplyPill(
                 label = applyLabel,
                 enabled = !state.interactionActive,
-                onApply = onApply
+                onApply = onApply,
+                showLabel = labelledAction
             )
-        } else {
+        } else if (labelledAction) {
             EditorSavePill(
                 actions = actions,
                 enabled = saveEnabled,
                 onSave = onSave,
                 onSaveAndOpen = onSaveAndOpen,
                 rawSource = state.info?.isRaw == true,
-                label = saveLabel
+                label = saveLabel,
+                tonal = state.toolEditing
+            )
+        } else {
+            EditorSaveIconSplit(
+                actions = actions,
+                enabled = saveEnabled,
+                onSave = onSave,
+                onSaveAndOpen = onSaveAndOpen,
+                rawSource = state.info?.isRaw == true,
+                label = saveLabel,
+                tonal = state.toolEditing
             )
         }
     }
@@ -348,6 +292,7 @@ private fun EditorApplyPill(
     label: String,
     enabled: Boolean,
     onApply: () -> Unit,
+    showLabel: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -368,18 +313,18 @@ private fun EditorApplyPill(
                 onClickLabel = label,
                 onClick = onApply
             )
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = if (showLabel) 16.dp else 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
             imageVector = EditorSymbols.Check,
-            contentDescription = null,
+            contentDescription = if (showLabel) null else label,
             tint = if (enabled) MaterialTheme.colorScheme.onPrimary
             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             modifier = Modifier.size(20.dp)
         )
-        Text(
+        if (showLabel) Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             color = if (enabled) MaterialTheme.colorScheme.onPrimary
@@ -403,23 +348,23 @@ private fun EditorSavePill(
     label: String,
     modifier: Modifier = Modifier,
     onSaveAndOpen: (() -> Unit)? = null,
-    rawSource: Boolean = false
+    rawSource: Boolean = false,
+    tonal: Boolean = false
 ) {
-    val container = if (enabled) {
+    val filled = enabled && !tonal
+    val container = if (filled) {
         MaterialTheme.colorScheme.primary
     } else {
         // Dark chrome, not a light overlay: the pill sits on the photo.
         MaterialTheme.colorScheme.surfaceContainerHigh
     }
-    val content = if (enabled) {
+    val content = if (filled) {
         MaterialTheme.colorScheme.onPrimary
+    } else if (enabled) {
+        MaterialTheme.colorScheme.onSurface
     } else {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
     }
-    // At large text the label would push the pill under the commands
-    // capsule; the pill keeps its icon and the action's name stays on the
-    // icon's content description.
-    val showLabel = LocalDensity.current.fontScale < 1.5f
     val menuLabel = stringResource(Res.string.editor_save_menu)
     var menuOpen by remember { mutableStateOf(false) }
     val pillLabel = if (rawSource) stringResource(Res.string.editor_raw_export_action) else label
@@ -437,17 +382,17 @@ private fun EditorSavePill(
                     // A RAW has no container to follow: its one action asks.
                     onClick = { if (rawSource) onSave() else menuOpen = true }
                 )
-                .padding(horizontal = if (showLabel) 16.dp else 14.dp),
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
                 imageVector = EditorSymbols.Check,
-                contentDescription = if (showLabel) null else menuLabel,
+                contentDescription = null,
                 tint = content,
                 modifier = Modifier.size(20.dp)
             )
-            if (showLabel) Text(
+            Text(
                 text = pillLabel,
                 style = MaterialTheme.typography.labelLarge,
                 color = content,
@@ -465,25 +410,146 @@ private fun EditorSavePill(
             expanded = menuOpen,
             onDismissRequest = { menuOpen = false }
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.editor_save_copy)) },
-                onClick = {
-                    menuOpen = false
-                    onSave()
-                },
-                modifier = Modifier.testTag(TAG_SAVE_MENU_COPY)
+            EditorSaveMenuItems(
+                actions = actions,
+                onSave = onSave,
+                onSaveAndOpen = onSaveAndOpen,
+                onDismiss = { menuOpen = false }
             )
-            PhotoExportMenuItems(actions) { menuOpen = false }
-            if (onSaveAndOpen != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(Res.string.editor_save_and_open)) },
-                    onClick = {
-                        menuOpen = false
-                        onSaveAndOpen()
-                    },
-                    modifier = Modifier.testTag(TAG_SAVE_MENU_OPEN)
+        }
+    }
+}
+
+/**
+ * The save action's narrow form: a filled 48 dp check that saves the
+ * copy directly and a 32 dp chevron that opens the same options menu —
+ * the two halves carry the pill's split-corner radii so they read as
+ * one control. Same tag, enabled rules and semantics labels as the
+ * labelled pill.
+ */
+@Composable
+private fun EditorSaveIconSplit(
+    actions: PhotoEditorActions,
+    enabled: Boolean,
+    onSave: () -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    onSaveAndOpen: (() -> Unit)? = null,
+    rawSource: Boolean = false,
+    tonal: Boolean = false
+) {
+    val filled = enabled && !tonal
+    val container = if (filled) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val content = if (filled) {
+        MaterialTheme.colorScheme.onPrimary
+    } else if (enabled) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    }
+    val menuLabel = stringResource(Res.string.editor_save_menu)
+    var menuOpen by remember { mutableStateOf(false) }
+    val pillLabel = if (rawSource) stringResource(Res.string.editor_raw_export_action) else label
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 24.dp, topEnd = 6.dp,
+                        bottomEnd = 6.dp, bottomStart = 24.dp
+                    )
+                )
+                .background(container)
+                .testTag(TAG_SAVE)
+                .clickable(
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = pillLabel,
+                    onClick = onSave
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = EditorSymbols.Check,
+                contentDescription = pillLabel,
+                tint = content,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .width(32.dp)
+                .height(48.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 6.dp, topEnd = 24.dp,
+                        bottomEnd = 24.dp, bottomStart = 6.dp
+                    )
+                )
+                .background(container)
+                .testTag(TAG_SAVE_CHEVRON)
+                .clickable(
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = menuLabel,
+                    onClick = { menuOpen = true }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = EditorSymbols.KeyboardArrowDown,
+                contentDescription = menuLabel,
+                tint = content,
+                modifier = Modifier.size(20.dp)
+            )
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false }
+            ) {
+                EditorSaveMenuItems(
+                    actions = actions,
+                    onSave = onSave,
+                    onSaveAndOpen = onSaveAndOpen,
+                    onDismiss = { menuOpen = false }
                 )
             }
         }
+    }
+}
+
+/** The save options both save forms open: the copy, the formats, open. */
+@Composable
+private fun ColumnScope.EditorSaveMenuItems(
+    actions: PhotoEditorActions,
+    onSave: () -> Unit,
+    onSaveAndOpen: (() -> Unit)?,
+    onDismiss: () -> Unit
+) {
+    DropdownMenuItem(
+        text = { Text(stringResource(Res.string.editor_save_copy)) },
+        onClick = {
+            onDismiss()
+            onSave()
+        },
+        modifier = Modifier.testTag(TAG_SAVE_MENU_COPY)
+    )
+    PhotoExportMenuItems(actions, onDismiss)
+    if (onSaveAndOpen != null) {
+        DropdownMenuItem(
+            text = { Text(stringResource(Res.string.editor_save_and_open)) },
+            onClick = {
+                onDismiss()
+                onSaveAndOpen()
+            },
+            modifier = Modifier.testTag(TAG_SAVE_MENU_OPEN)
+        )
     }
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -58,7 +57,7 @@ internal fun photoToolSheetPeek(tool: EditorToolId) = when (tool) {
     // Crop & straighten (Perspective is its Vertical tab): the aspect strip
     // and the control row only — the actions float under the header, so the
     // card is deliberately short and the frame owns the window.
-    EditorToolIds.PhotoCrop, EditorToolIds.PhotoPerspective -> 152.dp
+    EditorToolIds.PhotoCrop, EditorToolIds.PhotoPerspective -> 208.dp
     EditorToolIds.PhotoLayerMask -> 260.dp
     EditorToolIds.PhotoDoubleExposure, EditorToolIds.PhotoBlend -> 280.dp
     EditorToolIds.PhotoTransform -> 280.dp
@@ -79,7 +78,7 @@ internal fun photoToolSheetHeight(tool: EditorToolId): Dp {
         EditorToolIds.PhotoTransform -> 320.dp
         EditorToolIds.PhotoBlend,
         EditorToolIds.PhotoDoubleExposure -> 330.dp
-        EditorToolIds.PhotoCrop, EditorToolIds.PhotoPerspective -> 250.dp
+        EditorToolIds.PhotoCrop, EditorToolIds.PhotoPerspective -> 306.dp
         EditorToolIds.PhotoLayerMask -> 380.dp
         EditorToolIds.PhotoLooks -> 232.dp
         EditorToolIds.PhotoWhiteBalance -> 420.dp
@@ -125,12 +124,12 @@ internal fun PhotoToolSheetSurface(
         Box(
             Modifier
                 .matchParentSize()
-                // The tool card sits darker than the platform surface and
-                // blurs deeper, so the photo's colours stay out of the
-                // controls.
+                // The tool card takes the shared panelGlass — the
+                // surface at 88 % over the deep sheet blur — so the
+                // photo's colours stay out of the controls.
                 .editorSheetBlur(
                     shape = RoundedCornerShape(28.dp),
-                    baseColor = Color(0xFF141416),
+                    baseColor = editorGlassColors().panelGlass,
                     blurRadius = 32.dp
                 )
                 .testTag(TAG_PHOTO_SHEET_MATERIAL)

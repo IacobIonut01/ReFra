@@ -40,6 +40,9 @@ class EditorWorkspaceState(
     /** The Photo editor settings page covers the workspace. Not saved: it reopens closed. */
     var settingsOpen by mutableStateOf(false)
 
+    /** The History sheet over the workspace. Not saved: it reopens closed. */
+    var historyOpen by mutableStateOf(false)
+
     /**
      * The ordered destinations pinned to the compact home pill — tool
      * ids plus the reserved [PHOTO_PIN_LAYERS] slot, capped at
@@ -61,6 +64,20 @@ class EditorWorkspaceState(
                 destination in PHOTO_PINNABLE_DESTINATIONS ->
                 current + destination
             else -> current
+        }
+    }
+
+    /**
+     * The catalogue's long-press: toggles the pin, or opens the pin manager
+     * when the dock is already full, so the press never silently does nothing.
+     */
+    fun pinFromCatalogue(destination: String) {
+        if (destination !in pinnedPhotoDestinations &&
+            pinnedPhotoDestinations.size >= MAX_PHOTO_PINS
+        ) {
+            pinEditorOpen = true
+        } else {
+            togglePhotoPin(destination)
         }
     }
 

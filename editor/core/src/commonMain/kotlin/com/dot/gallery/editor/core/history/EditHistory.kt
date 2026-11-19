@@ -3,6 +3,14 @@ package com.dot.gallery.editor.core.history
 import com.dot.gallery.editor.core.time.checkedAdd
 
 /**
+ * One committed step: the value before the step ran and the value it
+ * produced. [EditHistory.pastSteps] and [EditHistory.undoneSteps]
+ * expose the stacks in this shape for read-only consumers such as a
+ * history panel.
+ */
+data class HistoryStep<T : Any>(val label: String, val before: T, val after: T)
+
+/**
  * Undo/redo history over immutable document values.
  *
  * Two ways to record work:
@@ -48,6 +56,38 @@ class EditHistory<T : Any>(initial: T, private val capacity: Int = 100) {
     val isDirty: Boolean get() = currentValue != savedValue
     val isDrafting: Boolean get() = draftStartValue != null
     val revision: Long get() = revisionValue
+
+    /**
+     * The committed steps before the current value, oldest first. Undo
+     * entries store the value before their step, so a step's after is the
+     * next entry's before — or [current] for the most recent one.
+     */
+    val pastSteps: List<HistoryStep<T>>
+        get() = undoStack.mapIndexed { index, entry ->
+            HistoryStep(
+                label = entry.label,
+                before = entry.value,
+                after = undoStack.getOrNull(index + 1)?.value ?: currentValue
+            )
+        }
+
+    /**
+     * The committed steps after the current value, ordered so the next
+     * one to redo comes first. Redo entries store the value after their
+     * step; each step's before is the previous undone step's after,
+     * starting at [current].
+     */
+    val undoneSteps: List<HistoryStep<T>>
+        get() {
+            val steps = ArrayList<HistoryStep<T>>(redoStack.size)
+            var before = currentValue
+            for (index in redoStack.indices.reversed()) {
+                val entry = redoStack[index]
+                steps.add(HistoryStep(entry.label, before, entry.value))
+                before = entry.value
+            }
+            return steps
+        }
 
     /** Opens a draft gesture. Nested drafts are rejected. */
     fun begin(label: String) {
@@ -140,6 +180,22 @@ class EditHistory<T : Any>(initial: T, private val capacity: Int = 100) {
         currentValue = entry.value
         revisionValue = newRevision
         return true
+    }
+
+    /**
+     * Undoes or redoes until [pastSteps] holds exactly [pastCount] steps —
+     * jumping straight to a point in the history. An out-of-range count is
+     * clamped to the committed range. Like [undo]/[redo] it is rejected
+     * while a draft is open. Returns true when at least one step moved;
+     * a jump to the current position is a no-op returning false.
+     */
+    fun jumpTo(pastCount: Int): Boolean {
+        check(!isDrafting) { "jumpTo() is not allowed during a draft" }
+        val target = pastCount.coerceIn(0, undoStack.size + redoStack.size)
+        var moved = false
+        while (undoStack.size > target && undo()) moved = true
+        while (undoStack.size < target && redo()) moved = true
+        return moved
     }
 
     /**

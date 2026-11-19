@@ -35,11 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -51,6 +54,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_ruler_hint
 import com.dot.gallery.editor.ui.generated.resources.editor_step_decrease
 import com.dot.gallery.editor.ui.generated.resources.editor_step_increase
 import org.jetbrains.compose.resources.stringResource
@@ -80,6 +84,10 @@ internal fun rulerSlabHeight(labelLine: Dp): Dp =
  * a double tap, and an accessibility action named [resetLabel], reset the
  * value. The steps apply `value ∓ step` through [onApplyStep] and are
  * announced as "Decrease/Increase [label]".
+ *
+ * [track] paints the parameter's rendered band along the slab's top,
+ * between the step buttons; [trackGradient] is the colour-ramp shorthand
+ * for it.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -114,7 +122,9 @@ internal fun EditorRulerSlab(
     /** A lower-profile rail: 26 dp pill over a 44 dp capsule. */
     compact: Boolean = false,
     /** Painted along the slab's top, between the step buttons. */
-    trackGradient: List<Color>? = null
+    trackGradient: List<Color>? = null,
+    /** A rendered track band — wins over [trackGradient]. */
+    track: EditorSliderTrack? = null
 ) {
     val canAct = enabled && !interactionActive
     // A disabled rail's readout recedes with it rather than staying a
@@ -139,6 +149,8 @@ internal fun EditorRulerSlab(
     val latestOpen by rememberUpdatedState(onOpenEntry)
     val latestReset by rememberUpdatedState(onResetValue)
     val latestCanAct by rememberUpdatedState(canAct)
+    val hintStore = LocalEditorSettingsStore.current
+    val showRulerHint = hintStore != null && !hintStore.settings.rulerHintSeen
     Column(modifier = modifier.fillMaxWidth()) {
         var pillWidthPx by remember { mutableIntStateOf(0) }
         val targetFraction =
@@ -207,19 +219,46 @@ internal fun EditorRulerSlab(
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .drawBehind {
-                        if (trackGradient != null) {
-                            val inset = stepWidth.toPx() + 12.dp.toPx()
-                            val strip = 3.dp.toPx()
-                            drawRoundRect(
+                        val band = track ?: trackGradient?.let {
+                            EditorSliderTrack.Gradient(it)
+                        } ?: return@drawBehind
+                        val inset = stepWidth.toPx() + 12.dp.toPx()
+                        // The band rides directly under the tick ladder —
+                        // the ruler's ticks hang from y19 (y14 on the
+                        // compact rail) and stand 16 dp (10 dp) tall, so
+                        // the strip starts one dp below their foot and the
+                        // limit labels keep the slab's bottom line.
+                        val bandTop = if (compact) 25.dp.toPx() else 36.dp.toPx()
+                        val bandHeight = 4.dp.toPx()
+                        val bandWidth = (size.width - inset * 2f).coerceAtLeast(0f)
+                        val bandRight = inset + bandWidth
+                        val corner = CornerRadius(bandHeight / 2f)
+                        when (band) {
+                            is EditorSliderTrack.Gradient -> drawRoundRect(
                                 brush = Brush.horizontalGradient(
-                                    trackGradient,
+                                    band.colors,
                                     startX = inset,
-                                    endX = size.width - inset
+                                    endX = bandRight
                                 ),
-                                topLeft = Offset(inset, 5.dp.toPx()),
-                                size = Size(size.width - inset * 2f, strip),
-                                cornerRadius = CornerRadius(strip / 2f)
+                                topLeft = Offset(inset, bandTop),
+                                size = Size(bandWidth, bandHeight),
+                                cornerRadius = corner
                             )
+                            is EditorSliderTrack.Tonal -> {
+                                val clip = Path().apply {
+                                    addRoundRect(
+                                        RoundRect(
+                                            inset, bandTop, bandRight,
+                                            bandTop + bandHeight, corner
+                                        )
+                                    )
+                                }
+                                clipPath(clip) {
+                                    drawTonalTrack(
+                                        band, inset, bandTop, bandWidth, bandHeight
+                                    )
+                                }
+                            }
                         }
                     },
                 verticalAlignment = Alignment.CenterVertically
@@ -244,7 +283,10 @@ internal fun EditorRulerSlab(
                     sliderTag = sliderTag,
                     onBeginInteraction = onBeginInteraction,
                     onUpdateInteraction = onUpdateInteraction,
-                    onCommitInteraction = onCommitInteraction,
+                    onCommitInteraction = {
+                        onCommitInteraction()
+                        hintStore?.update { it.copy(rulerHintSeen = true) }
+                    },
                     onCancelInteraction = onCancelInteraction,
                     onApplyStep = onApplyStep,
                     modifier = Modifier.weight(1f),
@@ -253,6 +295,7 @@ internal fun EditorRulerSlab(
                     containerColor = Color.Transparent,
                     scale = scale,
                     hapticAt = hapticAt,
+                    onDoubleTapReset = onResetValue,
                     needleFraction = fraction,
                     limitStartLabel = limitStartLabel,
                     limitEndLabel = limitEndLabel,
@@ -321,6 +364,18 @@ internal fun EditorRulerSlab(
                     )
                 }
             }
+        }
+        if (showRulerHint) {
+            Text(
+                text = stringResource(Res.string.editor_ruler_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            )
         }
     }
 }

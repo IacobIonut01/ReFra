@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -172,6 +173,7 @@ private val SaturationParameter = FinishingParam(
     neutral = 1f,
     signed = false,
     unitSuffix = "×",
+    tonalTrack = EditorSliderTrack.Tonal.Saturation,
     read = { it.color.saturation },
     write = { edits, value -> edits.copy(color = edits.color.copy(saturation = value)) }
 )
@@ -182,6 +184,7 @@ private val VibranceParameter = FinishingParam(
     displayRange = -100f..100f,
     step = 1f,
     neutral = 0f,
+    tonalTrack = EditorSliderTrack.Tonal.Vibrance,
     read = { percentOf(it.finishing.grade.vibrance) },
     write = { edits, value ->
         edits.withGrade(edits.finishing.grade.copy(vibrance = value / 100f))
@@ -194,7 +197,8 @@ private fun hslParameters(band: PhotoHslBand): List<FinishingParam> {
     fun parameter(
         name: String,
         labelRes: StringResource,
-        gradient: List<Color>,
+        gradient: List<Color>?,
+        tonalTrack: EditorSliderTrack.Tonal? = null,
         get: (PhotoHslAdjustment) -> Float,
         set: (PhotoHslAdjustment, Float) -> PhotoHslAdjustment
     ) = FinishingParam(
@@ -204,6 +208,7 @@ private fun hslParameters(band: PhotoHslBand): List<FinishingParam> {
         step = 1f,
         neutral = 0f,
         trackGradient = gradient,
+        tonalTrack = tonalTrack,
         read = { percentOf(get(it.finishing.grade.adjustment(band))) },
         write = { edits, value ->
             val grade = edits.finishing.grade
@@ -215,19 +220,19 @@ private fun hslParameters(band: PhotoHslBand): List<FinishingParam> {
     val color = bandColor(band.centerHue)
     return listOf(
         parameter(
-            "hue", Res.string.editor_hue,
-            listOf(bandColor(band.centerHue - 30f), color, bandColor(band.centerHue + 30f)),
-            { it.hue }, { a, v -> a.copy(hue = v) }
+            "hue", Res.string.editor_hue, null,
+            tonalTrack = EditorSliderTrack.Tonal.Hue,
+            get = { it.hue }, set = { a, v -> a.copy(hue = v) }
         ),
         parameter(
             "saturation", Res.string.editor_saturation,
             listOf(Color(0xFF8D9199), color),
-            { it.saturation }, { a, v -> a.copy(saturation = v) }
+            get = { it.saturation }, set = { a, v -> a.copy(saturation = v) }
         ),
         parameter(
             "luminance", Res.string.editor_luminance,
             listOf(Color(0xFF1A1C1E), color, Color(0xFFF1F0F4)),
-            { it.luminance }, { a, v -> a.copy(luminance = v) }
+            get = { it.luminance }, set = { a, v -> a.copy(luminance = v) }
         )
     )
 }
@@ -238,6 +243,9 @@ private fun wheelLuminanceParameter(region: ColourRegion) = FinishingParam(
     displayRange = -100f..100f,
     step = 1f,
     neutral = 0f,
+    trackGradient = listOf(
+        Color(0xFF1A1C1E), Color(0xFFE6E2D6), Color(0xFFF1F0F4)
+    ),
     read = { percentOf(it.finishing.grade.wheel(region).luminance) },
     write = { edits, value ->
         val grade = edits.finishing.grade
@@ -510,12 +518,8 @@ private fun ColourParams(
         }
         else -> {
             val active = params.firstOrNull { it.key == activeKey } ?: params.first()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            EditorChipRow(
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 params.forEachIndexed { index, param ->
                     ColourParamChip(
@@ -536,9 +540,9 @@ private fun ColourParams(
 }
 
 /**
- * A parameter selector: the third level of the hierarchy, outlined rather than
- * filled so it reads with the ruler below it. Same cell as Light's strip, at
- * the full touch height.
+ * A parameter selector: the third level of the hierarchy, a tonal pill
+ * rather than an outlined cell so it reads with the slider below it. Same
+ * cell as the other selector chips, at the full touch height.
  */
 @Composable
 internal fun ColourParamChip(
@@ -551,52 +555,16 @@ internal fun ColourParamChip(
     tag: String,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    val background by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-        else MaterialTheme.colorScheme.surfaceContainerHigh,
-        label = "colourChipBackground"
+    EditorChip(
+        label = label,
+        selected = selected,
+        onClick = onClick,
+        enabled = enabled,
+        value = value,
+        valueModified = modified,
+        leadingIcon = icon,
+        tag = tag
     )
-    val border by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        label = "colourChipBorder"
-    )
-    Row(
-        modifier = Modifier
-            .heightIn(min = 48.dp)
-            .clip(shape)
-            .background(background)
-            .border(1.5.dp, border, shape)
-            .clickable(enabled = enabled, role = Role.Tab, onClickLabel = label) { onClick() }
-            .semantics { this.selected = selected }
-            .testTag(tag)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            softWrap = false
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (modified) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            softWrap = false
-        )
-    }
 }
 
 @Composable

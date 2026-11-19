@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -38,12 +39,10 @@ import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,12 +66,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.dot.gallery.editor.ui.generated.resources.Res
-import com.dot.gallery.editor.ui.generated.resources.editor_apply
-import com.dot.gallery.editor.ui.generated.resources.editor_cancel
 import com.dot.gallery.editor.ui.icons.EditorSymbols
 import com.dot.gallery.editor.ui.icons.KeyboardArrowDown
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * Shared workbench control anatomy from `editor/UI_REDESIGN.md`: the touch
@@ -98,7 +93,9 @@ internal fun WorkbenchIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    selected: Boolean? = null
+    selected: Boolean? = null,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
@@ -126,12 +123,27 @@ internal fun WorkbenchIconButton(
                         Modifier
                     }
                 )
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick
+                .then(
+                    if (onLongClick != null) {
+                        Modifier.combinedClickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            enabled = enabled,
+                            role = Role.Button,
+                            onClickLabel = label,
+                            onLongClickLabel = onLongClickLabel,
+                            onLongClick = onLongClick,
+                            onClick = onClick
+                        )
+                    } else {
+                        Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            enabled = enabled,
+                            role = Role.Button,
+                            onClick = onClick
+                        )
+                    }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -172,7 +184,8 @@ internal fun WorkbenchIconButton(
             }
         }
     }
-    WorkbenchTooltip(label) { button() }
+    // A long-press action owns the press: on touch the tooltip would take it.
+    if (onLongClick != null) button() else WorkbenchTooltip(label) { button() }
 }
 
 /**
@@ -506,51 +519,6 @@ internal fun WorkbenchSlider(
 
 internal const val TAG_TOOL_CANCEL = "editor.tool.cancel"
 internal const val TAG_TOOL_APPLY = "editor.tool.apply"
-
-/**
- * The fixed Cancel/Apply bar shown while a tool owns the session draft —
- * in place of the compact navigation pill or at the foot of the wide
- * inspector. Cancel is a text action, Apply the single filled pill,
- * matching the approved `p-light` actions row. Apply is gated separately:
- * the session refuses to apply while an interaction is in flight, so the
- * button mirrors that precondition.
- */
-@Composable
-internal fun EditorToolActionsBar(
-    onCancel: () -> Unit,
-    onApply: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    applyEnabled: Boolean = enabled
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextButton(
-            onClick = onCancel,
-            enabled = enabled,
-            modifier = Modifier
-                .heightIn(min = 48.dp)
-                .testTag(TAG_TOOL_CANCEL)
-        ) {
-            Text(
-                stringResource(Res.string.editor_cancel),
-                maxLines = 1,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        Spacer(Modifier.weight(1f))
-        WorkbenchPrimaryAction(
-            label = stringResource(Res.string.editor_apply),
-            onClick = onApply,
-            enabled = applyEnabled,
-            modifier = Modifier.testTag(TAG_TOOL_APPLY)
-        )
-    }
-}
 
 /**
  * A labelled destination in a bottom dock or side rail — icon (22 dp by

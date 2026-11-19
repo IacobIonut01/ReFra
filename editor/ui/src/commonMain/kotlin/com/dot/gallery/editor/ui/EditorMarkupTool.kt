@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -57,6 +59,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -292,13 +295,7 @@ internal fun MarkupToolContent(
                 MarkupSizeRuler(toolUi, enabled)
             }
             MarkupMode.Blur, MarkupMode.Mosaic -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                EditorChipRow {
                     ColourParamChip(
                         label = stringResource(Res.string.editor_retouch_size),
                         icon = RetouchSymbols.LineWeight,
@@ -479,6 +476,7 @@ private fun MarkupSizeRuler(toolUi: PhotoToolUiState, enabled: Boolean) {
         label = stringResource(Res.string.editor_retouch_size),
         value = toolUi.markupSize,
         range = 1f..100f,
+        defaultValue = 30f,
         enabled = enabled,
         keyName = "size",
         onChange = { toolUi.markupSize = it }
@@ -491,6 +489,7 @@ private fun MarkupStrengthRuler(toolUi: PhotoToolUiState, enabled: Boolean) {
         label = stringResource(Res.string.editor_retouch_strength),
         value = toolUi.markupStrength,
         range = 0f..100f,
+        defaultValue = 70f,
         enabled = enabled,
         keyName = "strength",
         onChange = { toolUi.markupStrength = it }
@@ -503,11 +502,25 @@ private fun MarkupSettingRuler(
     label: String,
     value: Float,
     range: ClosedFloatingPointRange<Float>,
+    defaultValue: Float,
     enabled: Boolean,
     keyName: String,
     onChange: (Float) -> Unit
 ) {
     val display = formatDecimal(value).trimEnd('0').trimEnd('.')
+    var entryOpen by remember { mutableStateOf(false) }
+    if (entryOpen) {
+        NumericEntryDialog(
+            label = label,
+            initialValue = value,
+            range = range,
+            onConfirm = {
+                onChange(it.coerceIn(range))
+                entryOpen = false
+            },
+            onDismiss = { entryOpen = false }
+        )
+    }
     EditorRulerSlab(
         label = label,
         value = value,
@@ -523,12 +536,13 @@ private fun MarkupSettingRuler(
         sliderTag = "editor.markup.slider.$keyName",
         valueTag = "editor.markup.value.$keyName",
         stepKey = keyName,
-        onOpenEntry = {},
+        onOpenEntry = { entryOpen = true },
         onBeginInteraction = {},
         onUpdateInteraction = { onChange(it.coerceIn(range)) },
         onCommitInteraction = {},
         onCancelInteraction = {},
         onApplyStep = { onChange(it.coerceIn(range)) },
+        onResetValue = { onChange(defaultValue) },
         hapticAt = null,
         limitStartLabel = formatDecimal(range.start).trimEnd('0').trimEnd('.'),
         limitEndLabel = formatDecimal(range.endInclusive).trimEnd('0').trimEnd('.'),
@@ -648,6 +662,56 @@ private fun MarkupDialogButton(
     }
 }
 
+/** The zoomed image box in region pixels, its scale pivot and the fit size. */
+private class MarkupGeometry(
+    val left: Float,
+    val top: Float,
+    val width: Float,
+    val height: Float,
+    val pivotX: Float,
+    val pivotY: Float,
+    val fitWidth: Float,
+    val fitHeight: Float
+)
+
+/**
+ * Pinch and pan while a brush gesture is down. The photo point under the
+ * fingers stays there: the zoomed box is re-anchored so the centroid keeps
+ * its fraction of the box, then the shift is written as the viewport's pan
+ * (the canvas maps pan through the same pivot, so the pivot term cancels
+ * the scale's own move). The canvas clamps the zoom to its real range and
+ * mirrors the clamped value back.
+ */
+private suspend fun AwaitPointerEventScope.zoomAndPanWithPinch(
+    viewport: EditorViewportState,
+    geometry: () -> MarkupGeometry
+) {
+    do {
+        val event = awaitPointerEvent()
+        val centroid = event.calculateCentroid(useCurrent = true)
+        val g = geometry()
+        if (centroid != Offset.Unspecified && g.fitWidth > 0f && g.width > 0f) {
+            val scale = viewport.zoom
+            val next = (scale * event.calculateZoom()).coerceAtLeast(1f)
+            val k = next / scale
+            val pan = event.calculatePan()
+            val fraction = Offset(centroid.x / g.width, centroid.y / g.height)
+            val newWidth = g.width * k
+            val newHeight = g.height * k
+            val target = Offset(
+                g.left + centroid.x + pan.x - fraction.x * newWidth,
+                g.top + centroid.y + pan.y - fraction.y * newHeight
+            )
+            val totalScaleDelta = g.width / g.fitWidth * (k - 1f)
+            val totalScaleDeltaY = g.height / g.fitHeight * (k - 1f)
+            viewport.panX += (target.x - g.left) + g.pivotX * totalScaleDelta
+            viewport.panY += (target.y - g.top) + g.pivotY * totalScaleDeltaY
+            viewport.zoom = next
+        }
+        event.changes.forEach { it.consume() }
+    } while (event.changes.any { it.pressed })
+}
+
 /**
  * The Markup canvas layer. Brush tabs draw (or erase) on the image box and keep
  * ink visible until the CPU preview catches up; Move leaves the gestures to the
@@ -660,11 +724,23 @@ internal fun MarkupCanvasOverlay(
     state: PhotoEditorState,
     actions: PhotoEditorActions,
     toolUi: PhotoToolUiState,
+    viewport: EditorViewportState,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    val boxW = with(density) { layout.zoomedWidth.toPx() }
-    val boxH = with(density) { layout.zoomedHeight.toPx() }
+    val geometry = with(density) {
+        MarkupGeometry(
+            left = layout.zoomedLeft.toPx(),
+            top = layout.zoomedTop.toPx(),
+            width = layout.zoomedWidth.toPx(),
+            height = layout.zoomedHeight.toPx(),
+            pivotX = layout.zoomPivotLeft.toPx(),
+            pivotY = layout.zoomPivotTop.toPx(),
+            fitWidth = layout.width.toPx(),
+            fitHeight = layout.height.toPx()
+        )
+    }
+    val latestGeometry by rememberUpdatedState(geometry)
     val mode = toolUi.markupMode
     val ink = toolUi.markupInk
     val latestState by rememberUpdatedState(state)
@@ -675,25 +751,21 @@ internal fun MarkupCanvasOverlay(
     val rendered = state.previewDocument?.retouch?.markup?.strokes?.size ?: 0
     // Strokes the preview has not painted yet, plus the one under the finger.
     val unrendered = markup.strokes.drop(rendered)
-    val output = PixelSize(max(1, boxW.toInt()), max(1, boxH.toInt()))
+    val output = PixelSize(max(1, geometry.width.toInt()), max(1, geometry.height.toInt()))
 
-    fun normalized(position: Offset) = NormalizedPoint(
-        (position.x / boxW).coerceIn(0f, 1f),
-        (position.y / boxH).coerceIn(0f, 1f)
+    fun normalized(position: Offset, g: MarkupGeometry) = NormalizedPoint(
+        (position.x / g.width).coerceIn(0f, 1f),
+        (position.y / g.height).coerceIn(0f, 1f)
     )
 
-    val surfaceLeft = with(density) { layout.zoomedLeft.toPx() }
-    val surfaceTop = with(density) { layout.zoomedTop.toPx() }
     Box(
         modifier
             .fillMaxSize()
             .then(
                 if (mode == MarkupMode.Text) {
-                    Modifier.pointerInput(boxW, boxH, surfaceLeft, surfaceTop) {
+                    Modifier.pointerInput(mode) {
                         markupTextGestures(
-                            frameWidth = boxW,
-                            frameHeight = boxH,
-                            origin = Offset(surfaceLeft, surfaceTop),
+                            geometry = { latestGeometry },
                             documentOf = { latestState.document?.toEdits() },
                             toolUi = toolUi,
                             actions = { latestActions },
@@ -707,14 +779,17 @@ internal fun MarkupCanvasOverlay(
     ) {
         Box(
             modifier = Modifier
-                .offset(x = layout.zoomedLeft, y = layout.zoomedTop)
-                .size(width = layout.zoomedWidth, height = layout.zoomedHeight)
+                .placedAt(
+                    layout.zoomedLeft,
+                    layout.zoomedTop,
+                    layout.zoomedWidth,
+                    layout.zoomedHeight
+                )
                 .testTag(TAG_MARKUP_SURFACE)
                 .then(
                     when {
                         mode == MarkupMode.Text -> Modifier
-                        ink == MarkupInkMode.Erase -> Modifier.pointerInput(boxW, boxH) {
-                            val aspect = boxW / boxH
+                        ink == MarkupInkMode.Erase -> Modifier.pointerInput(ink) {
                             awaitEachGesture {
                                 val down = awaitFirstDown()
                                 val edits = latestState.document?.toEdits()
@@ -728,7 +803,8 @@ internal fun MarkupCanvasOverlay(
                                 }
                                 var strokes: List<PhotoMarkupStroke> = edits.retouch.markup.strokes
                                 fun eraseAt(position: Offset) {
-                                    val kept = eraseStrokes(strokes, normalized(position), aspect)
+                                    val g = latestGeometry
+                                    val kept = eraseStrokes(strokes, normalized(position, g), g.width / g.height)
                                     if (kept.size != strokes.size) {
                                         strokes = kept
                                         latestActions.updateEdits(
@@ -744,6 +820,10 @@ internal fun MarkupCanvasOverlay(
                                 try {
                                     do {
                                         val event = awaitPointerEvent()
+                                        if (event.changes.size > 1) {
+                                            zoomAndPanWithPinch(viewport) { latestGeometry }
+                                            break
+                                        }
                                         event.changes.forEach {
                                             eraseAt(it.position)
                                             it.consume()
@@ -754,14 +834,14 @@ internal fun MarkupCanvasOverlay(
                                 }
                             }
                         }
-                        ink == MarkupInkMode.Draw -> Modifier.pointerInput(boxW, boxH, mode) {
+                        ink == MarkupInkMode.Draw -> Modifier.pointerInput(mode) {
                             val type = mode.strokeType ?: return@pointerInput
                             awaitEachGesture {
                                 val down = awaitFirstDown()
                                 if (latestState.interactionActive) return@awaitEachGesture
                                 down.consume()
                                 val points = ArrayList<NormalizedPoint>()
-                                points += normalized(down.position)
+                                points += normalized(down.position, latestGeometry)
                                 val brush = PhotoMarkupStroke(
                                     type = type,
                                     points = persistentListOf(points[0]),
@@ -777,10 +857,11 @@ internal fun MarkupCanvasOverlay(
                                         if (event.changes.size > 1) {
                                             // A second finger means the gesture was not a stroke.
                                             cancelled = true
+                                            zoomAndPanWithPinch(viewport) { latestGeometry }
                                             break
                                         }
                                         event.changes.forEach { change ->
-                                            val next = normalized(change.position)
+                                            val next = normalized(change.position, latestGeometry)
                                             val last = points.last()
                                             val moved = abs(next.x - last.x) + abs(next.y - last.y)
                                             if (moved >= MIN_POINT_STEP &&
@@ -827,44 +908,63 @@ internal fun MarkupCanvasOverlay(
             }
         }
         if (mode == MarkupMode.Text) {
-            MarkupTextSelection(markup.texts, toolUi.markupSelectedText, boxW, boxH, layout)
+            MarkupTextSelection(
+                markup.texts,
+                toolUi.markupSelectedText,
+                geometry.width,
+                geometry.height,
+                layout
+            )
         }
-        if (mode != MarkupMode.Text) {
-            EditorFloatingPanel(
-                shape = RoundedCornerShape(24.dp),
+        // Large windows put the mode pill in their header instead.
+        if (mode != MarkupMode.Text && !LocalMarkupInkInHeader.current) {
+            MarkupInkPill(
+                toolUi = toolUi,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                     .padding(top = RETOUCH_HEADER_CLEARANCE, end = 12.dp)
-                    .testTag("editor.markup.ink")
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RetouchPillItem(
-                        icon = RetouchSymbols.Draw,
-                        label = stringResource(Res.string.editor_retouch_draw),
-                        selected = ink == MarkupInkMode.Draw,
-                        tag = "editor.markup.ink.draw",
-                        onClick = { toolUi.markupInk = MarkupInkMode.Draw }
-                    )
-                    RetouchPillItem(
-                        icon = RetouchSymbols.Pan,
-                        label = stringResource(Res.string.editor_retouch_move),
-                        selected = ink == MarkupInkMode.Move,
-                        tag = "editor.markup.ink.move",
-                        onClick = { toolUi.markupInk = MarkupInkMode.Move }
-                    )
-                    RetouchPillItem(
-                        icon = RetouchSymbols.Eraser,
-                        label = stringResource(Res.string.editor_retouch_erase),
-                        selected = ink == MarkupInkMode.Erase,
-                        tag = "editor.markup.ink.erase",
-                        onClick = { toolUi.markupInk = MarkupInkMode.Erase }
-                    )
-                }
-            }
+            )
+        }
+    }
+}
+
+/** Whether the host shows [MarkupInkPill] in its header, so the canvas omits it. */
+internal val LocalMarkupInkInHeader = staticCompositionLocalOf { false }
+
+/** Markup's Draw · Move · Erase pill. */
+@Composable
+internal fun MarkupInkPill(toolUi: PhotoToolUiState, modifier: Modifier = Modifier) {
+    val ink = toolUi.markupInk
+    EditorFloatingPanel(
+        shape = RoundedCornerShape(24.dp),
+        modifier = modifier.testTag("editor.markup.ink")
+    ) {
+        Row(
+            Modifier.padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RetouchPillItem(
+                icon = RetouchSymbols.Draw,
+                label = stringResource(Res.string.editor_retouch_draw),
+                selected = ink == MarkupInkMode.Draw,
+                tag = "editor.markup.ink.draw",
+                onClick = { toolUi.markupInk = MarkupInkMode.Draw }
+            )
+            RetouchPillItem(
+                icon = RetouchSymbols.Pan,
+                label = stringResource(Res.string.editor_retouch_move),
+                selected = ink == MarkupInkMode.Move,
+                tag = "editor.markup.ink.move",
+                onClick = { toolUi.markupInk = MarkupInkMode.Move }
+            )
+            RetouchPillItem(
+                icon = RetouchSymbols.Eraser,
+                label = stringResource(Res.string.editor_retouch_erase),
+                selected = ink == MarkupInkMode.Erase,
+                tag = "editor.markup.ink.erase",
+                onClick = { toolUi.markupInk = MarkupInkMode.Erase }
+            )
         }
     }
 }
@@ -980,9 +1080,7 @@ private enum class TextGesture { None, Drag, Resize, Rotate, Pinch }
  * touch that misses every label clears the selection.
  */
 private suspend fun PointerInputScope.markupTextGestures(
-    frameWidth: Float,
-    frameHeight: Float,
-    origin: Offset,
+    geometry: () -> MarkupGeometry,
     documentOf: () -> PhotoEdits?,
     toolUi: PhotoToolUiState,
     actions: () -> PhotoEditorActions,
@@ -1003,6 +1101,10 @@ private suspend fun PointerInputScope.markupTextGestures(
 
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
+        val g = geometry()
+        val frameWidth = g.width
+        val frameHeight = g.height
+        val origin = Offset(g.left, g.top)
         var edits = documentOf() ?: return@awaitEachGesture
         val first = down.position - origin
         val texts = edits.retouch.markup.texts

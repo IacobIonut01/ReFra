@@ -553,6 +553,10 @@ internal fun HistogramMorph(
     enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    // The pill is opt-in (Editor settings); a host with no settings store
+    // — a standalone preview or test — always shows it.
+    val store = LocalEditorSettingsStore.current
+    if (store != null && !store.settings.showHistogram) return
     AnimatedContent(
         targetState = expanded,
         modifier = modifier,

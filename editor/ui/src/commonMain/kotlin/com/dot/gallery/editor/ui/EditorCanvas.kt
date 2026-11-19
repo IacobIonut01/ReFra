@@ -873,7 +873,9 @@ internal fun EditorCanvas(
                         },
                         zoomedHeight = with(density) {
                             (fitSizeInt.height * overlayTransform.scaleY).toDp()
-                        }
+                        },
+                        zoomPivotLeft = with(density) { overlayOriginX.toDp() },
+                        zoomPivotTop = with(density) { overlayOriginY.toDp() }
                     )
                 )
             }
@@ -1156,7 +1158,7 @@ private fun CanvasFooter(
  * the full width — Undo, the wider zoom chip and Redo — on 16 dp
  * horizontal insets with 12 dp gaps. Chips paint 16 dp corners on
  * `surfaceContainerHigh` with 18 dp icons; there is no overflow button —
- * Reset lives on the header's More menu and the Edits pane. Enlarged type
+ * Reset lives on the header's More menu. Enlarged type
  * falls back to the icon row: fixed-width chips cannot hold scaled
  * labels.
  */
@@ -1280,7 +1282,11 @@ internal fun Modifier.chromeBlur(
             blurRadius(12.dp)
             noiseFactor(0f)
             colorEffects(
-                listOf(HazeColorEffect.tint(baseColor.copy(alpha = 0.6f)))
+                listOf(
+                    HazeColorEffect.tint(
+                        baseColor.copy(alpha = hazeTintAlpha(baseColor, 0.6f))
+                    )
+                )
             )
             fallbackColorEffect(
                 HazeColorEffect.tint(baseColor)

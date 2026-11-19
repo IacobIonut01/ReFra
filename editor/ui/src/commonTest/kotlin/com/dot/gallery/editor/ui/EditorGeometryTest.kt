@@ -121,8 +121,9 @@ class EditorGeometryTest {
     @Test
     fun cropPresetDerivesFromThePixelRatio() {
         val upright = PixelSize(800, 600)
+        // An untouched, whole-frame crop is the Free default.
         assertEquals(
-            CropAspectPreset.Original to false,
+            CropAspectPreset.Free to false,
             CropAspectPreset.derive(PhotoGeometry(), upright)
         )
         // 480x600 = 0.8 → 4:5 in portrait; a centred square → 1:1.

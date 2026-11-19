@@ -91,8 +91,8 @@ val LocalEditorHostTools = staticCompositionLocalOf { EditorHostTools() }
 /** The retouch cards' inner padding, matching the design's 12 dp panel. */
 internal val RetouchCardPadding = PaddingValues(12.dp)
 
-/** How far below the safe area floating tool chrome clears the header. */
-internal val RETOUCH_HEADER_CLEARANCE = 72.dp
+/** How far below the safe area floating tool chrome clears the header and the tool bar. */
+internal val RETOUCH_HEADER_CLEARANCE = 128.dp
 
 internal class RetouchColour(val argb: Int, val nameRes: StringResource)
 

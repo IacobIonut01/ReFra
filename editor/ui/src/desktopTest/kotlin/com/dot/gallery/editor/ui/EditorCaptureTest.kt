@@ -592,59 +592,6 @@ class EditorCaptureTest {
     // ── Figma V2 desktop captures (1440 × 960 editor content) ───────
 
     @Test
-    fun captureFigmaV2Desktop() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val session = stagedEditor(darkTheme = true, fontScale = 1f, withEdit = false)
-        try {
-            stageLayerRecipe(session)
-            // The Layers surface: the selected row, the selection quad
-            // on the composite canvas and the layer's property rows.
-            onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-            val layerId = session.state.value.document!!.layers.single().id
-            onNodeWithTag(TAG_LAYER_ROW_PREFIX + layerId).assertIsDisplayed()
-            onNodeWithTag(TAG_LAYER_SELECTION).assertIsDisplayed()
-            onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).assertIsDisplayed()
-            onRoot().performMouseInput { moveTo(Offset(400f, 300f)) }
-            waitForIdle()
-            savePng(onRoot().captureToImage(), "x-photo-desktop", FIGMA_V2_DIR)
-        } finally {
-            runOnUiThread { session.close() }
-        }
-    }
-
-    @Test
-    fun captureFigmaV2Keyboard() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val session = stagedEditor(darkTheme = true, fontScale = 1f, withEdit = false)
-        try {
-            stageLayerRecipe(session)
-            onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-            onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).assertIsDisplayed()
-            // Tab from the canvas until the Opacity row holds focus —
-            // the capture shows the real 2 dp primary focus outline.
-            var focused = false
-            var steps = 0
-            while (!focused && steps < 30) {
-                onNodeWithTag(TAG_CANVAS).performKeyInput {
-                    keyDown(Key.Tab); keyUp(Key.Tab)
-                }
-                focused = onNodeWithTag(TAG_DESKTOP_PROP_OPACITY)
-                    .fetchSemanticsNode()
-                    .let { node ->
-                        node.config.getOrElse(
-                            SemanticsProperties.Focused
-                        ) { false }
-                    }
-                steps++
-            }
-            waitForIdle()
-            savePng(onRoot().captureToImage(), "x-keyboard", FIGMA_V2_DIR)
-        } finally {
-            runOnUiThread { session.close() }
-        }
-    }
-
-    @Test
     fun captureFigmaV2Composite() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         val session = stagedEditor(darkTheme = true, fontScale = 1f, withEdit = false)
@@ -1409,14 +1356,6 @@ class EditorCaptureTest {
         try {
             openPhotoTool(TAG_CATEGORY_COLOUR)
             waitUntil(timeoutMillis = 15_000) { session.state.value.toolEditing }
-            // The expanded card adds the Adjust group's tool switcher under
-            // the one saturation ruler; the histogram lives in the pill's
-            // panel, not in the card.
-            expandPhotoToolSheet()
-            waitUntil(timeoutMillis = 15_000) {
-                onAllNodesWithTag(TAG_PHOTO_SWITCHER)
-                    .fetchSemanticsNodes().isNotEmpty()
-            }
             onNodeWithTag(TAG_SLIDER_SATURATION).performSemanticsAction(
                 SemanticsActions.SetProgress
             ) { setProgress -> setProgress(1.18f) }

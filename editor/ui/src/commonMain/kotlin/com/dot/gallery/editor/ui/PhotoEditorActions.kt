@@ -61,6 +61,13 @@ data class PhotoEditorActions(
     val applyToolEdit: () -> Unit = {},
     val cancelToolEdit: () -> Unit = {},
     /**
+     * Jumps the global history so exactly [pastCount] committed steps are
+     * applied — the Studio History panel's row taps. Ignored while a tool
+     * transaction or draft is open. No-op default keeps previews/tests
+     * compilable.
+     */
+    val jumpToHistory: (Int) -> Unit = {},
+    /**
      * The Layers surface's image picker seam: the host (Android document
      * picker, desktop file dialog) launches its real media chooser and
      * feeds the picked reference to the session — the shared UI never

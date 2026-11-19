@@ -266,6 +266,8 @@ fun VideoEditorContent(
     var canvasFocused by rememberSaveable { mutableStateOf(false) }
     var moreOpen by rememberSaveable { mutableStateOf(false) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
+    var historyOpen by rememberSaveable { mutableStateOf(false) }
+    var audioDockOpen by rememberSaveable { mutableStateOf(false) }
     val settingsStore = rememberEditorSettingsStore()
     var panel by rememberSaveable {
         mutableStateOf(VideoPanel.Timeline.name)
@@ -404,6 +406,8 @@ fun VideoEditorContent(
                 } else {
                     cancelDrafts()
                     activeToolId = id.value
+                    // An audio tool keeps the audio tools in the dock.
+                    if (videoToolGroup(id) == EditorToolGroup.Audio) audioDockOpen = true
                 }
             }
 
@@ -412,6 +416,7 @@ fun VideoEditorContent(
                 when {
                     showDiscardDialog || showCancelExportDialog -> Unit
                     settingsOpen -> settingsOpen = false
+                    historyOpen -> historyOpen = false
                     exportSheetOpen -> exportSheetOpen = false
                     moreOpen -> moreOpen = false
                     canvasFocused -> canvasFocused = false
@@ -421,9 +426,9 @@ fun VideoEditorContent(
                     // cancelled before closing — each cancel only touches
                     // its own owner, so calling all of them covers any.
                     current.isDrafting -> cancelDrafts()
-                    // Phones unwind an open tool to the timeline first.
-                    layout != VideoLayout.Desktop && activeToolId != null ->
-                        closeTool()
+                    // An open tool closes first and keeps its changes, as Done does.
+                    activeToolId != null -> closeTool()
+                    audioDockOpen -> audioDockOpen = false
                     current.exporting -> showCancelExportDialog = true
                     current.isDirty -> showDiscardDialog = true
                     else -> latestActions.close()
@@ -487,8 +492,9 @@ fun VideoEditorContent(
                     activeToolId = EditorToolIds.VideoAddMedia.value
                 },
                 viewport = null,
-                arrangeCommands = form == VideoStudioForm.Phone ||
-                    form == VideoStudioForm.PhoneLandscape,
+                // The tall large layout keeps the timeline command row beside the
+                // Arrange card, so the card drops its own copies there.
+                arrangeCommands = form == VideoStudioForm.Phone || windowHeightDp < 480f,
                 openAudioTask = { selectTool(it) },
                 closeTool = ::closeTool
             )
@@ -562,7 +568,10 @@ fun VideoEditorContent(
                                             null
                                         } else EditorToolIds.VideoLayers.value
                                     }
-                                    VideoDockItem.Audio -> panel = VideoPanel.Audio.name
+                                    VideoDockItem.Audio -> {
+                                        panel = VideoPanel.Timeline.name
+                                        audioDockOpen = true
+                                    }
                                     VideoDockItem.Tools -> panel = VideoPanel.Tools.name
                                 }
                             },
@@ -570,20 +579,41 @@ fun VideoEditorContent(
                             onAddMedia = {
                                 cancelDrafts()
                                 activeToolId = EditorToolIds.VideoAddMedia.value
+                            },
+                            onShowHistory = {
+                                cancelDrafts()
+                                historyOpen = true
+                            },
+                            audioDock = audioDockOpen,
+                            onAudioBack = { audioDockOpen = false },
+                            onSettings = {
+                                panel = VideoPanel.Timeline.name
+                                settingsOpen = true
                             }
                         )
                     )
                 }
             }
 
-            if (sheetGroup != null) {
+            // Large layouts list the tools in their side pane instead.
+            if (sheetGroup != null && phoneSheets) {
                 VideoCatalogueSheet(
                     state = state,
                     phone = phoneSheets,
-                    initialGroup = sheetGroup,
+                    // Tools opens on every section, as the photo list does.
+                    initialGroup = sheetGroup.takeIf { it != EditorToolGroup.Edit },
                     activeTool = activeTool,
                     onSelect = ::selectTool,
-                    onDismiss = { panel = VideoPanel.Timeline.name }
+                    onDismiss = { panel = VideoPanel.Timeline.name },
+                    onHistory = {
+                        panel = VideoPanel.Timeline.name
+                        cancelDrafts()
+                        historyOpen = true
+                    },
+                    onSettings = {
+                        panel = VideoPanel.Timeline.name
+                        settingsOpen = true
+                    }
                 )
             }
             if (moreOpen) {
@@ -606,7 +636,19 @@ fun VideoEditorContent(
                     onSettings = {
                         moreOpen = false
                         settingsOpen = true
+                    },
+                    onHistory = {
+                        moreOpen = false
+                        cancelDrafts()
+                        historyOpen = true
                     }
+                )
+            }
+            if (historyOpen) {
+                VideoHistorySheet(
+                    state = state,
+                    actions = actions,
+                    onDismiss = { historyOpen = false }
                 )
             }
             if (settingsOpen) {

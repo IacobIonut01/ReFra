@@ -128,13 +128,15 @@ private fun unitParam(
     key: String,
     label: StringResource,
     read: (PhotoRawDevelop) -> Float,
-    write: (PhotoRawDevelop, Float) -> PhotoRawDevelop
+    write: (PhotoRawDevelop, Float) -> PhotoRawDevelop,
+    tonalTrack: EditorSliderTrack.Tonal? = null
 ) = FinishingParam(
     key = key,
     labelRes = label,
     displayRange = -100f..100f,
     step = 1f,
     neutral = 0f,
+    tonalTrack = tonalTrack,
     read = { read(it.develop) * 100f },
     write = { e, v -> e.developing { write(it, v / 100f) } }
 )
@@ -175,6 +177,7 @@ private val ToneParams = listOf(
         displayRange = -3f..3f,
         step = 0.1f,
         neutral = 0f,
+        tonalTrack = EditorSliderTrack.Tonal.Exposure,
         read = { it.develop.exposure },
         write = { e, v -> e.developing { it.copy(exposure = v) } }
     ),
@@ -184,12 +187,13 @@ private val ToneParams = listOf(
         displayRange = -2f..2f,
         step = 0.1f,
         neutral = 0f,
+        tonalTrack = EditorSliderTrack.Tonal.Brightness,
         read = { it.develop.brightness },
         write = { e, v -> e.developing { it.copy(brightness = v) } }
     ),
-    unitParam("developContrast", Res.string.editor_develop_contrast, { it.contrast }, { d, v -> d.copy(contrast = v) }),
-    unitParam("developShadows", Res.string.editor_develop_shadows, { it.shadows }, { d, v -> d.copy(shadows = v) }),
-    unitParam("developHighlights", Res.string.editor_develop_highlights, { it.highlights }, { d, v -> d.copy(highlights = v) })
+    unitParam("developContrast", Res.string.editor_develop_contrast, { it.contrast }, { d, v -> d.copy(contrast = v) }, tonalTrack = EditorSliderTrack.Tonal.Contrast),
+    unitParam("developShadows", Res.string.editor_develop_shadows, { it.shadows }, { d, v -> d.copy(shadows = v) }, tonalTrack = EditorSliderTrack.Tonal.Shadows),
+    unitParam("developHighlights", Res.string.editor_develop_highlights, { it.highlights }, { d, v -> d.copy(highlights = v) }, tonalTrack = EditorSliderTrack.Tonal.Highlights)
 )
 
 private val SharpenParam = FinishingParam(
@@ -204,8 +208,30 @@ private val SharpenParam = FinishingParam(
 )
 
 private val ColourParams = listOf(
-    unitParam("developSaturation", Res.string.editor_develop_saturation, { it.saturation }, { d, v -> d.copy(saturation = v) }),
-    unitParam("developVibrance", Res.string.editor_develop_vibrance, { it.vibrance }, { d, v -> d.copy(vibrance = v) })
+    unitParam("developSaturation", Res.string.editor_develop_saturation, { it.saturation }, { d, v -> d.copy(saturation = v) }).let {
+        FinishingParam(
+            key = it.key,
+            labelRes = it.labelRes,
+            displayRange = it.displayRange,
+            step = it.step,
+            neutral = it.neutral,
+            tonalTrack = EditorSliderTrack.Tonal.Saturation,
+            read = it.read,
+            write = it.write
+        )
+    },
+    unitParam("developVibrance", Res.string.editor_develop_vibrance, { it.vibrance }, { d, v -> d.copy(vibrance = v) }).let {
+        FinishingParam(
+            key = it.key,
+            labelRes = it.labelRes,
+            displayRange = it.displayRange,
+            step = it.step,
+            neutral = it.neutral,
+            tonalTrack = EditorSliderTrack.Tonal.Vibrance,
+            read = it.read,
+            write = it.write
+        )
+    }
 )
 
 /** Labels for the Colour tab's spaces; product names, so they stay untranslated. */
@@ -428,13 +454,7 @@ private fun DevelopParamGroup(
     val edits = state.document?.toEdits() ?: PhotoEdits()
     val latestActions by rememberUpdatedState(actions)
     if (params.size > 1) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        EditorChipRow {
             params.forEach { param ->
                 ColourParamChip(
                     label = stringResource(param.labelRes),
@@ -485,13 +505,7 @@ private fun DevelopOptions(label: String, options: List<DevelopOption>, enabled:
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        EditorChipRow {
             options.forEach { option ->
                 FinishingChip(
                     label = option.label,

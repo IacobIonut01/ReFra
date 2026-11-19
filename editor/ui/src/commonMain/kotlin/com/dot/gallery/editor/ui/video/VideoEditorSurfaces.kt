@@ -26,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -46,6 +47,7 @@ import com.dot.gallery.editor.render.video.VideoClipVisuals
 import com.dot.gallery.editor.render.video.VideoEditorState
 import com.dot.gallery.editor.render.video.VideoInsertion
 import com.dot.gallery.editor.ui.EditorRulerSlab
+import com.dot.gallery.editor.ui.EditorSliderTrack
 import com.dot.gallery.editor.ui.NumericEntryDialog
 import com.dot.gallery.editor.ui.blendModeTitle
 import com.dot.gallery.editor.ui.formatDegrees
@@ -254,7 +256,8 @@ internal class VideoParam(
     val valueTag: String = "$sliderTag.value",
     val chipTag: String = "$sliderTag.chip",
     val default: Float = 0f,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    val track: EditorSliderTrack? = null
 )
 
 /**
@@ -317,6 +320,7 @@ internal fun VideoKeyedParams(
                                 icon = param.icon,
                                 enabled = param.enabled,
                                 tag = param.chipTag,
+                                modified = param.value != param.default,
                                 onClick = {
                                     if (param.key != active.key) {
                                         // A parameter switch drops an
@@ -397,12 +401,15 @@ private fun VideoParamRuler(
         stepKey = param.key,
         limitStartLabel = param.limitStart,
         limitEndLabel = param.limitEnd,
+        track = param.track,
         onOpenEntry = onOpenEntry,
         onBeginInteraction = param.onBegin,
         onUpdateInteraction = param.onUpdate,
         onCommitInteraction = param.onCommit,
         onCancelInteraction = param.onCancel,
-        onApplyStep = param.onApply
+        onApplyStep = param.onApply,
+        // Double-tap returns the parameter to its default in one step.
+        onResetValue = if (param.enabled) { { param.onApply(param.default) } } else null
     )
 }
 
@@ -854,6 +861,7 @@ private class VideoColourParam(
     val rulerRange: ClosedFloatingPointRange<Float>,
     val step: Float,
     val unitSuffix: String = "",
+    val track: EditorSliderTrack? = null,
     val read: (ColorAdjustments) -> Float,
     val write: (ColorAdjustments, Float) -> ColorAdjustments
 ) {
@@ -869,6 +877,7 @@ private val VideoLightParameters = listOf(
         rulerRange = -2f..2f,
         step = 0.1f,
         unitSuffix = " EV",
+        track = EditorSliderTrack.Tonal.Exposure,
         read = { it.exposureStops },
         write = { adj, v -> adj.copy(exposureStops = v) }
     ),
@@ -878,6 +887,7 @@ private val VideoLightParameters = listOf(
         icon = VideoGlyphs.Contrast,
         rulerRange = -100f..100f,
         step = 1f,
+        track = EditorSliderTrack.Tonal.Contrast,
         read = { contrastAmount(it.contrast) },
         write = { adj, v -> adj.copy(contrast = contrastFactor(v)) }
     ),
@@ -887,6 +897,7 @@ private val VideoLightParameters = listOf(
         icon = VideoGlyphs.Highlights,
         rulerRange = -100f..100f,
         step = 1f,
+        track = EditorSliderTrack.Tonal.Highlights,
         read = { it.highlights * 100f },
         write = { adj, v -> adj.copy(highlights = v / 100f) }
     ),
@@ -896,6 +907,7 @@ private val VideoLightParameters = listOf(
         icon = VideoGlyphs.Shadows,
         rulerRange = -100f..100f,
         step = 1f,
+        track = EditorSliderTrack.Tonal.Shadows,
         read = { it.shadows * 100f },
         write = { adj, v -> adj.copy(shadows = v / 100f) }
     )
@@ -908,6 +920,9 @@ private val VideoColourParameters = listOf(
         icon = VideoGlyphs.Saturation,
         rulerRange = -100f..100f,
         step = 1f,
+        track = EditorSliderTrack.Gradient(
+            listOf(Color(0xFF8D9199), Color(0xFF42A5F5))
+        ),
         read = { it.saturation * 100f - 100f },
         write = { adj, v -> adj.copy(saturation = (v + 100f) / 100f) }
     )
@@ -964,6 +979,7 @@ internal fun VideoColourSurface(
             sliderTag = TAG_VIDEO_COLOUR_SLIDER_PREFIX + param.key,
             valueTag = TAG_VIDEO_COLOUR_VALUE_PREFIX + param.key,
             chipTag = TAG_VIDEO_COLOUR_PARAM_PREFIX + param.key,
+            track = param.track,
             onBegin = { latestActions.beginClipEdit("Edit clip") },
             onUpdate = { latestActions.updateClipVisuals(visualsFor(param, it)) },
             onCommit = latestActions.commitClipEdit,

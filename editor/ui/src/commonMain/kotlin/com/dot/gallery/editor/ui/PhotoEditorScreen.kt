@@ -57,6 +57,10 @@ fun PhotoEditorScreen(
     val state by session.state.collectAsState()
     val rawExportOpen = remember(session) { mutableStateOf(false) }
     val settingsStore = rememberEditorSettingsStore()
+    // Save stays in the header while a tool is open, and exportCopy
+    // rejects while a tool transaction is, so a save or export keeps the
+    // open tool's changes first (a no-op with no tool open).
+    val settleOpenTool = { session.applyToolEdit() }
     val actions = remember(
         session, onClose, onRetryOpen, onRequestAddImage, onRequestRelink, settingsStore
     ) {
@@ -73,6 +77,7 @@ fun PhotoEditorScreen(
             // unless the settings name one; other photos follow the source
             // or the stored copy format.
             saveCopy = {
+                settleOpenTool()
                 val current = session.state.value
                 val decision = resolveSaveFormat(
                     settings = settingsStore.settings,
@@ -85,7 +90,10 @@ fun PhotoEditorScreen(
                     is SaveFormatDecision.Write -> session.exportCopy(decision.format)
                 }
             },
-            exportCopy = { format -> session.exportCopy(format) },
+            exportCopy = { format ->
+                settleOpenTool()
+                session.exportCopy(format)
+            },
             exportFormats = session.exportFormats,
             cancelExport = session::cancelExport,
             retryOpen = onRetryOpen,
@@ -98,6 +106,7 @@ fun PhotoEditorScreen(
             beginToolEdit = session::beginToolEdit,
             applyToolEdit = session::applyToolEdit,
             cancelToolEdit = session::cancelToolEdit,
+            jumpToHistory = session::jumpToHistory,
             requestAddImage = onRequestAddImage,
             cancelLayerImport = session::cancelLayerImport,
             retryRecovery = session::retryRestore,
@@ -138,6 +147,7 @@ fun PhotoEditorScreen(
                     allowTiff = state.document?.toEdits()?.isDevelopOnly() == true,
                     onSelect = { format ->
                         rawExportOpen.value = false
+                        settleOpenTool()
                         session.exportCopy(format)
                     },
                     onDismiss = { rawExportOpen.value = false }

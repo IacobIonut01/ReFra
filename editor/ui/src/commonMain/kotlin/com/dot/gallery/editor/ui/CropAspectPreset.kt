@@ -55,14 +55,19 @@ internal enum class CropAspectPreset(val long: Int, val short: Int) {
 
         /**
          * The preset and orientation matching [geometry]'s displayed crop
-         * within 0.5 %: a whole-frame crop resolves to Original, any other
-         * unmatched ratio to Free.
+         * within 0.5 %: a whole-frame crop is the untouched Free default,
+         * any other unmatched ratio is Free too.
          */
         fun derive(geometry: PhotoGeometry, upright: PixelSize): Pair<CropAspectPreset, Boolean> {
             val cp = CropFitting.planeOf(upright, geometry)
             val rect = cp.rectOf(geometry.crop)
             val defaultPortrait = portraitOf(cp.width, cp.height)
-            if (rect.width <= 0.0 || rect.height <= 0.0) return Original to defaultPortrait
+            if (rect.width <= 0.0 || rect.height <= 0.0) return Free to defaultPortrait
+            if (abs(rect.width - cp.width) <= 0.005 * cp.width &&
+                abs(rect.height - cp.height) <= 0.005 * cp.height
+            ) {
+                return Free to defaultPortrait
+            }
             val ratio = rect.aspect
             // A square crop has no orientation of its own: keep the default.
             val portrait = if (abs(ratio - 1.0) <= 0.005) defaultPortrait else ratio < 1.0

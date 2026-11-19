@@ -53,6 +53,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -62,6 +63,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
@@ -280,7 +282,7 @@ class EditorWorkspaceUiTest {
     }
 
     @Test
-    fun hostBackRequestCancelsTheToolBeforeClosingTheEditor() = runComposeUiTest {
+    fun hostBackRequestClosesTheToolBeforeClosingTheEditor() = runComposeUiTest {
         val s = openedSession(samplePixels())
         session = s
         var closeRequest by mutableStateOf(0)
@@ -561,6 +563,7 @@ class EditorWorkspaceUiTest {
 
         onNodeWithTag(TAG_CATALOGUE).performClick()
         onNodeWithTag(TAG_CATALOGUE_GRID).assertIsDisplayed()
+        onNodeWithTag(TAG_CATALOGUE_GRID).performScrollToNode(hasTestTag(TAG_CATEGORY_CROP))
         onNodeWithTag(TAG_CATEGORY_CROP).assertIsDisplayed()
 
         // Picking a tool closes the catalogue and opens its panel.
@@ -570,121 +573,41 @@ class EditorWorkspaceUiTest {
     }
 
     @Test
-    fun toolTransactionExitsThroughBackAndTopApply() = runComposeUiTest {
-        val s = liveSession()
+    fun toolExitsThroughBackOrTheToolBarDone() = runComposeUiTest {
+        liveSession()
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_SLIDER_EXPOSURE).assertIsDisplayed()
-        // V3 drops the bottom action row: the context header's filled
-        // Check is the only Apply and Back is the cancel — no Done or
-        // Cancel anywhere.
+        // The tool bar under the header carries Done (TAG_TOOL_APPLY);
+        // there is no Cancel, and Back keeps the changes like Done.
         onNodeWithTag(TAG_PANEL_DONE).assertDoesNotExist()
         onNodeWithTag(TAG_TOOL_CANCEL).assertDoesNotExist()
         onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
         onNodeWithTag(TAG_BACK).assertIsDisplayed()
 
         onNodeWithTag(TAG_BACK).performClick()
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
+        awaitToolSheetGone()
         onNodeWithTag(TAG_SLIDER_EXPOSURE).assertDoesNotExist()
         onNodeWithTag(TAG_CATALOGUE).assertIsDisplayed()
     }
 
     @Test
-    fun layersPinOpensLayersAndContextMoreMenuReachesSource() =
+    fun layersPinOpensLayers() =
         runComposeUiTest {
-        val s = liveSession()
-        val upright = s.state.value.info!!.uprightSize
+        liveSession()
 
         // The pinned Layers destination opens the real layer workspace —
         // the locked base row, Add layer and the disabled Group
-        // placeholder. The header's Back is the only exit — no Done.
+        // placeholder. Layers wears the tool chrome: the tool bar's Done
+        // and the header's Back both leave it.
         openLayersWorkspace()
         onNodeWithTag(TAG_LAYER_BASE).assertIsDisplayed()
         onNodeWithTag(TAG_LAYER_ADD).assertIsDisplayed()
         onNodeWithTag(TAG_LAYER_GROUP).assertIsNotEnabled()
-        onNodeWithTag(TAG_LAYERS_DONE).assertDoesNotExist()
+        onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
         onNodeWithTag(TAG_BACK).performClick()
         onNodeWithTag(TAG_LAYER_BASE).assertDoesNotExist()
         onNodeWithTag(TAG_CATALOGUE).assertIsDisplayed()
-
-        // The Source pane lives behind a context header's More menu —
-        // reachable e.g. from a tool surface.
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_SOURCE)
-        onNodeWithText("Source ${upright.width} × ${upright.height}")
-            .assertIsDisplayed()
-        onNodeWithTag(TAG_PANEL_DONE).assertDoesNotExist()
-        onNodeWithTag(TAG_BACK).performClick()
-        onNodeWithTag(TAG_CATALOGUE).assertIsDisplayed()
-    }
-
-    @Test
-    fun editsPanelListsAppliedTonalValues() = runComposeUiTest {
-        val s = liveSession()
-        // Apply a Shadows-only edit through the Light tool — the Edits
-        // summary must list it rather than render an empty pane.
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        onNodeWithTag(TAG_PARAM_SHADOWS).performScrollTo().performClick()
-        onNodeWithTag(TAG_SLIDER_SHADOWS).performSemanticsAction(
-            SemanticsActions.SetProgress
-        ) { setProgress -> setProgress(30f) }
-        waitUntil(timeoutMillis = 15_000) {
-            s.state.value.document?.adjustments?.shadows == 0.3f
-        }
-        onNodeWithTag(TAG_TOOL_APPLY).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            !s.state.value.toolEditing && !s.state.value.isDrafting
-        }
-
-        // The Edits summary lives behind a context header's More menu —
-        // open a tool surface to reach one.
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_EDITS)
-        onNodeWithText("Shadows").assertIsDisplayed()
-        onNodeWithText("+30").assertIsDisplayed()
-    }
-
-    @Test
-    fun editsPanelListsGeometryValues() = runComposeUiTest {
-        val s = liveSession()
-        // A committed geometry recipe — crop plus every non-neutral
-        // warp term — must be plainly listed in the Edits summary.
-        runOnUiThread {
-            s.applyEdits(
-                "Geometry",
-                PhotoEdits(
-                    geometry = PhotoGeometry(
-                        crop = NormalizedCrop(0.2, 0.0, 0.8, 1.0),
-                        warp = PhotoWarp(
-                            rotationDegrees = -1.2f,
-                            verticalPerspective = 6f,
-                            horizontalPerspective = -4f,
-                            scale = 1.04f
-                        )
-                    )
-                )
-            )
-        }
-        waitUntil(timeoutMillis = 15_000) {
-            s.state.value.document?.geometry?.warp?.scale == 1.04f
-        }
-
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_EDITS)
-        onNodeWithText("Crop & straighten").assertIsDisplayed()
-        onNodeWithText("240 × 400").assertIsDisplayed()
-        onNodeWithText("Straighten").assertIsDisplayed()
-        onNodeWithText("-1.2°").assertIsDisplayed()
-        onNodeWithText("Vertical").assertIsDisplayed()
-        onNodeWithText("+6").assertIsDisplayed()
-        onNodeWithText("Horizontal").assertIsDisplayed()
-        onNodeWithText("-4").assertIsDisplayed()
-        onNodeWithText("Scale").assertIsDisplayed()
-        onNodeWithText("104%").assertIsDisplayed()
     }
 
     // ── Focus mode ───────────────────────────────────────────────────────
@@ -710,7 +633,7 @@ class EditorWorkspaceUiTest {
 
     @Test
     fun escapeUnwindsInOrderCatalogueFocusThenTool() = runComposeUiTest {
-        val s = liveSession()
+        liveSession()
 
         // The catalogue is the shallowest surface — it closes first.
         onNodeWithTag(TAG_CATALOGUE).performClick()
@@ -723,10 +646,12 @@ class EditorWorkspaceUiTest {
                 .fetchSemanticsNodes().isEmpty()
         }
 
-        // A tool transaction plus focus mode: unwind order is focus, then
-        // the tool (Cancel), never straight to close.
+        // A tool surface plus focus mode: unwind order is focus, then
+        // the tool. Studio's slider tools hold no transaction, so the
+        // second Escape collapses the surface rather than cancelling a
+        // draft.
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_CANVAS).performKeyInput {
             keyDown(Key.F); keyUp(Key.F)
         }
@@ -735,19 +660,22 @@ class EditorWorkspaceUiTest {
         onNodeWithTag(TAG_FOCUS_PARAM_LABEL).assertIsDisplayed()
         onNodeWithTag(TAG_FOCUS_EXIT).assertDoesNotExist()
 
-        // Escape 1: focus mode unwinds; the tool transaction survives.
+        // Escape 1: focus mode unwinds; the tool surface survives.
         onNodeWithTag(TAG_CANVAS).performKeyInput {
             keyDown(Key.Escape); keyUp(Key.Escape)
+        }
+        waitUntil(timeoutMillis = 15_000) {
+            onAllNodesWithTag(TAG_FOCUS_PARAM_LABEL)
+                .fetchSemanticsNodes().isEmpty()
         }
         onNodeWithTag(TAG_BACK).assertIsDisplayed()
-        assertTrue(s.state.value.toolEditing)
         onNodeWithTag(TAG_SLIDER_EXPOSURE).assertIsDisplayed()
 
-        // Escape 2: the tool is cancelled — pane collapses, pill returns.
+        // Escape 2: the tool collapses — pane closes, pill returns.
         onNodeWithTag(TAG_CANVAS).performKeyInput {
             keyDown(Key.Escape); keyUp(Key.Escape)
         }
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
+        awaitToolSheetGone()
         onNodeWithTag(TAG_SLIDER_EXPOSURE).assertDoesNotExist()
         onNodeWithTag(TAG_CATALOGUE).assertIsDisplayed()
     }
@@ -771,9 +699,9 @@ class EditorWorkspaceUiTest {
 
     @Test
     fun focusFont2KeepsTheRulerUnclipped() = runComposeUiTest {
-        val s = liveSession(fontScale = 2f)
+        liveSession(fontScale = 2f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_CANVAS).performKeyInput {
             keyDown(Key.F); keyUp(Key.F)
         }
@@ -785,73 +713,23 @@ class EditorWorkspaceUiTest {
         val root = onRoot().getBoundsInRoot()
         val card = onNodeWithTag(TAG_V3_SHEET_BODY).getUnclippedBoundsInRoot()
         val dock = onNodeWithTag(TAG_EDITOR_PINS).getUnclippedBoundsInRoot()
-        assertTrue(
-            card.bottom <= dock.top,
-            "focus card ${card.bottom} overlaps the dock at ${dock.top}"
-        )
+        // The card runs under the dock to the bottom edge; its controls
+        // must end above the dock.
         for (tag in listOf(TAG_FOCUS_PARAM_LABEL, TAG_FOCUS_CAROUSEL)) {
             val node = onNodeWithTag(tag)
             node.assertIsDisplayed()
             val bounds = node.getUnclippedBoundsInRoot()
             assertTrue(
                 bounds.left >= root.left && bounds.right <= root.right &&
-                    bounds.top >= card.top && bounds.bottom <= card.bottom,
-                "$tag clipped: $bounds escapes $card"
+                    bounds.top >= card.top && bounds.bottom <= card.bottom &&
+                    bounds.bottom <= dock.top,
+                "$tag clipped: $bounds escapes $card above the dock at ${dock.top}"
             )
         }
         onNodeWithTag("editor.slider.exposure").assertIsDisplayed()
     }
 
     // ── Floating chrome targets ──────────────────────────────────────────
-
-    @Test
-    fun floatingPillSlotsMeetTouchTargets() = runComposeUiTest {
-        liveSession()
-        // The six-slot Stitch dock: Crop, Light, Curves, Looks, Tools,
-        // Colour in a 68 dp capsule spanning the lane minus its 10 dp
-        // insets. Every destination keeps a ≥48 dp touch target.
-        onNodeWithTag(TAG_EDITOR_PINS)
-            .assertWidthIsEqualTo(370.dp)
-            .assertHeightIsEqualTo(68.dp)
-        listOf(
-            photoPinTag(EditorToolIds.PhotoCrop.value),
-            photoPinTag(EditorToolIds.PhotoLight.value),
-            photoPinTag(EditorToolIds.PhotoMarkup.value),
-            photoPinTag(EditorToolIds.PhotoLooks.value),
-            TAG_CATALOGUE,
-            photoPinTag(EditorToolIds.PhotoColour.value)
-        ).forEach { tag ->
-            val bounds = onNodeWithTag(tag)
-                .assertIsDisplayed()
-                .assertHeightIsEqualTo(68.dp)
-                .assertTouchHeightIsEqualTo(68.dp)
-                .getUnclippedBoundsInRoot()
-            val width = bounds.right - bounds.left
-            assertTrue(
-                actual = width >= 48.dp,
-                message = "$tag slot is $width, under the 48 dp target"
-            )
-        }
-        onNodeWithText("Tools").assertIsDisplayed()
-        onNodeWithText("Colour").assertIsDisplayed()
-        // Layers is catalogue-only now — no dock slot, no duplicate.
-        onNodeWithTag(photoPinTag(PHOTO_PIN_LAYERS)).assertDoesNotExist()
-        // The pinned Crop slot carries the pill's short label — the full
-        // registry title stays in the catalogue and tool headers.
-        onNodeWithText("Crop").assertIsDisplayed()
-        onAllNodes(
-            hasText("Crop & straighten") and
-                hasAnyAncestor(hasTestTag(TAG_EDITOR_PINS))
-        ).assertCountEquals(0)
-        // Source/Edits and the overflow are not pill destinations — the
-        // header owns its own More button now.
-        onNodeWithTag(TAG_PANEL_SOURCE).assertDoesNotExist()
-        onNodeWithTag(TAG_PANEL_EDITS).assertDoesNotExist()
-        onAllNodes(
-            hasTestTag(TAG_OVERFLOW) and
-                hasAnyAncestor(hasTestTag(TAG_EDITOR_PINS))
-        ).assertCountEquals(0)
-    }
 
     @Test
     fun compactHomeCarriesBeforePillAndFilledCheck() =
@@ -883,10 +761,11 @@ class EditorWorkspaceUiTest {
             .assertIsNotEnabled()
             .assertHasClickAction()
 
-        // Dirty the session through the Light tool's one-interaction
-        // apply — the same dirty signal gates Save on the home.
+        // Dirty the session through the Light tool — Studio's slider
+        // edits land on the global history per gesture, the same dirty
+        // signal that gates Save on the home.
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_SLIDER_EXPOSURE).performTouchInput {
             down(center)
             moveTo(centerRight)
@@ -894,9 +773,8 @@ class EditorWorkspaceUiTest {
         }
         waitUntil(timeoutMillis = 15_000) { !s.state.value.interactionActive }
         onNodeWithTag(TAG_TOOL_APPLY).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            !s.state.value.toolEditing && s.state.value.isDirty
-        }
+        awaitToolSheetGone()
+        waitUntil(timeoutMillis = 15_000) { s.state.value.isDirty }
 
         // Save opens its options; the copy is the first one.
         onNodeWithTag(TAG_SAVE).performClick()
@@ -962,7 +840,12 @@ class EditorWorkspaceUiTest {
                     entries = photoToolEntries(),
                     enabled = false,
                     onSelectTool = {},
-                    onShowTools = { opens++ }
+                    onShowTools = { opens++ },
+                    auto = PhotoAutoDock(
+                        selected = false,
+                        enabled = false,
+                        onSelect = {}
+                    )
                 )
             }
         }
@@ -1014,124 +897,52 @@ class EditorWorkspaceUiTest {
     }
 
     @Test
-    fun catalogueGridUsesThreeEqualColumnsAndTwoLineLabels() =
+    fun catalogueListsToolsAsFullWidthRowsUnderSectionHeaders() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         liveSession(widthDp = 412f, heightDp = 832f)
         onNodeWithTag(TAG_CATALOGUE).performClick()
         onNodeWithTag(TAG_CATALOGUE_GRID).assertIsDisplayed()
 
-        // The first All row is Light/Colour/Curves — three equal
-        // ≈121.3 dp cells with 8 dp gaps inside the 16 dp-inset body.
-        val light =
-            onNodeWithTag(TAG_CATEGORY_LIGHT).getUnclippedBoundsInRoot()
-        val colour =
-            onNodeWithTag(TAG_CATEGORY_COLOUR).getUnclippedBoundsInRoot()
-        val curves =
-            onNodeWithTag(TAG_CATEGORY_CURVES).getUnclippedBoundsInRoot()
-        val cellWidth = (412f - 32f - 16f) / 3f
-        listOf(light, colour, curves).forEach { cell ->
-            assertEquals(cellWidth, (cell.right - cell.left).value, 1f)
-        }
-        assertEquals(light.top.value, colour.top.value, 0.5f)
-        assertEquals(light.top.value, curves.top.value, 0.5f)
-        assertEquals(8f, (colour.left - light.right).value, 1f)
-        assertEquals(8f, (curves.left - colour.right).value, 1f)
-        // Row two starts one cell-plus-gap below — White balance leads
-        // the finishing row in registry order, Details and Vignette
-        // filling the row after it (Lens blur and Grain wrap to row 3).
-        val whiteBalance = onNodeWithTag(TAG_CATEGORY_WHITE_BALANCE)
-            .getUnclippedBoundsInRoot()
-        assertEquals(
-            (light.bottom + 8.dp).value, whiteBalance.top.value, 1f
-        )
-        assertEquals(light.left.value, whiteBalance.left.value, 0.5f)
-        val details = onNodeWithTag(TAG_CATEGORY_DETAILS)
-            .getUnclippedBoundsInRoot()
-        assertEquals(colour.left.value, details.left.value, 0.5f)
-        assertEquals(whiteBalance.top.value, details.top.value, 0.5f)
-        val vignette = onNodeWithTag(TAG_CATEGORY_VIGNETTE)
-            .getUnclippedBoundsInRoot()
-        assertEquals(curves.left.value, vignette.left.value, 0.5f)
-        assertEquals(whiteBalance.top.value, vignette.top.value, 0.5f)
-
-        // "Crop & straighten" paints its full name over two centred
-        // 14 sp lines — a truncated single line would measure ≈14 dp.
-        // Row three may sit below the lazy grid's composed window —
-        // scroll the cell in first.
-        onNodeWithTag(TAG_CATALOGUE_GRID).performScrollToNode(
-            hasTestTag(TAG_CATEGORY_CROP)
-        )
-        val cropLabel = onNode(
-            hasText("Crop & straighten") and
-                hasAnyAncestor(hasTestTag(TAG_CATEGORY_CROP)),
-            useUnmergedTree = true
-        ).getUnclippedBoundsInRoot()
-        assertTrue(
-            (cropLabel.bottom - cropLabel.top).value in 24f..36f,
-            "crop label should wrap two lines, measured " +
-                "${cropLabel.bottom - cropLabel.top}"
-        )
-
-        // Each 48 dp pin toggle stays inside its own cell's bounds and
-        // never reaches the adjacent cell or the centre click path.
-        listOf(
-            TAG_CATEGORY_LIGHT to EditorToolIds.PhotoLight.value,
-            TAG_CATEGORY_CURVES to EditorToolIds.PhotoCurves.value,
-            TAG_CATEGORY_CROP to EditorToolIds.PhotoCrop.value
-        ).forEach { (cellTag, id) ->
-            val cell =
-                onNodeWithTag(cellTag).getUnclippedBoundsInRoot()
-            val pin = onNodeWithTag(
-                cataloguePinTag(id), useUnmergedTree = true
-            ).getUnclippedBoundsInRoot()
-            assertTrue(
-                pin.left >= cell.left && pin.right <= cell.right &&
-                    pin.top >= cell.top && pin.bottom <= cell.bottom,
-                "$id pin ${pin} escapes its cell ${cell}"
-            )
-            val cx = (cell.left + cell.right) / 2
-            val cy = (cell.top + cell.bottom) / 2
-            assertFalse(
-                cx in pin.left..pin.right && cy in pin.top..pin.bottom,
-                "$id pin covers its cell's centre"
-            )
-        }
+        // One tool per row: Colour sits under Light at the same width,
+        // each row at least 72 dp tall and wide enough for its line.
+        val light = onNodeWithTag(TAG_CATEGORY_LIGHT).getUnclippedBoundsInRoot()
+        val colour = onNodeWithTag(TAG_CATEGORY_COLOUR).getUnclippedBoundsInRoot()
+        assertTrue(colour.top >= light.bottom - 0.5.dp, "Colour $colour is not under Light $light")
+        assertEquals(light.left, colour.left)
+        assertEquals(light.right, colour.right)
+        assertTrue((light.right - light.left).value > 300f, "row width ${light.right - light.left}")
+        assertTrue((light.bottom - light.top).value >= 71.5f, "row height ${light.bottom - light.top}")
+        // Each row says what the tool does.
+        onNodeWithText("Exposure, contrast, highlights and shadows").assertIsDisplayed()
     }
 
     @Test
-    fun cataloguePinToggleUpdatesThePill() =
+    fun longPressWithAFullDockOpensThePinManager() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         liveSession(widthDp = 412f, heightDp = 832f)
         onNodeWithTag(TAG_CATALOGUE).performClick()
         onNodeWithTag(TAG_CATALOGUE_GRID).assertIsDisplayed()
 
-        // The fixed Colour slot has no pin toggle — only the four
-        // favourites are pinnable.
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoColour.value))
-            .assertDoesNotExist()
+        // The four defaults fill the dock: a long press on White balance
+        // opens the pin manager instead of silently doing nothing.
+        onNodeWithTag(TAG_CATALOGUE_GRID)
+            .performScrollToNode(hasTestTag(TAG_CATEGORY_WHITE_BALANCE))
+        onNodeWithTag(TAG_CATEGORY_WHITE_BALANCE).performTouchInput { longClick() }
+        waitForIdle()
+        onNodeWithTag(TAG_PIN_MANAGER).assertIsDisplayed()
+    }
 
-        // The four defaults fill the cap, so White balance refuses.
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoWhiteBalance.value))
-            .assertIsNotSelected()
-            .performClick()
+    @Test
+    fun longPressOnAPinnedRowUnpinsIt() =
+        runDesktopComposeUiTest(width = 412, height = 832) {
+        liveSession(widthDp = 412f, heightDp = 832f)
+        onNodeWithTag(photoPinTag(EditorToolIds.PhotoCrop.value)).assertIsDisplayed()
+        onNodeWithTag(TAG_CATALOGUE).performClick()
+        onNodeWithTag(TAG_CATALOGUE_GRID)
+            .performScrollToNode(hasTestTag(TAG_CATEGORY_CROP))
+        onNodeWithTag(TAG_CATEGORY_CROP).performTouchInput { longClick() }
         waitForIdle()
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoWhiteBalance.value))
-            .assertIsNotSelected()
-
-        // Unpinning Crop frees a lane; White balance takes it.
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoCrop.value))
-            .assertIsSelected()
-            .performClick()
-        waitForIdle()
-        onNodeWithTag(photoPinTag(EditorToolIds.PhotoCrop.value))
-            .assertDoesNotExist()
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoWhiteBalance.value))
-            .performClick()
-        waitForIdle()
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoWhiteBalance.value))
-            .assertIsSelected()
-        onNodeWithTag(photoPinTag(EditorToolIds.PhotoWhiteBalance.value))
-            .assertIsDisplayed()
+        onNodeWithTag(photoPinTag(EditorToolIds.PhotoCrop.value)).assertDoesNotExist()
     }
 
     @Test
@@ -1236,7 +1047,7 @@ class EditorWorkspaceUiTest {
         onNodeWithTag(TAG_EDITOR_PINS)
             .assertIsDisplayed()
             .assertWidthIsEqualTo(392.dp)
-            .assertHeightIsEqualTo(68.dp)
+            .assertHeightIsEqualTo(70.dp)
         onNodeWithTag(photoPinTag(EditorToolIds.PhotoLight.value))
             .assertIsDisplayed()
         onNodeWithTag(photoPinTag(EditorToolIds.PhotoCrop.value))
@@ -1251,9 +1062,9 @@ class EditorWorkspaceUiTest {
     @Test
     fun canonicalToolRegionsMatchSpec() =
         runDesktopComposeUiTest(width = 412, height = 832) {
-        val s = liveSession(widthDp = 412f, heightDp = 832f)
+        liveSession(widthDp = 412f, heightDp = 832f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         // Let the scaffold settle on its resting peek before measuring.
         waitForIdle()
 
@@ -1290,9 +1101,9 @@ class EditorWorkspaceUiTest {
         onNodeWithTag(TAG_BACK).assertIsDisplayed()
         onNodeWithTag(TAG_UNDO).assertIsDisplayed()
         onNodeWithTag(TAG_BEFORE_CHIP).assertIsDisplayed()
-        // Apply replaces Save while the tool owns the draft.
+        // The header keeps Save while a tool is open; the tool bar carries Done.
         onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
-        onNodeWithTag(TAG_SAVE).assertDoesNotExist()
+        onNodeWithTag(TAG_SAVE).assertIsDisplayed()
         onNodeWithTag(TAG_TOOL_CANCEL).assertDoesNotExist()
         onNodeWithTag(TAG_PHOTO_UTILITY).assertDoesNotExist()
 
@@ -1307,7 +1118,7 @@ class EditorWorkspaceUiTest {
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession(widthDp = 412f, heightDp = 832f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
 
         // Content-measured chips start at x36 — the card's 12 dp float
         // inset, then the inspector's 16 and the strip's 8: label plus
@@ -1365,7 +1176,7 @@ class EditorWorkspaceUiTest {
         runDesktopComposeUiTest(width = 390, height = 844) {
         val s = liveSession(widthDp = 390f, heightDp = 844f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         // Switch to Shadows, then drive the ruler through semantics — the
         // write must target the active parameter (a stale callback
         // reference routed here into exposure instead).
@@ -1393,20 +1204,16 @@ class EditorWorkspaceUiTest {
         // surface are gone.
         onNodeWithTag(TAG_EDITOR_CATALOGUE_SHEET).assertIsDisplayed()
         onNodeWithTag(TAG_CATALOGUE_SEARCH).assertIsDisplayed()
-        onNodeWithText("All").assertIsDisplayed()
-        onNodeWithText("Adjust").assertIsDisplayed()
-        onNodeWithText("Retouch").assertIsDisplayed()
-        onNodeWithText("Compose").assertIsDisplayed()
+        // The filter chips: All, then one per task section.
+        onNodeWithTag(TAG_CATALOGUE_CHIPS).assertIsDisplayed()
+        onNodeWithTag("editor.catalogue.chip.all").assertIsDisplayed()
+        onNodeWithTag("editor.catalogue.chip.Adjust").assertIsDisplayed()
         onNodeWithTag(TAG_CATEGORY_LIGHT).assertIsDisplayed()
 
-        // V3 pin UI: the Edit pins affordance and a 48 dp pin toggle per
-        // cell — the pinned default reads selected, an unpinned cell not.
+        // Pins are a long press now: the title row keeps the pin
+        // manager, and no row carries a pin toggle.
         onNodeWithTag(TAG_EDITOR_PINS_EDIT).assertIsDisplayed()
         onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoLight.value))
-            .assertIsDisplayed()
-        // Colour owns the dock's fixed last slot, so it is not pinnable
-        // and its cell carries no dead toggle.
-        onNodeWithTag(cataloguePinTag(EditorToolIds.PhotoColour.value))
             .assertDoesNotExist()
 
         // The home stays composed behind the sheet.
@@ -1452,10 +1259,8 @@ class EditorWorkspaceUiTest {
         // ruler tabs and the aspect strip with its orientation swap.
         onNodeWithTag(TAG_STRAIGHTEN).assertIsDisplayed()
         onNodeWithTag(TAG_STRAIGHTEN_VALUE).assertIsDisplayed()
-        // The card's axis chip carries the three real rulers; the wide
-        // inspector keeps labelled tabs.
-        onNodeWithTag(TAG_CROP_AXIS).assertIsDisplayed()
-        onNodeWithTag(TAG_CROP_AXIS).performClick()
+        // The three real rulers sit on a visible Straighten / Vertical /
+        // Horizontal row.
         onNodeWithTag(TAG_CROP_TAB_STRAIGHTEN).assertIsDisplayed()
         onNodeWithTag(TAG_CROP_TAB_VERTICAL).assertExists()
         onNodeWithTag(TAG_CROP_TAB_HORIZONTAL).assertExists()
@@ -1576,7 +1381,7 @@ class EditorWorkspaceUiTest {
         // AdjustmentSheet tools ride the scaffold — handle, no inline
         // inspector.
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_V3_ADJUSTMENT_SHEET).assertIsDisplayed()
         // Light has no expanded state and no grab strip, and no
         // Light/Colour/Detail switcher (that row was retired).
@@ -1601,7 +1406,7 @@ class EditorWorkspaceUiTest {
 
         // Geometry and contextual tools use the same sheet shell.
         onNodeWithTag(TAG_BACK).performClick()
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
+        awaitToolSheetGone()
         openPhotoTool(TAG_CATEGORY_CROP)
         waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
         onNodeWithTag(TAG_V3_INLINE_INSPECTOR).assertDoesNotExist()
@@ -1609,14 +1414,14 @@ class EditorWorkspaceUiTest {
         onNodeWithTag(TAG_V3_SHEET_HANDLE, useUnmergedTree = true).assertIsDisplayed()
 
         onNodeWithTag(TAG_BACK).performClick()
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
+        awaitToolSheetGone()
         openPhotoTool(TAG_CATEGORY_PERSPECTIVE)
         waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
         onNodeWithTag(TAG_V3_INLINE_INSPECTOR).assertDoesNotExist()
         onNodeWithTag(TAG_V3_SHEET_HANDLE, useUnmergedTree = true).assertIsDisplayed()
 
         onNodeWithTag(TAG_BACK).performClick()
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
+        awaitToolSheetGone()
         runOnUiThread { s.addImageLayer("fixture://one.png", name = "Sky") }
         waitUntil(timeoutMillis = 15_000) {
             s.state.value.document?.layers?.size == 1
@@ -1632,7 +1437,7 @@ class EditorWorkspaceUiTest {
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession(widthDp = 412f, heightDp = 832f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
 
         // The resting card is the whole card — chips and the ruler, with
         // no grab strip and no secondary row; the histogram lives in the
@@ -1659,40 +1464,30 @@ class EditorWorkspaceUiTest {
         openLayersWorkspace()
         waitForIdle()
 
-        // The V3 layers surface: the floating capsule header, the
-        // weighted canvas, then the flat inline inspector — no
-        // breadcrumb, no Done strip, no Apply/Cancel. Header Back is the
-        // only exit.
-        onNodeWithTag(TAG_PHOTO_HEADER)
-            .assertTopPositionInRootIsEqualTo(12.dp)
-            .assertHeightIsEqualTo(56.dp)
-        onNodeWithTag(TAG_PHOTO_CANVAS)
-            .assertTopPositionInRootIsEqualTo(68.dp)
-        onNodeWithTag(TAG_PHOTO_BREADCRUMB).assertDoesNotExist()
-        onNodeWithTag(TAG_V3_INLINE_INSPECTOR).assertIsDisplayed()
-        onNodeWithTag(TAG_V3_SHEET_HANDLE).assertDoesNotExist()
-
-        // Header anatomy: Back / Layers / the 48 dp add-image action.
+        // Layers wears the tool chrome: the document header (Save kept),
+        // the tool bar with Done, the canvas, the floating layer card and
+        // the dock. There is no Cancel.
+        onNodeWithTag(TAG_PHOTO_HEADER).assertIsDisplayed()
+        onNodeWithTag(TAG_SAVE).assertIsDisplayed()
         onNodeWithTag(TAG_BACK).assertIsDisplayed()
-        onNode(
-            hasTestTag(TAG_PHOTO_HEADER) and
-                hasAnyDescendant(hasText("Layers"))
-        ).assertIsDisplayed()
-        onNodeWithTag(TAG_LAYER_ADD_HEADER).assertIsDisplayed()
-        onNodeWithTag(TAG_SAVE).assertDoesNotExist()
-        onNodeWithTag(TAG_PHOTO_UTILITY).assertDoesNotExist()
+        val header = onNodeWithTag(TAG_PHOTO_HEADER).getUnclippedBoundsInRoot()
+        val bar = onNodeWithTag(TAG_TOOL_ACTIONS).getUnclippedBoundsInRoot()
+        assertTrue(bar.top >= header.bottom - 0.5.dp, "tool bar $bar is not under the header $header")
+        onNode(hasTestTag(TAG_TOOL_ACTIONS) and hasAnyDescendant(hasText("Layers")))
+            .assertIsDisplayed()
+        onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
+        onNodeWithTag(TAG_TOOL_CANCEL).assertDoesNotExist()
+        onNodeWithTag(TAG_V3_INLINE_INSPECTOR).assertIsDisplayed()
+        onNodeWithTag(TAG_PHOTO_TOOLBAR_REGION).assertIsDisplayed()
 
-        // Inspector anatomy: the 48 dp toolbar (Add layer, disabled
-        // Group) over the honest list rows.
+        // Card anatomy: the 48 dp toolbar (Add layer, disabled Group) over
+        // the honest list rows.
         onNodeWithTag(TAG_LAYERS_TOOLBAR)
             .assertHeightIsEqualTo(48.dp)
         onNodeWithTag(TAG_LAYER_ADD).assertIsEnabled()
         onNodeWithTag(TAG_LAYER_GROUP).assertIsNotEnabled()
         onNodeWithTag(TAG_LAYER_BASE).assertIsDisplayed()
         onNodeWithText("editor_sample.jpg").assertIsDisplayed()
-        onNodeWithTag(TAG_LAYERS_DONE).assertDoesNotExist()
-        onNodeWithTag(TAG_TOOL_CANCEL).assertDoesNotExist()
-        onNodeWithTag(TAG_TOOL_APPLY).assertDoesNotExist()
 
         // Import is immediate — the session stays clean of drafts.
         assertTrue(!s.state.value.isDrafting && !s.state.value.toolEditing)
@@ -1804,408 +1599,6 @@ class EditorWorkspaceUiTest {
             }
         }
         onNodeWithTag(tag).assertIsFocused()
-    }
-
-    @Test
-    fun desktopFourPaneRegionsMatchSpec() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        liveSession(widthDp = 1440f, heightDp = 960f)
-
-        // The x-photo-desktop grid: header 64 over a body of
-        // rail 80 | canvas 776 | layers 280 | properties 304.
-        onNodeWithTag(TAG_PHOTO_HEADER)
-            .assertTopPositionInRootIsEqualTo(0.dp)
-            .assertHeightIsEqualTo(64.dp)
-        onNodeWithTag(TAG_DESKTOP_RAIL)
-            .assertLeftPositionInRootIsEqualTo(0.dp)
-            .assertTopPositionInRootIsEqualTo(64.dp)
-            .assertWidthIsEqualTo(80.dp)
-            .assertHeightIsEqualTo(896.dp)
-        onNodeWithTag(TAG_PHOTO_CANVAS)
-            .assertLeftPositionInRootIsEqualTo(80.dp)
-            .assertTopPositionInRootIsEqualTo(64.dp)
-            .assertWidthIsEqualTo(776.dp)
-            .assertHeightIsEqualTo(896.dp)
-        onNodeWithTag(TAG_DESKTOP_LAYERS_PANE)
-            .assertLeftPositionInRootIsEqualTo(856.dp)
-            .assertTopPositionInRootIsEqualTo(64.dp)
-            .assertWidthIsEqualTo(280.dp)
-            .assertHeightIsEqualTo(896.dp)
-        onNodeWithTag(TAG_DESKTOP_PROPS_PANE)
-            .assertLeftPositionInRootIsEqualTo(1136.dp)
-            .assertTopPositionInRootIsEqualTo(64.dp)
-            .assertWidthIsEqualTo(304.dp)
-            .assertHeightIsEqualTo(896.dp)
-
-        // Header anatomy: Back, the source name, the centred 240x40
-        // Edit/Layers/Compare segment and Save — no visible Undo/Redo,
-        // More or overflow. The source name also labels the base layer
-        // row, so the title measure is the one inside the header.
-        onNodeWithTag(TAG_BACK).assertIsDisplayed()
-        val header = onNodeWithTag(TAG_PHOTO_HEADER)
-            .fetchSemanticsNode().boundsInRoot
-        val title = onAllNodes(hasText("editor_sample.jpg"))
-            .fetchSemanticsNodes()
-            .first {
-                it.boundsInRoot.top >= header.top &&
-                    it.boundsInRoot.bottom <= header.bottom
-            }
-        onNodeWithTag(TAG_DESKTOP_SEGMENT)
-            .assertWidthIsEqualTo(240.dp)
-            .assertHeightIsEqualTo(40.dp)
-        val segment = onNodeWithTag(TAG_DESKTOP_SEGMENT)
-            .fetchSemanticsNode().boundsInRoot
-        val save = onNodeWithTag(TAG_SAVE)
-            .fetchSemanticsNode().boundsInRoot
-        val segCentre = (segment.left + segment.right) / 2
-        val freeCentre = (title.boundsInRoot.right + save.left) / 2
-        assertTrue(
-            abs(segCentre - freeCentre) <= 2f,
-            "segment centre $segCentre must sit mid-way between the " +
-                "title and Save ($freeCentre)"
-        )
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_EDIT).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_COMPARE).assertIsDisplayed()
-        onNodeWithTag(TAG_SAVE).assertIsDisplayed()
-        onNodeWithTag(TAG_UNDO).assertDoesNotExist()
-        onNodeWithTag(TAG_REDO).assertDoesNotExist()
-        onNodeWithTag(TAG_HEADER_MORE).assertDoesNotExist()
-        onNodeWithTag(TAG_OVERFLOW).assertDoesNotExist()
-
-        // No phone chrome leaks into the desktop composition — and no
-        // second inspector next to the two panes.
-        onNodeWithTag(TAG_PHOTO_UTILITY).assertDoesNotExist()
-        onNodeWithTag(TAG_PHOTO_TOOLBAR_REGION).assertDoesNotExist()
-        onNodeWithTag(TAG_PHOTO_INSPECTOR).assertDoesNotExist()
-        onNodeWithTag(TAG_CATALOGUE).assertDoesNotExist()
-
-        // Rail anatomy: Layers, the catalogued tools top to bottom (the
-        // contextual-only Mask stays out), Focus — all 56x56 icon cells.
-        // The rail scrolls once the finishing set overflows its height —
-        // late cells scroll into view before asserting.
-        onNodeWithTag(TAG_LAYERS)
-            .assertWidthIsEqualTo(56.dp)
-            .assertHeightIsEqualTo(56.dp)
-        listOf(
-            TAG_CATEGORY_LIGHT, TAG_CATEGORY_COLOUR, TAG_CATEGORY_CROP,
-            TAG_CATEGORY_PERSPECTIVE, TAG_CATEGORY_DOUBLE_EXPOSURE,
-            TAG_CATEGORY_TRANSFORM, TAG_CATEGORY_BLEND
-        ).forEach { tag ->
-            onNodeWithTag(tag)
-                .performScrollTo()
-                .assertIsDisplayed()
-                .assertWidthIsEqualTo(56.dp)
-                .assertHeightIsEqualTo(56.dp)
-        }
-        onNodeWithTag("editor.category.mask").assertDoesNotExist()
-        onNodeWithTag(TAG_FOCUS)
-            .assertWidthIsEqualTo(56.dp)
-            .assertHeightIsEqualTo(56.dp)
-
-        // The bottom-left 120x40 zoom field sits at canvas-local x16 —
-        // root x96 — with its bottom 16 dp off the body floor.
-        onNodeWithTag(TAG_DESKTOP_ZOOM)
-            .assertLeftPositionInRootIsEqualTo(96.dp)
-            .assertTopPositionInRootIsEqualTo(904.dp)
-            .assertWidthIsEqualTo(120.dp)
-            .assertHeightIsEqualTo(40.dp)
-        onNodeWithTag(TAG_DESKTOP_ZOOM_FIT).assertIsDisplayed()
-    }
-
-    @Test
-    fun desktopLayersSurfaceSharesSelectionAcrossPanesAndCanvas() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = liveSession(widthDp = 1440f, heightDp = 960f)
-        val layerId = stageSkyLayer(s)
-
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-
-        // One workspace selection drives the row, the canvas outline
-        // and the properties pane — no second inspector exists.
-        onNodeWithTag(TAG_LAYER_ROW_PREFIX + layerId).assertIsSelected()
-        onNodeWithTag(TAG_LAYER_SELECTION).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROPS_PANE)
-            .assertIsDisplayed()
-        onNode(
-            hasTestTag(TAG_DESKTOP_PROPS_PANE) and
-                hasAnyDescendant(hasText("Sky"))
-        ).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_BLEND).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_POSITION).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_ROTATION).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_ALIGN).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_FLIP_H).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_FLIP_V).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_MASK).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_EFFECTS).assertIsNotEnabled()
-        onNodeWithTag(TAG_PHOTO_INSPECTOR).assertDoesNotExist()
-
-        // The layer properties end at Effects — no tool-published or
-        // global reset reads on a surface it doesn't reset.
-        onNodeWithTag(TAG_DESKTOP_PROP_RESET).assertDoesNotExist()
-        onNodeWithText("Reset edits").assertDoesNotExist()
-    }
-
-    @Test
-    fun desktopPropertyRowsMutateTheSelectedLayerAndUndo() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = liveSession(widthDp = 1440f, heightDp = 960f)
-        stageSkyLayer(s)
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-        fun layer() = s.state.value.document!!.layers.single()
-
-        // Opacity through the exact-entry dialog lands one history step.
-        onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).performClick()
-        onNodeWithTag(TAG_VALUE_FIELD).performTextReplacement("50")
-        onNodeWithTag(TAG_VALUE_CONFIRM).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            !s.state.value.interactionActive && layer().opacity == 0.5f
-        }
-
-        // Blend mode through the dropdown — one step.
-        onNodeWithTag(TAG_DESKTOP_PROP_BLEND).performClick()
-        onNodeWithTag(TAG_DESKTOP_BLEND_MENU).assertIsDisplayed()
-        onNodeWithText("Screen").performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            layer().blendMode == PhotoBlendMode.Screen
-        }
-
-        // Rotation through the dialog.
-        onNodeWithTag(TAG_DESKTOP_PROP_ROTATION).performClick()
-        onNodeWithTag(TAG_VALUE_FIELD).performTextReplacement("45")
-        onNodeWithTag(TAG_VALUE_CONFIRM).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            !s.state.value.interactionActive &&
-                layer().transform.rotationDegrees == 45f
-        }
-
-        // Position pair dialog — both fields validated atomically.
-        onNodeWithTag(TAG_DESKTOP_PROP_POSITION).performClick()
-        onNodeWithTag(TAG_VALUE_FIELD).performTextReplacement("20")
-        onNodeWithTag(TAG_VALUE_FIELD_SECOND).performTextReplacement("-10")
-        onNodeWithTag(TAG_VALUE_CONFIRM).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            !s.state.value.interactionActive &&
-                layer().transform.translationX == 20f &&
-                layer().transform.translationY == -10f
-        }
-
-        // Align centre zeroes the translation; Flip toggles — each its
-        // own global history step.
-        onNodeWithTag(TAG_DESKTOP_PROP_ALIGN).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            layer().transform.translationX == 0f &&
-                layer().transform.translationY == 0f
-        }
-        onNodeWithTag(TAG_DESKTOP_PROP_FLIP_H).performClick()
-        waitUntil(timeoutMillis = 15_000) {
-            layer().transform.flipHorizontal
-        }
-
-        // Undo walks the same history — the flip unwinds first.
-        assertTrue(s.state.value.canUndo)
-        runOnUiThread { s.undo() }
-        waitUntil(timeoutMillis = 15_000) {
-            !layer().transform.flipHorizontal
-        }
-
-        // The Mask field routes into the mask tool's real transaction —
-        // its surface owns the properties pane and the pane's own
-        // Cancel closes it.
-        onNodeWithTag(TAG_DESKTOP_PROP_MASK).performClick()
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        onNodeWithTag(TAG_MASK_ERASE).assertIsDisplayed()
-        onNodeWithTag(TAG_TOOL_CANCEL).assertIsDisplayed()
-        onNodeWithTag(TAG_TOOL_CANCEL).performClick()
-        waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
-    }
-
-    @Test
-    fun desktopAddImageRaisesTheHostPicker() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        var picked = false
-        liveSession(
-            widthDp = 1440f,
-            heightDp = 960f,
-            onRequestAddImage = { picked = true }
-        )
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        // The outlined 260x48 Add image under the list calls the host's
-        // picker seam — the session import stays host-owned.
-        onNodeWithTag(TAG_LAYER_ADD)
-            .assertIsDisplayed()
-            .assertWidthIsEqualTo(260.dp)
-            .assertHeightIsEqualTo(48.dp)
-            .performClick()
-        assertTrue(picked)
-    }
-
-    @Test
-    fun desktopResizeCollapsesToSidebarKeepingSelectionToolAndZoom() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = openedSession(samplePixels())
-        session = s
-        var width by mutableStateOf(1440f)
-        var height by mutableStateOf(960f)
-        setContent {
-            TestEditorRoot {
-                Box(Modifier.size(width.dp, height.dp).fillMaxSize()) {
-                    PhotoEditorScreen(
-                        session = s,
-                        onClose = {},
-                        onRetryOpen = {
-                            s.open("fixture://editor_sample.jpg")
-                        }
-                    )
-                }
-            }
-        }
-        awaitImage(s)
-        val layerId = stageSkyLayer(s)
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-        onNodeWithTag(TAG_LAYER_ROW_PREFIX + layerId).assertIsSelected()
-
-        // Zoom past fit — the hoisted viewport must survive the layout
-        // flip, so the percent readout is the honest probe.
-        onNodeWithTag(TAG_CANVAS).performKeyInput {
-            keyDown(Key.Equals); keyUp(Key.Equals)
-        }
-        waitForIdle()
-        onNode(
-            hasTestTag(TAG_DESKTOP_ZOOM) and
-                hasAnyDescendant(hasText("115%"))
-        ).assertIsDisplayed()
-
-        // 1440 -> 1000 collapses the four panes into the adaptive
-        // rail + canvas + single inspector; selection and surface keep.
-        runOnUiThread { width = 1000f; height = 800f }
-        waitForIdle()
-        onNodeWithTag(TAG_DESKTOP_RAIL).assertDoesNotExist()
-        onNodeWithTag(TAG_DESKTOP_LAYERS_PANE).assertDoesNotExist()
-        onNodeWithTag(TAG_DESKTOP_PROPS_PANE).assertDoesNotExist()
-        onNodeWithTag(TAG_LAYER_ROW_PREFIX + layerId)
-            .assertIsDisplayed()
-            .assertIsSelected()
-
-        // Growing back restores the four panes with the same selection
-        // and the same zoom.
-        runOnUiThread { width = 1440f; height = 960f }
-        waitForIdle()
-        onNodeWithTag(TAG_DESKTOP_RAIL).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_LAYERS_PANE).assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROPS_PANE).assertIsDisplayed()
-        onNodeWithTag(TAG_LAYER_ROW_PREFIX + layerId).assertIsSelected()
-        onNode(
-            hasTestTag(TAG_DESKTOP_ZOOM) and
-                hasAnyDescendant(hasText("115%"))
-        ).assertIsDisplayed()
-    }
-
-    @Test
-    fun desktopKeyboardTraversalAndArrowKeys() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = liveSession(widthDp = 1440f, heightDp = 960f)
-        stageSkyLayer(s)
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-        fun layer() = s.state.value.document!!.layers.single()
-
-        // Back is the first stop: walk backwards from the canvas to it,
-        // then forward through the documented order.
-        var guard = 0
-        while (!isFocusedTag(TAG_BACK) && guard++ < 40) {
-            onNodeWithTag(TAG_CANVAS).performKeyInput {
-                keyDown(Key.ShiftLeft)
-                keyDown(Key.Tab); keyUp(Key.Tab)
-                keyUp(Key.ShiftLeft)
-            }
-        }
-        onNodeWithTag(TAG_BACK).assertIsFocused()
-        tabToFocused(TAG_DESKTOP_SEGMENT_EDIT, steps = 2)
-        tabToFocused(TAG_DESKTOP_SEGMENT_LAYERS, steps = 2)
-        tabToFocused(TAG_DESKTOP_SEGMENT_COMPARE, steps = 2)
-        tabToFocused(TAG_SAVE, steps = 2)
-        tabToFocused(TAG_LAYERS, steps = 2)
-        // Rail cells, the canvas and the layer rows pass by — the next
-        // properties stop after them is the Opacity row.
-        tabToFocused(TAG_DESKTOP_PROP_OPACITY)
-        onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).assertIsFocused()
-
-        // Arrow keys on the focused numeric row nudge the value — Left
-        // steps -1%, landing one history step per key.
-        val before = layer().opacity
-        onNodeWithTag(TAG_DESKTOP_PROP_OPACITY).performKeyInput {
-            keyDown(Key.DirectionLeft); keyUp(Key.DirectionLeft)
-        }
-        waitUntil(timeoutMillis = 15_000) {
-            layer().opacity < before
-        }
-        tabToFocused(TAG_DESKTOP_PROP_MASK)
-        onNodeWithTag(TAG_DESKTOP_PROP_MASK).assertIsFocused()
-    }
-
-    @Test
-    fun desktopLayersSegmentCanvasPanStaysReachable() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = liveSession(widthDp = 1440f, heightDp = 960f)
-        stageSkyLayer(s)
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-
-        // The selection quad is display-only — an interactive overlay
-        // would swallow the canvas's own gestures in the Layers
-        // surface. Zoom past fit so a drag has pan room, then drag
-        // through the outlined layer region.
-        onNodeWithTag(TAG_LAYER_SELECTION).assertIsDisplayed()
-        onNodeWithTag(TAG_CANVAS).performKeyInput {
-            keyDown(Key.Equals); keyUp(Key.Equals)
-            keyDown(Key.Equals); keyUp(Key.Equals)
-        }
-        waitForIdle()
-        val before = onNodeWithTag(TAG_IMAGE).getUnclippedBoundsInRoot()
-        onNodeWithTag(TAG_CANVAS).performTouchInput {
-            down(center)
-            moveBy(Offset(80f, 40f))
-            up()
-        }
-        waitForIdle()
-        val after = onNodeWithTag(TAG_IMAGE).getUnclippedBoundsInRoot()
-        assertTrue(
-            before != after,
-            "canvas pan must reach the viewport through the display " +
-                "selection overlay — before=$before after=$after"
-        )
-    }
-
-    @Test
-    fun desktopFont2PropertiesStayReachable() =
-        runDesktopComposeUiTest(width = 1440, height = 960) {
-        val s = liveSession(
-            widthDp = 1440f, heightDp = 960f, fontScale = 2f
-        )
-        stageSkyLayer(s)
-        onNodeWithTag(TAG_DESKTOP_SEGMENT_LAYERS).performClick()
-        waitForIdle()
-
-        // At 2x text the pane scrolls — every row and the pinned Add
-        // button stay reachable and unclipped.
-        onNodeWithTag(TAG_DESKTOP_PROP_EFFECTS)
-            .performScrollTo()
-            .assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_MASK)
-            .performScrollTo()
-            .assertIsDisplayed()
-        onNodeWithTag(TAG_DESKTOP_PROP_OPACITY)
-            .performScrollTo()
-            .assertIsDisplayed()
-        onNodeWithTag(TAG_LAYER_ADD)
-            .performScrollTo()
-            .assertIsDisplayed()
     }
 
     // ── Composite layer-focus chrome (P3b2b) ────────────────────────────
@@ -2340,7 +1733,7 @@ class EditorWorkspaceUiTest {
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession(widthDp = 412f, heightDp = 832f)
         openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
+        awaitToolSheet()
         onNodeWithTag(TAG_CANVAS).performKeyInput {
             keyDown(Key.F); keyUp(Key.F)
         }
@@ -2351,10 +1744,9 @@ class EditorWorkspaceUiTest {
         // interaction).
         onNodeWithTag(TAG_BACK).assertIsDisplayed()
         onNodeWithTag(TAG_UNDO).assertIsDisplayed()
-        // The header still owns the open tool's commit; Save returns when
-        // the transaction settles.
+        // The tool bar keeps Done; the header keeps Save.
         onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
-        onNodeWithTag(TAG_SAVE).assertDoesNotExist()
+        onNodeWithTag(TAG_SAVE).assertIsDisplayed()
         onNodeWithTag(TAG_EDITOR_PINS).assertIsDisplayed()
         onNodeWithTag(TAG_FOCUS_PARAM_LABEL).assertIsDisplayed()
         onNodeWithTag(TAG_V3_SHEET_HANDLE).assertDoesNotExist()

@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
@@ -351,14 +352,19 @@ class VideoEditorUiTest {
         toolTag: String,
         group: String? = null
     ) {
+        // An audio tool leaves the audio tools in the dock: Back first.
+        if (onAllNodesWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).fetchSemanticsNodes().isNotEmpty()) {
+            onNodeWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).performClick()
+        }
         onNodeWithTag(TAG_VIDEO_TOOLS).performClick()
         onNodeWithTag(TAG_CATALOGUE_GRID).assertIsDisplayed()
         if (group != null) {
-            onNodeWithTag("editor.catalogue.group." + group)
+            onNodeWithTag("editor.catalogue.chip." + group)
                 .performClick()
         }
-        onNodeWithTag(toolTag).performScrollTo()
-        .performSemanticsAction(SemanticsActions.OnClick)
+        // The list is lazy: bring the row into composition first.
+        onNodeWithTag(TAG_CATALOGUE_GRID).performScrollToNode(hasTestTag(toolTag))
+        onNodeWithTag(toolTag).performSemanticsAction(SemanticsActions.OnClick)
     }
 
     /**
@@ -954,6 +960,9 @@ class VideoEditorUiTest {
             }
         }
         awaitReady(s)
+        // No tool opens by default: Trim comes from the command row.
+        onNodeWithTag(TAG_VIDEO_COMMAND_TRIM).performClick()
+        waitForIdle()
         // Separate In and Out rows — all four 48 dp nudge targets scroll
         // into reach inside the bounded inspector.
         listOf(
@@ -1067,13 +1076,14 @@ class VideoEditorUiTest {
 
     @Test
     fun shortLandscapeKeepsPreviewAndLanes() = runComposeUiTest {
-        // 800 dp wide but only 340 tall: the phone landscape form puts the
-        // dock on a rail and the inspector beside the canvas column, so
-        // the stage stays recognizable above the compact lanes.
+        // 800 dp wide but only 340 tall: the short large form puts the dock
+        // on a rail and the timeline in a side pane beside the preview, so
+        // the stage stays recognizable. No tool is open, so no tool card.
         liveEditor(800f, 340f)
+        onNodeWithTag(TAG_VIDEO_REGION_TOOLBAR).assertIsDisplayed()
         onNodeWithTag(TAG_VIDEO_TIMELINE).assertIsDisplayed()
         onNodeWithTag(TAG_VIDEO_CLIP_STRIP).assertIsDisplayed()
-        onNodeWithTag(TAG_VIDEO_PANEL).assertIsDisplayed()
+        onNodeWithTag(TAG_VIDEO_PANEL).assertDoesNotExist()
         val previewPx = onNodeWithTag(TAG_VIDEO_PREVIEW)
             .fetchSemanticsNode().boundsInRoot.height
         val previewDp = previewPx / density.density
@@ -1424,14 +1434,14 @@ class VideoEditorUiTest {
         runDesktopComposeUiTest(width = 412, height = 832) {
         liveEditor(widthDp = 412f, heightDp = 832f)
         onNodeWithTag(TAG_VIDEO_TOOLS).performClick()
-        onNodeWithTag("editor.catalogue.group.Picture").performClick()
+        onNodeWithTag("editor.catalogue.chip.Picture").performClick()
         onNodeWithTag(TAG_VIDEO_TOOL_TRANSFORM).assertIsDisplayed()
         // A query reaches Edit's Trim from the Picture category.
         onNodeWithTag(TAG_CATALOGUE_SEARCH).performTextInput("trim")
         onNodeWithTag(TAG_VIDEO_TAB_TRIM).assertIsDisplayed()
         onNodeWithTag(TAG_VIDEO_TOOL_TRANSFORM).assertDoesNotExist()
         onNodeWithTag(TAG_CATALOGUE_SEARCH).performTextReplacement("")
-        onNodeWithTag("editor.catalogue.group.Deliver").performClick()
+        onNodeWithTag("editor.catalogue.chip.Deliver").performClick()
         onNodeWithTag(TAG_VIDEO_TOOL_EXPORT).performClick()
         onNodeWithTag(TAG_VIDEO_EXPORT_SHEET).assertExists()
         onNodeWithTag(TAG_VIDEO_EXPORT_CONFIRM).assertIsEnabled()
@@ -1769,8 +1779,11 @@ class VideoEditorUiTest {
         runDesktopComposeUiTest(width = 1440, height = 960) {
         val s = liveEditor(widthDp = 1440f, heightDp = 960f)
         importOverlay(s)
-        // The labelled dock rail on the left, the stage beside the solid
-        // inspector card, and the full-width timeline card underneath.
+        // The labelled dock rail on the left, the stage over the timeline in
+        // the centre, and, once a tool is open, its card on the right.
+        onNodeWithTag(TAG_VIDEO_PANEL).assertDoesNotExist()
+        onNodeWithTag(TAG_VIDEO_COMMAND_TRIM).performClick()
+        waitForIdle()
         val rail = onNodeWithTag(TAG_VIDEO_REGION_TOOLBAR)
             .assertWidthIsEqualTo(80.dp)
             .getUnclippedBoundsInRoot()
@@ -1779,10 +1792,11 @@ class VideoEditorUiTest {
         val timeline = onNodeWithTag(TAG_VIDEO_REGION_TIMELINE).getUnclippedBoundsInRoot()
         assertTrue(rail.right <= stage.left, "rail/stage overlap")
         assertTrue(stage.right <= panel.left, "stage/inspector overlap")
-        assertTrue(stage.bottom <= timeline.top && panel.bottom <= timeline.top)
-        assertTrue(timeline.left < stage.left + 1.dp && timeline.right >= panel.right - 1.dp)
-        // The header carries the source name; the command row is labelled.
-        onNodeWithText("sample-coast.mp4").assertIsDisplayed()
+        assertTrue(stage.bottom <= timeline.top, "stage/timeline overlap")
+        assertTrue(timeline.right <= panel.left + 1.dp, "timeline runs under the card")
+        // Done sits in the main header on large windows.
+        onNodeWithTag(TAG_VIDEO_TOOL_DONE).assertIsDisplayed()
+        // The command row is labelled.
         onNodeWithTag(TAG_VIDEO_COMMAND_TRIM).assertIsDisplayed()
         // Both real lanes are drawn, the overlay above Main.
         val v2 = onNodeWithTag(TAG_VIDEO_LANE_PREFIX + "V2").getBoundsInRoot()
@@ -1796,7 +1810,7 @@ class VideoEditorUiTest {
         liveEditor(widthDp = 892f, heightDp = 412f)
         listOf(
             TAG_VIDEO_BACK, TAG_VIDEO_UNDO, TAG_VIDEO_REDO,
-            TAG_VIDEO_SAVE, TAG_VIDEO_PREVIEW, TAG_VIDEO_PANEL,
+            TAG_VIDEO_SAVE, TAG_VIDEO_PREVIEW,
             TAG_VIDEO_MEDIA, TAG_VIDEO_TOOLS, TAG_VIDEO_PLAY
         ).forEach { tag ->
             onNodeWithTag(tag).assertIsDisplayed()
@@ -1825,13 +1839,20 @@ class VideoEditorUiTest {
         audioTrack(s, index).clips.single()
 
     @Test
-    fun audioDockOpensTheAudioCatalogue() = runComposeUiTest {
+    fun audioDockSwapsInTheAudioToolsWithBack() = runComposeUiTest {
         liveEditor()
         onNodeWithTag(TAG_VIDEO_AUDIO).performClick()
-        onNodeWithTag(TAG_CATALOGUE_GRID).assertIsDisplayed()
+        // No sheet: the dock itself becomes Back plus the audio tools.
+        onNodeWithTag(TAG_CATALOGUE_GRID).assertDoesNotExist()
+        onNodeWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).assertIsDisplayed()
         onNodeWithTag(TAG_VIDEO_TOOL_ADD_AUDIO).assertExists()
         onNodeWithTag(TAG_VIDEO_TOOL_CLIP_AUDIO).assertExists()
         onNodeWithTag(TAG_VIDEO_TOOL_MIXER).assertExists()
+        onNodeWithTag(TAG_VIDEO_TOOLS).assertDoesNotExist()
+
+        onNodeWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).performClick()
+        onNodeWithTag(TAG_VIDEO_AUDIO).assertIsDisplayed()
+        onNodeWithTag(TAG_VIDEO_TOOLS).assertIsDisplayed()
     }
 
     @Test

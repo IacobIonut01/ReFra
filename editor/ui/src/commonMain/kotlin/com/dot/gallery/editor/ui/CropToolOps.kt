@@ -146,7 +146,7 @@ internal class CropToolOps(
     fun reset() {
         val up = upright
         if (apply("Reset crop") { _, _ -> PhotoGeometry() }) {
-            ui.cropPreset = CropAspectPreset.Original
+            ui.cropPreset = CropAspectPreset.Free
             if (up != null) {
                 ui.cropPortrait = CropAspectPreset.portraitOf(up.width.toDouble(), up.height.toDouble())
             }

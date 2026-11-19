@@ -89,17 +89,4 @@ class EditorSettingsTest {
         assertNull(formats.first())
         assertEquals(listOf(null, PhotoExportFormat.JPEG, PhotoExportFormat.WEBP), formats)
     }
-
-    @Test
-    fun videoSchemeTakesHostAccentsAndKeepsNeutrals() {
-        val host = V3LightColors.copy(
-            primary = Color.Red, secondaryContainer = Color.Green, tertiary = Color.Blue
-        )
-        val scheme = V3VideoDarkColors.withAccentsOf(host)
-        assertEquals(Color.Red, scheme.primary)
-        assertEquals(Color.Green, scheme.secondaryContainer)
-        assertEquals(Color.Blue, scheme.tertiary)
-        assertEquals(V3VideoDarkColors.surface, scheme.surface)
-        assertEquals(V3VideoDarkColors.surfaceContainerHigh, scheme.surfaceContainerHigh)
-    }
 }

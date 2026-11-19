@@ -3,6 +3,7 @@ package com.dot.gallery.editor.ui
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.PhotoVignette
@@ -38,6 +40,9 @@ private val VignetteParameters = listOf(
         displayRange = -100f..100f,
         step = 1f,
         neutral = 0f,
+        trackGradient = listOf(
+            Color(0xFF2E2E30), Color(0xFFEDEDEF), Color(0xFF2E2E30)
+        ),
         read = { it.finishing.vignette.amount * 100f },
         write = { e, v -> e.vignette { it.copy(amount = v / 100f) } }
     ),
@@ -109,14 +114,9 @@ internal fun VignetteToolContent(
     val latestActions by rememberUpdatedState(actions)
 
     PhotoParameterControls(modifier = modifier, tabs = {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+        EditorChipRow(
+            modifier = Modifier.height(56.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             VignetteParameters.forEachIndexed { i, param ->
                 FinishingChip(

@@ -539,7 +539,6 @@ internal fun CurvesToolContent(
                 CurvePresetChoices(
                     curve = curve,
                     grid = layout.presetGrid,
-                    background = raised,
                     enabled = canEdit,
                     onPick = { preset ->
                         val next = preset.curve
@@ -1273,7 +1272,6 @@ private fun CurveStepper(
 private fun CurvePresetChoices(
     curve: PhotoToneCurve,
     grid: Boolean,
-    background: Color,
     enabled: Boolean,
     onPick: (CurvePreset) -> Unit
 ) {
@@ -1282,18 +1280,15 @@ private fun CurvePresetChoices(
             CurvePresets.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     row.forEach { preset ->
-                        CurvePresetChip(preset, curve, background, enabled, onPick, Modifier.weight(1f))
+                        CurvePresetChip(preset, curve, enabled, onPick, Modifier.weight(1f))
                     }
                 }
             }
         }
     } else {
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
+        EditorChipRow {
             CurvePresets.forEach { preset ->
-                CurvePresetChip(preset, curve, background, enabled, onPick, Modifier)
+                CurvePresetChip(preset, curve, enabled, onPick, Modifier)
             }
         }
     }
@@ -1303,37 +1298,17 @@ private fun CurvePresetChoices(
 private fun CurvePresetChip(
     preset: CurvePreset,
     curve: PhotoToneCurve,
-    background: Color,
     enabled: Boolean,
     onPick: (CurvePreset) -> Unit,
     modifier: Modifier
 ) {
-    val active = preset.curve?.points == curve.points
-    val primary = MaterialTheme.colorScheme.primary
-    Row(
-        modifier = modifier
-            .height(48.dp)
-            .clip(CircleShape)
-            .background(if (active) primary.copy(alpha = 0.08f) else background)
-            .border(2.dp, if (active) primary else Color.Transparent, CircleShape)
-            .clickable(enabled = enabled) { onPick(preset) }
-            .semantics { selected = active }
-            .padding(horizontal = 12.dp)
-            .testTag("editor.curves.preset.${preset.key}"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Icon(
-            imageVector = preset.icon,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Text(
-            text = stringResource(preset.labelRes),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+    EditorChip(
+        label = stringResource(preset.labelRes),
+        selected = preset.curve?.points == curve.points,
+        onClick = { onPick(preset) },
+        modifier = modifier,
+        enabled = enabled,
+        leadingIcon = preset.icon,
+        tag = "editor.curves.preset.${preset.key}"
+    )
 }

@@ -2,6 +2,7 @@ package com.dot.gallery.editor.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 
 /**
  * Test root: the standalone [EditorTheme] with workbench tooltips off. A
@@ -15,7 +16,18 @@ internal fun TestEditorRoot(
     darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    CompositionLocalProvider(LocalWorkbenchTooltipsEnabled provides false) {
+    // The histogram pill is off by default in the app; the suite keeps
+    // it on so the histogram tests still reach it. The one-time ruler hint
+    // is marked seen so it never shifts the measured layouts.
+    val settingsStore = remember {
+        EditorSettingsStore().apply {
+            update { it.copy(showHistogram = true, rulerHintSeen = true) }
+        }
+    }
+    CompositionLocalProvider(
+        LocalWorkbenchTooltipsEnabled provides false,
+        LocalEditorSettingsStore provides settingsStore
+    ) {
         EditorTheme(darkTheme = darkTheme, content = content)
     }
 }

@@ -301,7 +301,7 @@ internal fun PhotoLayersPanel(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f, fill = false)
                     .testTag(TAG_LAYERS_LIST),
                 verticalArrangement = Arrangement.spacedBy(listSpacing)
             ) {

@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pinch
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import com.dot.gallery.editor.core.model.ColorAdjustments
 import com.dot.gallery.editor.core.model.MediaAsset
@@ -106,6 +107,28 @@ internal fun ComposeUiTest.awaitImage(session: PhotoEditorSession) {
 }
 
 /**
+ * Waits for the compact tool surface to compose. Studio's slider tools
+ * hold no transaction, so `toolEditing` no longer marks the moment a
+ * tool's sheet is up — the shared V4 sheet tag does, in both modes.
+ */
+@OptIn(ExperimentalTestApi::class)
+internal fun ComposeUiTest.awaitToolSheet() {
+    waitUntil(timeoutMillis = 15_000) {
+        onAllNodesWithTag(TAG_V3_ADJUSTMENT_SHEET)
+            .fetchSemanticsNodes().isNotEmpty()
+    }
+}
+
+/** Waits for the compact tool surface to collapse back to the dock. */
+@OptIn(ExperimentalTestApi::class)
+internal fun ComposeUiTest.awaitToolSheetGone() {
+    waitUntil(timeoutMillis = 15_000) {
+        onAllNodesWithTag(TAG_V3_ADJUSTMENT_SHEET)
+            .fetchSemanticsNodes().isEmpty()
+    }
+}
+
+/**
  * Opens a tool's context panel from either layout: the compact floating
  * pill raises the catalogue first, while the wide rail exposes the cells
  * directly. Tool cells keep the `editor.category.*` tags in both, so
@@ -119,7 +142,17 @@ internal fun ComposeUiTest.awaitImage(session: PhotoEditorSession) {
  */
 @OptIn(ExperimentalTestApi::class)
 internal fun ComposeUiTest.openPhotoTool(tag: String) {
-    if (onAllNodesWithTag(TAG_CATALOGUE).fetchSemanticsNodes().isNotEmpty()) {
+    // A fresh large window may already show the catalogue; More would
+    // toggle it shut, so only open it when it is not there yet.
+    // Let that first-open settle before deciding.
+    mainClock.advanceTimeBy(500)
+    waitForIdle()
+    if (onAllNodesWithTag(TAG_CATALOGUE).fetchSemanticsNodes().isNotEmpty() &&
+        onAllNodesWithTag(TAG_CATALOGUE_GRID).fetchSemanticsNodes().isEmpty()
+    ) {
+        // On a short landscape window More sits low on the scrolling rail;
+        // bring it into the window first (the phone dock does not scroll).
+        runCatching { onNodeWithTag(TAG_CATALOGUE).performScrollTo() }
         onNodeWithTag(TAG_CATALOGUE).performClick()
         // The scaffold sheet animates open — the grid's first
         // composition trails the click by a few frames, so wait for it
@@ -269,11 +302,9 @@ internal fun fixtureState(
     )
 }
 
-/** Switches the crop card's ruler axis through its chip menu. */
+/** Switches the crop card's ruler axis on its Straighten / Vertical / Horizontal row. */
 @OptIn(ExperimentalTestApi::class)
 internal fun ComposeUiTest.selectCropAxis(tag: String) {
-    onNodeWithTag(TAG_CROP_AXIS).performClick()
-    waitForIdle()
     onNodeWithTag(tag).performClick()
     waitForIdle()
 }

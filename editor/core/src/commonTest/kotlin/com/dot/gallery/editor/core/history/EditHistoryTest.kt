@@ -247,6 +247,130 @@ class EditHistoryTest {
     }
 
     @Test
+    fun `pastSteps and undoneSteps expose labels and values`() {
+        val h = history()
+        h.execute("a") { it + "+a" }
+        h.execute("b") { it + "+b" }
+        h.execute("c") { it + "+c" }
+
+        assertEquals(
+            listOf(
+                HistoryStep("a", "v0", "v0+a"),
+                HistoryStep("b", "v0+a", "v0+a+b"),
+                HistoryStep("c", "v0+a+b", "v0+a+b+c")
+            ),
+            h.pastSteps
+        )
+        assertTrue(h.undoneSteps.isEmpty())
+
+        h.undo()
+        h.undo()
+        assertEquals("v0+a", h.current)
+        assertEquals(
+            listOf(
+                HistoryStep("b", "v0+a", "v0+a+b"),
+                HistoryStep("c", "v0+a+b", "v0+a+b+c")
+            ),
+            h.undoneSteps
+        )
+        // The next redo comes first; its before is the current value.
+        assertEquals("v0+a+b", h.undoneSteps.first().after)
+        assertEquals("v0+a", h.undoneSteps.first().before)
+    }
+
+    @Test
+    fun `jumpTo moves straight to a point in history`() {
+        val h = history()
+        h.execute("a") { it + "+a" }
+        h.execute("b") { it + "+b" }
+        h.execute("c") { it + "+c" }
+
+        assertTrue(h.jumpTo(1))
+        assertEquals("v0+a", h.current)
+        assertEquals(1, h.pastSteps.size)
+        assertEquals(2, h.undoneSteps.size)
+
+        assertTrue(h.jumpTo(3))
+        assertEquals("v0+a+b+c", h.current)
+        assertEquals(3, h.pastSteps.size)
+        assertTrue(h.undoneSteps.isEmpty())
+
+        // Already there: no movement, no revision bump.
+        val revision = h.revision
+        assertFalse(h.jumpTo(3))
+        assertEquals(revision, h.revision)
+
+        assertTrue(h.jumpTo(0))
+        assertEquals("v0", h.current)
+        assertTrue(h.pastSteps.isEmpty())
+        assertEquals(3, h.undoneSteps.size)
+    }
+
+    @Test
+    fun `jumpTo clamps out-of-range counts`() {
+        val h = history()
+        h.execute("a") { it + "+a" }
+        h.execute("b") { it + "+b" }
+
+        assertTrue(h.jumpTo(-5))
+        assertEquals("v0", h.current)
+        assertTrue(h.jumpTo(99))
+        assertEquals("v0+a+b", h.current)
+    }
+
+    @Test
+    fun `jumpTo is rejected during a draft`() {
+        val h = history()
+        h.execute("a") { it + "+a" }
+        h.begin("drag")
+        assertFailsWith<IllegalStateException> { h.jumpTo(0) }
+        h.cancel()
+    }
+
+    @Test
+    fun `a new edit after a jump clears the undone steps`() {
+        val h = history()
+        h.execute("a") { it + "+a" }
+        h.execute("b") { it + "+b" }
+        h.jumpTo(1)
+        assertEquals(1, h.undoneSteps.size)
+
+        h.execute("c") { it + "+c" }
+        assertTrue(h.undoneSteps.isEmpty())
+        assertEquals(
+            listOf(
+                HistoryStep("a", "v0", "v0+a"),
+                HistoryStep("c", "v0+a", "v0+a+c")
+            ),
+            h.pastSteps
+        )
+    }
+
+    @Test
+    fun `capacity trimming drops steps from both views`() {
+        val h = EditHistory("v0", capacity = 2)
+        h.execute("a") { it + "+a" }
+        h.execute("b") { it + "+b" }
+        h.execute("c") { it + "+c" }
+        assertEquals(
+            listOf(
+                HistoryStep("b", "v0+a", "v0+a+b"),
+                HistoryStep("c", "v0+a+b", "v0+a+b+c")
+            ),
+            h.pastSteps
+        )
+        h.undo()
+        h.undo()
+        assertEquals(
+            listOf(
+                HistoryStep("b", "v0+a", "v0+a+b"),
+                HistoryStep("c", "v0+a+b", "v0+a+b+c")
+            ),
+            h.undoneSteps
+        )
+    }
+
+    @Test
     fun `revision increments on every observable change`() {
         val h = history()
         val r0 = h.revision

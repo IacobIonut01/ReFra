@@ -9,18 +9,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
@@ -33,26 +35,60 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_blend
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_borders
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_colour
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_colour_tone
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_crop
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_curves
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_cutout
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_details
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_develop
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_double_exposure
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_edges
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_grain
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_light
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_lens_blur
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_looks
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_markup
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_mask
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_perspective
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_posterize
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_remove_background
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_transform
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_vignette
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_white_balance
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_needs_layer
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_adjust
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_crop
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_draw
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_effects
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_layers
+import com.dot.gallery.editor.ui.generated.resources.editor_catalogue_section_more
 import com.dot.gallery.editor.ui.generated.resources.editor_edit_pins
-import com.dot.gallery.editor.ui.generated.resources.editor_group_adjust
 import com.dot.gallery.editor.ui.generated.resources.editor_group_all
-import com.dot.gallery.editor.ui.generated.resources.editor_group_compose
-import com.dot.gallery.editor.ui.generated.resources.editor_group_retouch
-import com.dot.gallery.editor.ui.generated.resources.editor_pin
+import com.dot.gallery.editor.ui.generated.resources.editor_group_audio
+import com.dot.gallery.editor.ui.generated.resources.editor_group_deliver
+import com.dot.gallery.editor.ui.generated.resources.editor_group_edit
+import com.dot.gallery.editor.ui.generated.resources.editor_group_picture
+import com.dot.gallery.editor.ui.generated.resources.editor_pin_to_dock
 import com.dot.gallery.editor.ui.generated.resources.editor_search_tools
-import com.dot.gallery.editor.ui.generated.resources.editor_unpin
+import com.dot.gallery.editor.ui.generated.resources.editor_unpin_from_dock
 import com.dot.gallery.editor.ui.icons.EditorSymbols
 import com.dot.gallery.editor.ui.icons.PushPin
 import com.dot.gallery.editor.ui.icons.ZoomIn
@@ -60,14 +96,112 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 internal const val TAG_CATALOGUE_SEARCH = "editor.catalogue.search"
-internal const val TAG_CATALOGUE_GROUPS = "editor.catalogue.groups"
+internal const val TAG_CATALOGUE_GRID = "editor.catalogue.grid"
 internal const val TAG_CATALOGUE_HANDLE = "editor.catalogue.handle"
 internal const val TAG_CATALOGUE_LAYERS = "editor.catalogue.layers"
+internal const val TAG_CATALOGUE_CHIPS = "editor.catalogue.chips"
+
+/** The catalogue's list sections, in display order. */
+internal enum class CatalogueSection {
+    Adjust, Crop, Effects, Draw, Layers,
+    // The video editor's task groups.
+    Edit, Picture, Audio, Deliver,
+    More
+}
+
+/** The photo catalogue's filter chips, after All. */
+internal val PHOTO_CATALOGUE_CHIPS = listOf(
+    CatalogueSection.Adjust, CatalogueSection.Crop, CatalogueSection.Effects,
+    CatalogueSection.Draw, CatalogueSection.Layers
+)
+
+/** The section a photo tool lists under; other ids fall back to their [EditorToolGroup]. */
+internal fun photoCatalogueSection(id: EditorToolId): CatalogueSection? = when (id) {
+    EditorToolIds.PhotoLight, EditorToolIds.PhotoColour, EditorToolIds.PhotoCurves,
+    EditorToolIds.PhotoWhiteBalance, EditorToolIds.PhotoDetail, EditorToolIds.PhotoDevelop ->
+        CatalogueSection.Adjust
+    EditorToolIds.PhotoCrop, EditorToolIds.PhotoPerspective -> CatalogueSection.Crop
+    EditorToolIds.PhotoLooks, EditorToolIds.PhotoVignette, EditorToolIds.PhotoLensBlur,
+    EditorToolIds.PhotoGrain, EditorToolIds.PhotoColourTone, EditorToolIds.PhotoPosterize,
+    EditorToolIds.PhotoEdges, EditorToolIds.PhotoBorders -> CatalogueSection.Effects
+    EditorToolIds.PhotoMarkup, EditorToolIds.PhotoCutout, EditorToolIds.PhotoRemoveBackground ->
+        CatalogueSection.Draw
+    EditorToolIds.PhotoDoubleExposure, EditorToolIds.PhotoTransform, EditorToolIds.PhotoBlend,
+    EditorToolIds.PhotoLayerMask -> CatalogueSection.Layers
+    else -> null
+}
+
+private fun groupSection(group: EditorToolGroup): CatalogueSection = when (group) {
+    EditorToolGroup.Adjust -> CatalogueSection.Adjust
+    EditorToolGroup.Geometry -> CatalogueSection.Crop
+    EditorToolGroup.Retouch -> CatalogueSection.Draw
+    EditorToolGroup.Compose -> CatalogueSection.Layers
+    EditorToolGroup.Edit -> CatalogueSection.Edit
+    EditorToolGroup.Picture -> CatalogueSection.Picture
+    EditorToolGroup.Audio -> CatalogueSection.Audio
+    EditorToolGroup.Deliver -> CatalogueSection.Deliver
+    else -> CatalogueSection.More
+}
+
+/** The short description a catalogue row shows, or null for tools without one. */
+internal fun photoToolDescription(id: EditorToolId): StringResource? = when (id) {
+    EditorToolIds.PhotoLight -> Res.string.editor_tool_desc_light
+    EditorToolIds.PhotoColour -> Res.string.editor_tool_desc_colour
+    EditorToolIds.PhotoCurves -> Res.string.editor_tool_desc_curves
+    EditorToolIds.PhotoWhiteBalance -> Res.string.editor_tool_desc_white_balance
+    EditorToolIds.PhotoDetail -> Res.string.editor_tool_desc_details
+    EditorToolIds.PhotoDevelop -> Res.string.editor_tool_desc_develop
+    EditorToolIds.PhotoCrop -> Res.string.editor_tool_desc_crop
+    EditorToolIds.PhotoPerspective -> Res.string.editor_tool_desc_perspective
+    EditorToolIds.PhotoLooks -> Res.string.editor_tool_desc_looks
+    EditorToolIds.PhotoVignette -> Res.string.editor_tool_desc_vignette
+    EditorToolIds.PhotoLensBlur -> Res.string.editor_tool_desc_lens_blur
+    EditorToolIds.PhotoGrain -> Res.string.editor_tool_desc_grain
+    EditorToolIds.PhotoColourTone -> Res.string.editor_tool_desc_colour_tone
+    EditorToolIds.PhotoPosterize -> Res.string.editor_tool_desc_posterize
+    EditorToolIds.PhotoEdges -> Res.string.editor_tool_desc_edges
+    EditorToolIds.PhotoBorders -> Res.string.editor_tool_desc_borders
+    EditorToolIds.PhotoMarkup -> Res.string.editor_tool_desc_markup
+    EditorToolIds.PhotoCutout -> Res.string.editor_tool_desc_cutout
+    EditorToolIds.PhotoRemoveBackground -> Res.string.editor_tool_desc_remove_background
+    EditorToolIds.PhotoDoubleExposure -> Res.string.editor_tool_desc_double_exposure
+    EditorToolIds.PhotoTransform -> Res.string.editor_tool_desc_transform
+    EditorToolIds.PhotoBlend -> Res.string.editor_tool_desc_blend
+    EditorToolIds.PhotoLayerMask -> Res.string.editor_tool_desc_mask
+    else -> null
+}
+
+/** The illustration a catalogue row's tile draws for a photo tool. */
+internal fun photoPreviewKind(id: EditorToolId): CataloguePreview? = when (id) {
+    EditorToolIds.PhotoLight -> CataloguePreview.Light
+    EditorToolIds.PhotoColour -> CataloguePreview.Colour
+    EditorToolIds.PhotoCurves -> CataloguePreview.Curves
+    EditorToolIds.PhotoWhiteBalance -> CataloguePreview.WhiteBalance
+    EditorToolIds.PhotoDetail -> CataloguePreview.Details
+    EditorToolIds.PhotoDevelop -> CataloguePreview.Develop
+    EditorToolIds.PhotoCrop -> CataloguePreview.Crop
+    EditorToolIds.PhotoPerspective -> CataloguePreview.Perspective
+    EditorToolIds.PhotoLooks -> CataloguePreview.Looks
+    EditorToolIds.PhotoVignette -> CataloguePreview.Vignette
+    EditorToolIds.PhotoLensBlur -> CataloguePreview.LensBlur
+    EditorToolIds.PhotoGrain -> CataloguePreview.Grain
+    EditorToolIds.PhotoColourTone -> CataloguePreview.ColourTone
+    EditorToolIds.PhotoPosterize -> CataloguePreview.Posterize
+    EditorToolIds.PhotoEdges -> CataloguePreview.Edges
+    EditorToolIds.PhotoBorders -> CataloguePreview.Borders
+    EditorToolIds.PhotoMarkup -> CataloguePreview.Markup
+    EditorToolIds.PhotoCutout -> CataloguePreview.Cutout
+    EditorToolIds.PhotoRemoveBackground -> CataloguePreview.RemoveBackground
+    EditorToolIds.PhotoDoubleExposure -> CataloguePreview.DoubleExposure
+    EditorToolIds.PhotoTransform -> CataloguePreview.Transform
+    EditorToolIds.PhotoBlend -> CataloguePreview.Blend
+    EditorToolIds.PhotoLayerMask -> CataloguePreview.Mask
+    else -> null
+}
 
 /**
- * A non-registry cell the sheet can host next to the tool grid — the
- * phone catalogue uses it for the Layers workspace, which is a surface
- * rather than an [EditorToolId].
+ * A non-registry row the sheet can host — the Layers workspace, Open in,
+ * History and Editor settings are surfaces rather than [EditorToolId]s.
  */
 internal data class EditorCatalogueExtraCell(
     val icon: ImageVector,
@@ -75,7 +209,10 @@ internal data class EditorCatalogueExtraCell(
     val tag: String,
     val selected: Boolean = false,
     val enabled: Boolean = true,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    val section: CatalogueSection = CatalogueSection.More,
+    val description: String? = null,
+    val preview: CataloguePreview? = null
 )
 
 /**
@@ -118,15 +255,31 @@ internal fun <S, A> EditorToolCatalogue(
     }
 }
 
+/** One row of the list, flattened with its section for the grouped render. */
+private class CatalogueRowModel(
+    val section: CatalogueSection,
+    val id: EditorToolId?,
+    val title: String,
+    val description: String?,
+    val icon: ImageVector,
+    val preview: CataloguePreview?,
+    val selected: Boolean,
+    val enabled: Boolean,
+    val pinnable: Boolean,
+    val pinned: Boolean,
+    val unavailableReason: String?,
+    val tag: String,
+    val onClick: () -> Unit
+)
+
 /**
- * The Figma V3 phone catalogue sheet — an optional title over a 44 dp
- * search field, the 40 dp All/Adjust/Retouch/Compose category group and
- * the entries in three equal columns with 8 dp gaps on 76 dp cells; the
- * cell label is a centred two-line 12/14 sp text. The sheet is 16
- * dp-inset with an 8 dp top pad. Search and category filter the current
- * registry only — empty categories paint disabled, and unimplemented
- * tools are never listed.
+ * The phone catalogue sheet as a vertical list grouped by task: a title row
+ * with the pin manager, the search field, a filter-chip row and the sections
+ * (Adjust, Crop & rotate, Effects, Draw & cut out, Layers, More). Search
+ * matches title or description across every section. A long press on a
+ * pinnable row toggles its dock pin.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun <S, A> EditorToolCatalogueSheet(
     entries: List<EditorToolEntry<S, A>>,
@@ -135,55 +288,113 @@ internal fun <S, A> EditorToolCatalogueSheet(
     enabled: Boolean,
     onSelect: (EditorToolId) -> Unit,
     modifier: Modifier = Modifier,
-    categories: List<Pair<StringResource, EditorToolGroup?>> = listOf(
-        Res.string.editor_group_all to null,
-        Res.string.editor_group_adjust to EditorToolGroup.Adjust,
-        Res.string.editor_group_retouch to EditorToolGroup.Retouch,
-        Res.string.editor_group_compose to EditorToolGroup.Compose
-    ),
+    // Null = All; the video catalogue opens on a task group.
     initialGroup: EditorToolGroup? = null,
     // The sheet title (Figma's "All tools") — absent on surfaces that
     // carry no title.
     title: String? = null,
     // V3 pinning — the destinations already on the compact pill, the
-    // toggle for each cell's 48 dp pin action and the row's Edit pins
-    // affordance. Absent by default: the video catalogue never pins.
+    // toggle for a row's long press and the title row's Edit pins affordance.
     pinnedIds: Set<EditorToolId> = emptySet(),
     onTogglePin: ((EditorToolId) -> Unit)? = null,
     onEditPins: (() -> Unit)? = null,
-    // Modal hosts draw the real DragHandle themselves — the sheet's own
-    // start handle only belongs on non-modal surfaces.
+    // Modal hosts draw the real DragHandle themselves.
     showDragHandle: Boolean = true,
-    // A non-blank query searches every category when true — the video
-    // catalogue has no All category to fall back to.
+    // Kept for the video catalogue call sites; search always spans sections.
     searchAllGroups: Boolean = false,
-    // Real non-tool surfaces (the Layers workspace) that ride the grid.
-    // They belong to the All category and follow the search field.
+    // Real non-tool surfaces (Layers, Open in, History, Settings) in the list.
     extraCells: List<EditorCatalogueExtraCell> = emptyList(),
-    // Destinations that the pin affordance may offer — fixed slots (the
-    // dock's Colour) are real tools but not pinnable, so their cells
-    // never show a dead toggle.
-    isPinnable: (EditorToolId) -> Boolean = { true }
+    // Destinations that the pin gesture may offer — fixed slots (the dock's
+    // Colour) are real tools but not pinnable.
+    isPinnable: (EditorToolId) -> Boolean = { true },
+    // Chrome that floats over the sheet's foot (the home dock), kept clear
+    // of the list's last row.
+    bottomChrome: Dp = 0.dp,
+    // The filter chips after All, and each tool's one-line description.
+    chips: List<CatalogueSection> = PHOTO_CATALOGUE_CHIPS,
+    describe: (EditorToolId) -> StringResource? = ::photoToolDescription
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    // Null = All; the Figma categories map onto the registry's groups.
-    var group by rememberSaveable { mutableStateOf(initialGroup) }
-    // Contextual-only entries (the layer mask brush) dispatch through the
-    // registry but never occupy a catalogue cell.
+    var section by rememberSaveable { mutableStateOf(initialGroup?.let(::groupSection)) }
+    val haptics = LocalHapticFeedback.current
     val catalogued = entries.filter { it.catalogued }
     val titles = catalogued.associate {
         it.descriptor.id to stringResource(it.descriptor.title)
     }
-    val extraShown = extraCells.filter { cell ->
-        group == null && (query.isBlank() ||
-            cell.label.contains(query, ignoreCase = true))
+    val descriptions = catalogued.associate {
+        it.descriptor.id to describe(it.descriptor.id)?.let { res -> stringResource(res) }
     }
-    val shown = catalogued.filter { entry ->
-        (group == null || entry.descriptor.group == group ||
-            (searchAllGroups && query.isNotBlank())) &&
-            (query.isBlank() ||
-                titles[entry.descriptor.id]?.contains(query, ignoreCase = true)
-                    == true)
+    val needsLayer = stringResource(Res.string.editor_catalogue_needs_layer)
+    val pinToDock = stringResource(Res.string.editor_pin_to_dock)
+    val unpinFromDock = stringResource(Res.string.editor_unpin_from_dock)
+    val sectionLabels = mapOf(
+        CatalogueSection.Adjust to stringResource(Res.string.editor_catalogue_section_adjust),
+        CatalogueSection.Crop to stringResource(Res.string.editor_catalogue_section_crop),
+        CatalogueSection.Effects to stringResource(Res.string.editor_catalogue_section_effects),
+        CatalogueSection.Draw to stringResource(Res.string.editor_catalogue_section_draw),
+        CatalogueSection.Layers to stringResource(Res.string.editor_catalogue_section_layers),
+        CatalogueSection.Edit to stringResource(Res.string.editor_group_edit),
+        CatalogueSection.Picture to stringResource(Res.string.editor_group_picture),
+        CatalogueSection.Audio to stringResource(Res.string.editor_group_audio),
+        CatalogueSection.Deliver to stringResource(Res.string.editor_group_deliver),
+        CatalogueSection.More to stringResource(Res.string.editor_catalogue_section_more)
+    )
+    val allLabel = stringResource(Res.string.editor_group_all)
+    val chipSections: List<Pair<String, CatalogueSection?>> =
+        listOf(allLabel to null) + chips.map { sectionLabels.getValue(it) to it }
+    val rows = buildList {
+        catalogued.forEach { entry ->
+            val id = entry.descriptor.id
+            val sec = photoCatalogueSection(id) ?: groupSection(entry.descriptor.group)
+            val available = entry.available(state)
+            val pinnable = isPinnable(id)
+            val layerTool = id == EditorToolIds.PhotoTransform || id == EditorToolIds.PhotoBlend
+            add(
+                CatalogueRowModel(
+                    section = sec,
+                    id = id,
+                    title = titles[id].orEmpty(),
+                    description = descriptions[id],
+                    icon = entry.descriptor.icon,
+                    preview = photoPreviewKind(id),
+                    selected = activeTool == id,
+                    enabled = enabled && available,
+                    pinnable = pinnable && onTogglePin != null,
+                    pinned = id in pinnedIds,
+                    unavailableReason = if (!available && layerTool) needsLayer else null,
+                    tag = entry.tag,
+                    onClick = { onSelect(id) }
+                )
+            )
+        }
+        extraCells.forEach { cell ->
+            add(
+                CatalogueRowModel(
+                    section = cell.section,
+                    id = null,
+                    title = cell.label,
+                    description = cell.description,
+                    icon = cell.icon,
+                    preview = cell.preview,
+                    selected = cell.selected,
+                    enabled = enabled && cell.enabled,
+                    pinnable = false,
+                    pinned = false,
+                    unavailableReason = null,
+                    tag = cell.tag,
+                    onClick = cell.onClick
+                )
+            )
+        }
+    }
+    val searching = query.isNotBlank()
+    val visible = rows.filter { row ->
+        if (searching) {
+            row.title.contains(query, ignoreCase = true) ||
+                row.description?.contains(query, ignoreCase = true) == true
+        } else {
+            section == null || row.section == section
+        }
     }
     Column(
         modifier = modifier
@@ -191,9 +402,6 @@ internal fun <S, A> EditorToolCatalogueSheet(
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp)
     ) {
-        // The start-aligned 36×4 handle (Figma has it at the sheet's
-        // content start, not centred). Modal hosts suppress it — their
-        // scaffold already draws the handle.
         if (showDragHandle) {
             Box(
                 modifier = Modifier
@@ -231,8 +439,6 @@ internal fun <S, A> EditorToolCatalogueSheet(
                 }
             }
         }
-        // The 44 dp search field — a real filter over the registry, not a
-        // decorative affordance.
         BasicTextField(
             value = query,
             onValueChange = { query = it },
@@ -276,278 +482,134 @@ internal fun <S, A> EditorToolCatalogueSheet(
                 }
             }
         )
-        // The 40 dp four-equal-width category group — All plus the Figma
-        // categories — with the right-aligned Edit pins affordance on
-        // sheets that wire pinning. An empty category stays visible but
-        // disabled.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .heightIn(min = 48.dp)
-                .testTag(TAG_CATALOGUE_GROUPS),
-            verticalAlignment = Alignment.CenterVertically
+        EditorChipRow(
+            modifier = Modifier.padding(top = 8.dp).testTag(TAG_CATALOGUE_CHIPS),
+            contentPadding = PaddingValues(horizontal = 0.dp)
         ) {
-            categories.forEach { (labelRes, category) ->
-                val selected = group == category
-                val hasEntries =
-                    category == null || catalogued.any {
-                        it.descriptor.group == category
-                    }
-                CatalogueCategoryCell(
-                    label = stringResource(labelRes),
-                    selected = selected,
-                    enabled = hasEntries,
-                    onClick = { group = category },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .testTag(
-                            "editor.catalogue.group." +
-                                (category?.name ?: "all")
-                        )
-                )
-            }
-            if (onEditPins != null && title == null) {
-                Text(
-                    text = stringResource(Res.string.editor_edit_pins),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .heightIn(min = 48.dp)
-                        .clickable(
-                            role = Role.Button,
-                            onClickLabel = stringResource(
-                                Res.string.editor_edit_pins
-                            ),
-                            onClick = onEditPins
-                        )
-                        .testTag(TAG_EDITOR_PINS_EDIT)
-                        .padding(start = 12.dp)
+            chipSections.forEach { (label, target) ->
+                EditorChip(
+                    label = label,
+                    selected = !searching && section == target,
+                    onClick = {
+                        query = ""
+                        section = target
+                    },
+                    tag = "editor.catalogue.chip." + (target?.name ?: "all")
                 )
             }
         }
-        // Three equal columns, 8 dp gaps, 76 dp raised cells.
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .weight(1f, fill = false)
                 .padding(top = 8.dp)
                 .testTag(TAG_CATALOGUE_GRID),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentPadding = PaddingValues(bottom = navBottom + bottomChrome + 16.dp)
         ) {
-            items(shown, key = { it.descriptor.id.value }) { entry ->
-                Box {
-                    CatalogueToolCell(
-                        icon = entry.descriptor.icon,
-                        label = titles[entry.descriptor.id].orEmpty(),
-                        selected = activeTool == entry.descriptor.id,
-                        onClick = { onSelect(entry.descriptor.id) },
-                        // A long press on the cell is the pin gesture —
-                        // the corner toggle stays as the visible
-                        // affordance for the same action.
-                        onLongClick = onTogglePin
-                            ?.takeIf { isPinnable(entry.descriptor.id) }
-                            ?.let { toggle ->
-                                { toggle(entry.descriptor.id) }
-                            },
-                        enabled = enabled && entry.available(state),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(76.dp)
-                            .testTag(entry.tag)
+            val grouped = visible.groupBy { it.section }
+            CatalogueSection.entries.forEach { sec ->
+                val sectionRows = grouped[sec].orEmpty()
+                if (sectionRows.isEmpty()) return@forEach
+                item(key = "header:${sec.name}") {
+                    Text(
+                        text = sectionLabels.getValue(sec),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp)
                     )
-                    if (onTogglePin != null &&
-                        isPinnable(entry.descriptor.id)
-                    ) {
-                        val pinned = entry.descriptor.id in pinnedIds
-                        val pinLabel = stringResource(
-                            if (pinned) Res.string.editor_unpin
-                            else Res.string.editor_pin
-                        )
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                // The 40 dp toggle stays fully inside
-                                // the cell — a 48 dp corner box reaches
-                                // the centre at cell widths under ≈96 dp
-                                // (a 320 dp window) and would swallow
-                                // the tap that should select the tool.
-                                .size(40.dp)
-                                .semantics { this.selected = pinned }
-                                .clickable(
-                                    enabled = enabled,
-                                    role = Role.Button,
-                                    onClickLabel = pinLabel,
-                                    onClick = {
-                                        onTogglePin(entry.descriptor.id)
-                                    }
-                                )
-                                .testTag(
-                                    cataloguePinTag(
-                                        entry.descriptor.id.value
-                                    )
-                                ),
-                            contentAlignment = Alignment.TopEnd
-                        ) {
-                            Icon(
-                                imageVector = EditorSymbols.PushPin,
-                                contentDescription = pinLabel,
-                                tint = when {
-                                    !enabled ->
-                                        MaterialTheme.colorScheme
-                                            .onSurface.copy(alpha = 0.38f)
-                                    pinned ->
-                                        MaterialTheme.colorScheme.primary
-                                    else ->
-                                        MaterialTheme.colorScheme
-                                            .onSurfaceVariant
-                                },
-                                modifier = Modifier
-                                    .padding(top = 6.dp, end = 6.dp)
-                                    .size(16.dp)
-                            )
-                        }
-                    }
                 }
-            }
-            items(extraShown, key = { "extra:${it.tag}" }) { cell ->
-                CatalogueToolCell(
-                    icon = cell.icon,
-                    label = cell.label,
-                    selected = cell.selected,
-                    onClick = cell.onClick,
-                    enabled = enabled && cell.enabled,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(76.dp)
-                        .testTag(cell.tag)
-                )
+                items(sectionRows, key = { "row:${it.tag}" }) { row ->
+                    CatalogueRow(
+                        row = row,
+                        pinLabel = if (row.pinned) unpinFromDock else pinToDock,
+                        onLongClick = if (row.pinnable && row.id != null) {
+                            {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onTogglePin?.invoke(row.id)
+                            }
+                        } else {
+                            null
+                        },
+                        enabledLabel = needsLayer
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * One equal-width cell of the catalogue's 40 dp category group — the
- * selected cell is the tighter 16 dp radius on the filled secondary
- * container, unselected cells are the 20 dp neutral shape.
- */
-@Composable
-private fun CatalogueCategoryCell(
-    label: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .clip(
-                RoundedCornerShape(if (selected) 16.dp else 20.dp)
-            )
-            .editorSheetItemSurface(
-                RoundedCornerShape(if (selected) 16.dp else 20.dp),
-                baseColor = if (selected) MaterialTheme.colorScheme.secondaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerHigh
-            )
-            .clickable(
-                enabled = enabled,
-                role = Role.Tab,
-                onClickLabel = label,
-                onClick = onClick
-            )
-            .semantics { this.selected = selected },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = when {
-                !enabled -> MaterialTheme.colorScheme.onSurface
-                    .copy(alpha = 0.38f)
-                selected -> MaterialTheme.colorScheme.onSecondaryContainer
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            },
-            maxLines = 1
-        )
-    }
-}
-
-/**
- * One 76 dp raised catalogue cell — filled `surfaceContainerHigh` with
- * 14 dp corners, the 24 dp tool icon over its visible label. The selected
- * state paints the secondary container; nothing else changes. This is
- * the sheet's own anatomy, deliberately not the shared dock item.
+ * One 72 dp catalogue row: a 48 dp preview tile, the title and a one-line
+ * description, a pin glyph when pinned. The active row takes a faded
+ * secondary container; a disabled row paints at 0.38 and says why.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CatalogueToolCell(
-    icon: ImageVector,
-    label: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+private fun CatalogueRow(
+    row: CatalogueRowModel,
+    pinLabel: String,
+    onLongClick: (() -> Unit)?,
+    enabledLabel: String
 ) {
-    Column(
-        modifier = modifier
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 72.dp)
             .clip(RoundedCornerShape(14.dp))
-            .editorSheetItemSurface(
-                RoundedCornerShape(14.dp),
-                baseColor = if (selected) MaterialTheme.colorScheme.secondaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerHigh
+            .background(
+                if (row.selected) {
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                } else {
+                    Color.Transparent
+                }
             )
             .combinedClickable(
-                enabled = enabled,
+                enabled = row.enabled,
                 role = Role.Button,
-                onClickLabel = label,
-                onClick = onClick,
-                onLongClick = onLongClick
+                onClickLabel = row.title,
+                onLongClickLabel = if (onLongClick != null) pinLabel else null,
+                onLongClick = onLongClick,
+                onClick = row.onClick
             )
-            .semantics { this.selected = selected },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .semantics { this.selected = row.selected }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .alpha(if (row.enabled) 1f else 0.38f)
+            .testTag(row.tag),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) {
-                if (selected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            },
-            modifier = Modifier.size(24.dp)
+        PhotoToolPreviewTile(
+            kind = row.preview,
+            icon = row.icon,
+            enabled = row.enabled
         )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 12.sp,
-                lineHeight = 14.sp,
-                textAlign = TextAlign.Center
-            ),
-            color = when {
-                !enabled -> MaterialTheme.colorScheme.onSurface
-                    .copy(alpha = 0.38f)
-                selected -> MaterialTheme.colorScheme.onSecondaryContainer
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            },
-            // Every current tool name fits two centred lines; only a
-            // longer future name clips to an ellipsis on the second.
-            maxLines = 2,
-            softWrap = true,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .padding(top = 4.dp)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = row.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            val description = row.unavailableReason ?: row.description
+            if (!description.isNullOrBlank()) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (row.pinned) {
+            Icon(
+                imageVector = EditorSymbols.PushPin,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }

@@ -2,15 +2,12 @@ package com.dot.gallery.editor.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,14 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.toEdits
 import com.dot.gallery.editor.render.photo.PhotoEditorState
@@ -62,6 +57,8 @@ internal class FinishingParam(
     val unitSuffix: String = "",
     /** A hint of what the ruler does, painted along its slab. */
     val trackGradient: List<Color>? = null,
+    /** A tonal brush painted across the track; wins over [trackGradient]. */
+    val tonalTrack: EditorSliderTrack.Tonal? = null,
     val read: (PhotoEdits) -> Float,
     val write: (PhotoEdits, Float) -> PhotoEdits
 ) {
@@ -70,9 +67,6 @@ internal class FinishingParam(
     fun format(value: Float): String =
         (if (signed) formatSignedCompact(value)
         else formatDecimal(value).trimEnd('0').trimEnd('.')) + unitSuffix
-
-    /** The ruler's range, "start / end", in the parameter's display units. */
-    fun rangeCaption(): String = "${format(displayRange.start)} / ${format(displayRange.endInclusive)}"
 }
 
 /**
@@ -165,8 +159,9 @@ internal fun FinishingParamControls(
         modifier = modifier.fillMaxWidth()
             .padding(horizontal = if (insetContent) 16.dp else 0.dp)
     ) {
-        // The meta row: the parameter's name, its range caption (dropped
-        // rather than clipped at large text) and, where the header menu
+        // The meta row: the parameter's name and its live value (dropped
+        // rather than clipped at large text) — the window's endpoints
+        // ride the slab's limit labels — plus, where the header menu
         // cannot carry it, the visible reset.
         if (showMetaRow) Row(
             modifier = Modifier
@@ -184,7 +179,7 @@ internal fun FinishingParamControls(
             )
             FitOrDrop(Modifier.weight(1f)) {
                 Text(
-                    text = param.rangeCaption(),
+                    text = param.displayOf(edits),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -224,14 +219,15 @@ internal fun FinishingParamControls(
             sliderTag = "editor.slider.${param.key}",
             valueTag = "editor.value.${param.key}",
             stepKey = param.key,
-            limitStartLabel = if (limitLabels) {
-                boundaryLabel(param.displayRange.start, param.unitSuffix)
+            limitStartLabel = if (limitLabels || showMetaRow) {
+                boundaryLabel(param, param.displayRange.start)
             } else null,
-            limitEndLabel = if (limitLabels) {
-                boundaryLabel(param.displayRange.endInclusive, param.unitSuffix)
+            limitEndLabel = if (limitLabels || showMetaRow) {
+                boundaryLabel(param, param.displayRange.endInclusive)
             } else null,
             compact = compact,
             trackGradient = param.trackGradient,
+            track = param.tonalTrack,
             onOpenEntry = {
                 if (latestState.document != null) {
                     try {
@@ -289,8 +285,8 @@ internal fun FinishingParamControls(
 }
 
 /**
- * One finishing parameter chip — the same 48 dp selector cell the Light
- * tool's strip paints, used for the tab rows of the finishing tools.
+ * One finishing parameter chip — the editor's selector pill used for the
+ * tab rows of the finishing tools.
  */
 @Composable
 internal fun FinishingChip(
@@ -299,67 +295,16 @@ internal fun FinishingChip(
     enabled: Boolean,
     tag: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    /** Optional leading 18 dp glyph — decorative, the label names it. */
-    icon: ImageVector? = null,
-    /** The reference's strong selection: primary fill, on-primary label. */
-    accentSelection: Boolean = false,
-    /** A tighter 40 dp pill with a smaller label — the crop aspect row. */
-    compact: Boolean = false
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .heightIn(min = if (compact) 40.dp else 48.dp)
-            .clip(RoundedCornerShape(if (compact) 14.dp else 16.dp))
-            .background(
-                when {
-                    selected && accentSelection ->
-                        MaterialTheme.colorScheme.primary
-                    selected -> MaterialTheme.colorScheme.secondaryContainer
-                    LocalPhotoToolSheetExpanded.current != null -> Color.Transparent
-                    else -> MaterialTheme.colorScheme.surfaceContainerHigh
-                }
-            )
-            .clickable(
-                enabled = enabled,
-                role = Role.Tab,
-                onClickLabel = label
-            ) { onClick() }
-            .semantics { this.selected = selected }
-            .testTag(tag)
-            .padding(
-                horizontal = if (compact) 12.dp else 14.dp,
-                vertical = if (compact) 6.dp else 8.dp
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        val content = when {
-            selected && accentSelection -> MaterialTheme.colorScheme.onPrimary
-            selected -> MaterialTheme.colorScheme.onSecondaryContainer
-            else -> MaterialTheme.colorScheme.onSurface
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = content,
-                    modifier = Modifier.padding(end = 6.dp).size(18.dp)
-                )
-            }
-            Text(
-                text = label,
-                style = if (compact) {
-                    MaterialTheme.typography.labelMedium
-                } else {
-                    MaterialTheme.typography.labelLarge
-                },
-                color = content,
-                maxLines = 1,
-                softWrap = false
-            )
-        }
-    }
+    EditorChip(
+        label = label,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        tag = tag
+    )
 }
 
 /**
@@ -421,6 +366,7 @@ internal fun FinishingSettingsRow(
     }
 }
 
-/** A painted-window endpoint, e.g. "0%" / "100%". */
-private fun boundaryLabel(value: Float, unitSuffix: String): String =
-    "${value.roundToInt()}$unitSuffix"
+/** A painted-window endpoint, e.g. "0%" / "100%" / "+100". */
+private fun boundaryLabel(param: FinishingParam, value: Float): String =
+    (if (param.signed) formatSignedCompact(value)
+    else "${value.roundToInt()}") + param.unitSuffix

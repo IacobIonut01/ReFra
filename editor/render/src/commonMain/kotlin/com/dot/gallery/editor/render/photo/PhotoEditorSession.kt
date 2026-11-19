@@ -610,6 +610,21 @@ class PhotoEditorSession(
     }
 
     /**
+     * Jumps the global history to the point where exactly [pastCount]
+     * steps are applied — the History panel's row taps. Ignored while a
+     * tool transaction or an interaction draft is open; a successful
+     * jump publishes the controls and requests one preview.
+     */
+    fun jumpToHistory(pastCount: Int) {
+        val h = history ?: return
+        if (closed || h.isDrafting || toolHistory != null) return
+        if (h.jumpTo(pastCount)) {
+            publishControls()
+            requestPreview()
+        }
+    }
+
+    /**
      * Returns to the clean recipe as one undoable step — one local step
      * while a tool is open. The saved checkpoint is untouched, so reset
      * stays dirty relative to the last save and [undo] restores the
@@ -1178,6 +1193,7 @@ class PhotoEditorSession(
             canRedo = interactions.canRedo,
             isDirty = h.isDirty,
             isDrafting = h.isDrafting,
+            history = PhotoHistorySnapshot(past = h.pastSteps, undone = h.undoneSteps),
             toolEditing = tool != null,
             interactionActive = tool?.isDrafting ?: h.isDrafting
         )

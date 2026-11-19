@@ -16,12 +16,19 @@ import com.dot.gallery.editor.core.model.PhotoExportFormat
  */
 @Immutable
 data class EditorSettings(
+    /**
+     * Whether the histogram pill floats over the photo. Off by default:
+     * it is a specialist read-out, and it costs the photo a row.
+     */
+    val showHistogram: Boolean = false,
     /** The histogram's starting channel group. */
     val histogramMode: PhotoHistogramMode = PhotoHistogramMode.Rgb,
     /** Whether the histogram starts with its clipped-mass overlay. */
     val histogramClipping: Boolean = false,
     /** The straighten/perspective grid's starting state. */
     val straightenGrid: Boolean = true,
+    /** Set once the ruler gesture hint has been dismissed for good. */
+    val rulerHintSeen: Boolean = false,
     /** Save copy's container for non-RAW photos; null follows the source. */
     val copyFormat: PhotoExportFormat? = null,
     /** A developed RAW's save container; null asks every time. */

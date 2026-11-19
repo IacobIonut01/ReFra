@@ -1,22 +1,14 @@
 package com.dot.gallery.editor.ui
 
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,9 +24,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,7 +34,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -54,21 +42,16 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -100,7 +83,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -116,7 +98,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
@@ -134,17 +116,23 @@ import com.dot.gallery.editor.render.photo.PhotoErrorKind
 import com.dot.gallery.editor.render.photo.PhotoEditorState
 import com.dot.gallery.editor.render.photo.PhotoExportResult
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_history_title
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_history
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_layers
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_open_in
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_settings
+import com.dot.gallery.editor.ui.icons.Timeline
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazePerformanceMode
 import dev.chrisbanes.haze.LocalHazePerformanceMode
 import com.dot.gallery.editor.ui.generated.resources.editor_canvas_image
 import com.dot.gallery.editor.ui.generated.resources.editor_canvas_image_before
-import com.dot.gallery.editor.ui.generated.resources.editor_cancel_export
 import com.dot.gallery.editor.ui.generated.resources.editor_cancel_export_confirm
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_reset_short
 import com.dot.gallery.editor.ui.generated.resources.editor_cancel_export_title
 import com.dot.gallery.editor.ui.generated.resources.editor_discard_confirm
 import com.dot.gallery.editor.ui.generated.resources.editor_discard_title
+import com.dot.gallery.editor.ui.generated.resources.editor_done
 import com.dot.gallery.editor.ui.generated.resources.editor_dismiss
 import com.dot.gallery.editor.ui.generated.resources.editor_layer_add_image
 import com.dot.gallery.editor.ui.generated.resources.editor_layers
@@ -153,40 +141,21 @@ import com.dot.gallery.editor.ui.generated.resources.editor_error_open
 import com.dot.gallery.editor.ui.generated.resources.editor_error_preview
 import com.dot.gallery.editor.ui.generated.resources.editor_error_too_large
 import com.dot.gallery.editor.ui.generated.resources.editor_error_unsupported
-import com.dot.gallery.editor.ui.generated.resources.editor_export_cancelling
 import com.dot.gallery.editor.ui.generated.resources.editor_exported
-import com.dot.gallery.editor.ui.generated.resources.editor_exporting
 import com.dot.gallery.editor.ui.generated.resources.editor_keep_editing
 import com.dot.gallery.editor.ui.generated.resources.editor_open_export
-import com.dot.gallery.editor.ui.generated.resources.editor_adjustments
 import com.dot.gallery.editor.ui.generated.resources.editor_all_tools
-import com.dot.gallery.editor.ui.generated.resources.editor_apply
-import com.dot.gallery.editor.ui.generated.resources.editor_apply_crop
-import com.dot.gallery.editor.ui.generated.resources.editor_back
-import com.dot.gallery.editor.ui.generated.resources.editor_done
-import com.dot.gallery.editor.ui.generated.resources.editor_panel_edits
 import com.dot.gallery.editor.ui.generated.resources.editor_retouch_open_in
 import com.dot.gallery.editor.ui.generated.resources.editor_settings
-import com.dot.gallery.editor.ui.generated.resources.editor_panel_source
 import com.dot.gallery.editor.ui.generated.resources.editor_retry
-import com.dot.gallery.editor.ui.generated.resources.editor_save_copy
 import com.dot.gallery.editor.ui.generated.resources.editor_selected_layer
-import com.dot.gallery.editor.ui.generated.resources.editor_tools
 import com.dot.gallery.editor.ui.generated.resources.editor_zoom_fit
-import com.dot.gallery.editor.ui.generated.resources.editor_output_info
 import com.dot.gallery.editor.ui.generated.resources.editor_reset_edits
-import com.dot.gallery.editor.ui.generated.resources.editor_source_info
-import com.dot.gallery.editor.ui.generated.resources.editor_tool_colour
-import com.dot.gallery.editor.ui.generated.resources.editor_tool_detail
-import com.dot.gallery.editor.ui.generated.resources.editor_tool_light
 import com.dot.gallery.editor.ui.icons.AddPhotoAlternate
-import com.dot.gallery.editor.ui.icons.ArrowBack
 import com.dot.gallery.editor.ui.icons.Check
-import com.dot.gallery.editor.ui.icons.Info
 import com.dot.gallery.editor.ui.icons.EditorSymbols
 import com.dot.gallery.editor.ui.icons.Layers
 import com.dot.gallery.editor.ui.icons.RestartAlt
-import com.dot.gallery.editor.ui.icons.ViewList
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -204,6 +173,8 @@ internal const val TAG_EXPORT_DIALOG_CANCEL = "editor.exportDialog.cancel"
 internal const val TAG_EXPORT_DIALOG_KEEP = "editor.exportDialog.keep"
 internal const val TAG_PANEL_DONE = "editor.panel.done"
 internal const val TAG_CATALOGUE_OPEN_IN = "editor.catalogue.openIn"
+internal const val TAG_CATALOGUE_HISTORY = "editor.catalogue.history"
+internal const val TAG_HISTORY_SHEET = "editor.history.sheet"
 /** The Light sub-tool reset in the crop reset's slot under the header. */
 internal const val TAG_RESET_TOOL = "editor.reset.tool"
 
@@ -277,7 +248,7 @@ private fun decodeCompositeSources(
  * and the close prompts are saveable view state owned here — the session
  * stays the source of truth for the document.
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoEditorContent(
     state: PhotoEditorState,
@@ -575,6 +546,10 @@ fun PhotoEditorContent(
                 workspace.pinEditorOpen = false
                 canvasRefocusTick++
             }
+            workspace.historyOpen -> {
+                workspace.historyOpen = false
+                canvasRefocusTick++
+            }
             workspace.catalogueOpen -> {
                 workspace.catalogueOpen = false
                 canvasRefocusTick++
@@ -591,7 +566,10 @@ fun PhotoEditorContent(
                 canvasRefocusTick++
             }
             current.toolEditing -> {
-                latestActions.cancelToolEdit()
+                // Back never throws work away: it keeps the tool's
+                // changes as one history step, exactly like Done. Undo
+                // is the way to take them back.
+                latestActions.applyToolEdit()
                 collapseContextAndRefocus()
             }
             workspace.collapseContext() -> canvasRefocusTick++
@@ -649,7 +627,19 @@ fun PhotoEditorContent(
                 it.descriptor.id to stringResource(it.descriptor.title)
             }
 
-            fun selectTool(tool: EditorToolId) {
+            fun selectTool(requested: EditorToolId) {
+                // Curves and Perspective are sub-tabs of Light and Crop.
+                val tool = when (requested) {
+                    EditorToolIds.PhotoCurves -> {
+                        toolUiState.lightTab = LightTab.Curves
+                        EditorToolIds.PhotoLight
+                    }
+                    EditorToolIds.PhotoPerspective -> {
+                        toolUiState.cropTab = CropTab.Vertical
+                        EditorToolIds.PhotoCrop
+                    }
+                    else -> requested
+                }
                 val current = latestState
                 if (current.interactionActive) latestActions.cancelEdit()
                 val sameTool = workspace.activeTool == tool
@@ -736,6 +726,7 @@ fun PhotoEditorContent(
                 }
             }
 
+            val toolEntries = photoToolEntries(LocalEditorHostTools.current, state.info?.isRaw == true)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -830,7 +821,6 @@ fun PhotoEditorContent(
                     else -> null
                 }
                 val fontScale = LocalDensity.current.fontScale
-                val toolEntries = photoToolEntries(LocalEditorHostTools.current, state.info?.isRaw == true)
                 // The tool surface's More menu extras — filled by the live
                 // tool content (e.g. the Light parameter reset).
                 val toolMenu = remember { PhotoToolMenuState() }
@@ -847,6 +837,28 @@ fun PhotoEditorContent(
                 // Shared inputs for the Figma V2 compact states — each
                 // state owns its own header, so the bundle travels to the
                 // per-state composables below.
+                val autoDock = rememberPhotoAutoDock(state, actions)
+                // The compact sheets' states live above every workspace
+                // branch: the workspace and tool surfaces swap in and out
+                // of composition with the window class and the open tool.
+                // EditorSheetState keeps a plain remembered instance per
+                // sheet for the editor's lifetime, and its offset reads
+                // never throw before the first layout.
+                val toolsSheetState = rememberEditorSheetState(
+                    initialValue = SheetValue.Hidden,
+                    enabledValues = setOf(
+                        SheetValue.Hidden,
+                        SheetValue.PartiallyExpanded,
+                        SheetValue.Expanded
+                    )
+                )
+                val toolSheetState = rememberEditorSheetState(
+                    initialValue = SheetValue.PartiallyExpanded,
+                    enabledValues = setOf(
+                        SheetValue.PartiallyExpanded,
+                        SheetValue.Expanded
+                    )
+                )
                 val compactArgs = PhotoCompactArgs(
                     state = state,
                     actions = actions,
@@ -874,7 +886,37 @@ fun PhotoEditorContent(
                     onOpenExport = onOpenExport,
                     onSaveAndOpen = if (onOpenExport == null) null else {
                         { openAfterSave = true; actions.saveCopy() }
-                    }
+                    },
+                    autoDock = autoDock,
+                    toolsSheetState = toolsSheetState,
+                    toolSheetState = toolSheetState
+                )
+                // Every large-window composition and all of Studio share
+                // this bundle.
+                val workbenchArgs = PhotoDesktopArgs(
+                    state = state,
+                    actions = actions,
+                    workspace = workspace,
+                    toolUiState = toolUiState,
+                    viewport = viewport,
+                    bitmap = displayBitmap,
+                    originalBitmap = originalBitmap,
+                    imageDescription = imageDescription,
+                    imageCapable = imageCapable,
+                    shaderDrawing = shaderDrawing,
+                    shaderRenderer = shaderRenderer,
+                    shaderEdits = shaderEdits,
+                    shaderImageSize = shaderImageSize,
+                    onGpuFrameFailed = onGpuFrameFailed,
+                    canvasFocusRequester = canvasFocusRequester,
+                    histogramPrefs = histogramPrefs,
+                    toolEntries = toolEntries,
+                    toolMenu = toolMenu,
+                    onSelectTool = ::selectTool,
+                    onRequestClose = ::requestClose,
+                    onOpenExport = onOpenExport,
+                    onCanvasRefocus = { canvasRefocusTick++ },
+                    autoDock = autoDock
                 )
                 CompositionLocalProvider(
                     LocalPhotoLayerToolContext provides layerToolContext,
@@ -1016,7 +1058,7 @@ fun PhotoEditorContent(
                     // workspace state, each owning its header: the document
                     // workspace (with the modal Tools catalogue and pin
                     // manager over it), the tool surface, the Layers
-                    // workspace or a Source/Edits pane.
+                    // workspace.
                     when {
                         workspace.toolPanelExpanded &&
                             workspace.panel == EditorWorkspacePanel.Edit ->
@@ -1024,264 +1066,60 @@ fun PhotoEditorContent(
                         workspace.toolPanelExpanded &&
                             workspace.panel == EditorWorkspacePanel.Layers ->
                             PhotoLayersCompact(compactArgs)
-                        workspace.toolPanelExpanded ->
-                            PhotoPaneCompact(compactArgs)
                         else -> PhotoWorkspaceCompact(compactArgs)
                     }
-                } else if (mode == EditorLayoutMode.Desktop ||
-                    mode == EditorLayoutMode.MasterDetail
-                ) {
-                    // The two large-window compositions share one bundle:
-                    // the four-pane workbench on wide desktops, the
-                    // master-detail tablet (canvas + 380 dp inspector) on
-                    // near-square windows.
-                    val workbenchArgs = PhotoDesktopArgs(
-                        state = state,
-                        actions = actions,
-                        workspace = workspace,
-                        toolUiState = toolUiState,
-                        viewport = viewport,
-                        bitmap = displayBitmap,
-                        originalBitmap = originalBitmap,
-                        imageDescription = imageDescription,
-                        imageCapable = imageCapable,
-                        shaderDrawing = shaderDrawing,
-                        shaderRenderer = shaderRenderer,
-                        shaderEdits = shaderEdits,
-                        shaderImageSize = shaderImageSize,
-                        onGpuFrameFailed = onGpuFrameFailed,
-                        canvasFocusRequester = canvasFocusRequester,
-                        histogramPrefs = histogramPrefs,
-                        toolEntries = toolEntries,
-                        toolMenu = toolMenu,
-                        onSelectTool = ::selectTool,
-                        onRequestClose = ::requestClose,
-                        onOpenExport = onOpenExport,
-                        onCanvasRefocus = { canvasRefocusTick++ }
-                    )
-                    if (mode == EditorLayoutMode.Desktop) {
-                        PhotoDesktopWorkspace(workbenchArgs)
-                    } else {
-                        PhotoMasterDetailWorkspace(workbenchArgs)
-                    }
                 } else {
-                    EditorTopBar(
-                        state = state,
-                        actions = actions,
-                        widthDp = windowWidthDp,
-                        compact = false,
-                        onBack = ::requestClose
-                    )
-                    StatusStrips(
-                        state = state,
-                        actions = actions,
-                        onOpenExport = onOpenExport
-                    )
-                    Row(modifier = Modifier.weight(1f)) {
-                        EditorToolRail(
-                            entries = toolEntries,
-                            state = state,
-                            workspace = workspace,
-                            enabled = imageCapable,
-                            onSelectTool = ::selectTool,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                        EditorCanvas(
-                            state = state,
-                            actions = actions,
-                            viewport = viewport,
-                            bitmap = displayBitmap,
-                            imageDescription = imageDescription,
-                            compactUtility = false,
-                            focusRequester = canvasFocusRequester,
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = 0.dp)
-                                .testTag(TAG_PHOTO_CANVAS),
-                            gpuRenderer = if (shaderDrawing) shaderRenderer else null,
-                            gpuEdits = if (shaderDrawing) shaderEdits else null,
-                            gpuImageSize = if (shaderDrawing) shaderImageSize else null,
-                            onGpuFrameFailed = onGpuFrameFailed,
-                            imageOverlay = { layout ->
-                                if (workspace.panel ==
-                                    EditorWorkspacePanel.Layers
-                                ) {
-                                    PhotoLayerSelectionOverlay(
-                                        layout = layout,
-                                        state = state,
-                                        selectedLayerId =
-                                            workspace.selectedLayerId
-                                    )
-                                } else if (
-                                    workspace.panel ==
-                                        EditorWorkspacePanel.Edit &&
-                                    (workspace.activeTool == EditorToolIds.PhotoCrop ||
-                                        workspace.activeTool == EditorToolIds.PhotoPerspective)
-                                ) {
-                                    EditorCropWindow(
-                                        layout = layout,
-                                        state = state,
-                                        actions = actions,
-                                        upright = state.info?.uprightSize,
-                                        onCommit = {
-                                            actions.applyToolEdit()
-                                            canvasRefocusTick++
-                                        }
-                                    )
-                                } else if (
-                                    workspace.panel ==
-                                        EditorWorkspacePanel.Edit &&
-                                    photoToolOwnsWhiteBalancePick(workspace.activeTool) &&
-                                    toolUiState.whiteBalancePicking
-                                ) {
-                                    WhiteBalancePickOverlay(
-                                        layout = layout,
-                                        state = state,
-                                        actions = actions,
-                                        toolUiState = toolUiState,
-                                        viewport = viewport
-                                    )
-                                } else if (
-                                    workspace.panel ==
-                                        EditorWorkspacePanel.Edit &&
-                                    workspace.activeTool ==
-                                        EditorToolIds.PhotoLensBlur
-                                ) {
-                                    LensBlurOverlay(
-                                        layout = layout,
-                                        state = state,
-                                        actions = actions
-                                    )
-                                } else if (
-                                    workspace.panel ==
-                                        EditorWorkspacePanel.Edit &&
-                                    workspace.activeTool in RETOUCH_CANVAS_TOOLS
-                                ) {
-                                    RetouchCanvasOverlay(
-                                        layout = layout,
-                                        state = state,
-                                        actions = actions,
-                                        toolUiState = toolUiState,
-                                        tool = workspace.activeTool
-                                    )
-                                } else if (
-                                    workspace.panel ==
-                                        EditorWorkspacePanel.Edit &&
-                                    workspace.activeTool in CONTEXTUAL_PHOTO_TOOLS
-                                ) {
-                                    LayerToolCanvasOverlay(
-                                        layout = layout,
-                                        state = state,
-                                        actions = actions,
-                                        workspace = workspace,
-                                        toolUiState = toolUiState,
-                                        tool = workspace.activeTool
-                                    )
-                                }
-                            }
-                        )
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceContainer,
-                            modifier = Modifier
-                                .width(mode.inspectorWidthDp(windowHeightDp).dp)
-                                .fillMaxHeight()
-                        ) {
-                            Column(Modifier.fillMaxSize()) {
-                                Text(
-                                    text = when (workspace.panel) {
-                                        EditorWorkspacePanel.Source ->
-                                            stringResource(Res.string.editor_panel_source)
-                                        EditorWorkspacePanel.Edits ->
-                                            stringResource(Res.string.editor_panel_edits)
-                                        EditorWorkspacePanel.Layers ->
-                                            stringResource(Res.string.editor_layers)
-                                        EditorWorkspacePanel.Edit ->
-                                            photoToolTitle(workspace.activeTool)
-                                    },
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(
-                                        start = 16.dp, top = 12.dp, bottom = 4.dp
-                                    )
-                                )
-                                Column(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .verticalScroll(rememberScrollState())
-                                ) {
-                                    when (workspace.panel) {
-                                        EditorWorkspacePanel.Source ->
-                                            PhotoSourcePanel(
-                                                state = state,
-                                                originalBitmap = originalBitmap
-                                            )
-                                        EditorWorkspacePanel.Edits ->
-                                            PhotoEditsPanel(
-                                                state = state,
-                                                actions = actions
-                                            )
-                                        EditorWorkspacePanel.Layers ->
-                                            PhotoLayersPanel(
-                                                state = state,
-                                                actions = actions,
-                                                workspace = workspace,
-                                                baseThumbnail =
-                                                    originalBitmap ?: bitmap,
-                                                lazyList = false,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = 12.dp)
-                                            )
-                                        EditorWorkspacePanel.Edit ->
-                                            PhotoToolPanel(
-                                                state = state,
-                                                actions = actions,
-                                                tool = workspace.activeTool
-                                            )
-                                    }
-                                }
-                                // While a tool owns the draft the wide
-                                // inspector's bottom carries Cancel/Apply;
-                                // otherwise the source/output footer.
-                                if (state.toolEditing) {
-                                    EditorToolActionsBar(
-                                        onCancel = {
-                                            actions.cancelToolEdit()
-                                            collapseContextAndRefocus()
-                                        },
-                                        onApply = {
-                                            actions.applyToolEdit()
-                                            collapseContextAndRefocus()
-                                        },
-                                        applyEnabled = !state.interactionActive
-                                    )
-                                } else {
-                                    PhotoInspectorFooter(state, actions)
-                                }
-                            }
-                        }
+                    // Everything that is not a compact window.
+                    // The large header carries Markup's mode pill.
+                    CompositionLocalProvider(LocalMarkupInkInHeader provides true) {
+                        PhotoSimpleLargeWorkspace(workbenchArgs)
                     }
                 }
                 }
-                // The settings page covers every layout mode; the pin
-                // manager it opens is a sheet above it.
-                if (workspace.settingsOpen) {
-                    PhotoEditorSettingsPage(
-                        store = settingsStore,
+            }
+            // The settings page covers every layout mode; the pin
+            // manager it opens is a sheet above it.
+            if (workspace.settingsOpen) {
+                PhotoEditorSettingsPage(
+                    store = settingsStore,
+                    workspace = workspace,
+                    entries = toolEntries,
+                    exportFormats = actions.exportFormats,
+                    onBack = {
+                        workspace.settingsOpen = false
+                        canvasRefocusTick++
+                    }
+                )
+                // Compact layouts host the pin manager themselves.
+                if (workspace.pinEditorOpen && mode != EditorLayoutMode.Compact) {
+                    PhotoPinManagerSheet(
                         workspace = workspace,
                         entries = toolEntries,
-                        exportFormats = actions.exportFormats,
-                        onBack = {
-                            workspace.settingsOpen = false
-                            canvasRefocusTick++
-                        }
+                        onDismiss = { workspace.pinEditorOpen = false }
                     )
-                    // Compact layouts host the pin manager themselves.
-                    if (workspace.pinEditorOpen && mode != EditorLayoutMode.Compact) {
-                        PhotoPinManagerSheet(
-                            workspace = workspace,
-                            entries = toolEntries,
-                            onDismiss = { workspace.pinEditorOpen = false }
+                }
+            }
+
+            // The History sheet: every step, tap one to jump to it. It
+            // stays open so the steps can be stepped through.
+            if (workspace.historyOpen) {
+                ModalBottomSheet(
+                    onDismissRequest = { workspace.historyOpen = false },
+                    sheetState = rememberModalBottomSheetState(),
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
+                ) {
+                    Column(Modifier.testTag(TAG_HISTORY_SHEET)) {
+                        Text(
+                            text = stringResource(Res.string.editor_history_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+                        PhotoHistoryPanel(
+                            state = state,
+                            actions = actions,
+                            toolEntries = toolEntries,
+                            viewport = viewport,
+                            bottomInset = 16.dp
                         )
                     }
                 }
@@ -1493,64 +1331,11 @@ private fun errorMessage(kind: PhotoErrorKind?): String = when (kind) {
 }
 
 /**
- * The inspector's bottom context: the source's upright size and the size
- * the current geometry exports — real numbers only, no fabricated
- * histogram or layer list.
- */
-@Composable
-internal fun PhotoInspectorFooter(
-    state: PhotoEditorState,
-    actions: PhotoEditorActions
-) {
-    val upright = state.info?.uprightSize
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        if (upright != null) {
-            val document = state.document
-            val output = document?.let {
-                PhotoMapping(it.source.size, 1, it.geometry).outputSize
-            }
-            Text(
-                text = stringResource(
-                    Res.string.editor_source_info,
-                    "${upright.width} × ${upright.height}"
-                ),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-            if (output != null) {
-                Text(
-                    text = stringResource(
-                        Res.string.editor_output_info,
-                        "${output.width} × ${output.height}"
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
-        }
-        // The wide layout has no More menu — reset lives in the inspector
-        // footer so it stays reachable in every mode.
-        TextButton(
-            onClick = actions.reset,
-            enabled = state.document != null && !state.interactionActive,
-            modifier = Modifier.heightIn(min = 48.dp)
-        ) {
-            Text(stringResource(Res.string.editor_reset_edits))
-        }
-    }
-}
-
-/**
  * The shared inputs of the Figma V2 phone states — every compact surface
  * draws the same canvas/session wiring and only differs in chrome, so the
  * bundle travels whole rather than repeating a dozen parameters per state.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 private class PhotoCompactArgs(
     val state: PhotoEditorState,
     val actions: PhotoEditorActions,
@@ -1577,7 +1362,12 @@ private class PhotoCompactArgs(
     val onRequestClose: () -> Unit,
     val onOpenExport: ((PhotoExportResult) -> Unit)?,
     /** Save the copy and open it once the export lands. */
-    val onSaveAndOpen: (() -> Unit)?
+    val onSaveAndOpen: (() -> Unit)?,
+    val autoDock: PhotoAutoDock,
+    /** The compact sheets' states, hoisted above the workspace branches —
+     * see [PhotoEditorContent]. */
+    val toolsSheetState: EditorSheetState,
+    val toolSheetState: EditorSheetState
 )
 
 /**
@@ -1604,13 +1394,10 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
     val topInset = safeInsets.calculateTopPadding()
     val bottomInset = safeInsets.calculateBottomPadding()
     val sheetFocusRequester = remember { FocusRequester() }
-    val toolsSheetState = rememberStandardBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        skipHiddenState = false
-    )
-    val sheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = toolsSheetState
-    )
+    // Hoisted into PhotoCompactArgs: this composable leaves composition on
+    // every workspace swap, and a saveable state restored there comes back
+    // without a drag offset.
+    val toolsSheetState = args.toolsSheetState
     // The workspace flag drives the sheet; a drag-to-shut settles back
     // off-screen and reads out as the flag clearing so the header, the
     // pill and the Escape unwind all agree on what is open.
@@ -1657,14 +1444,12 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
     val sheetPeekPx = with(density) { 1.dp.toPx() }
     var fieldHeightPx by remember { mutableIntStateOf(0) }
     val sheetProgress: () -> Float = {
-        if (fieldHeightPx <= 0 || toolsSheetHeightPx <= 0f) {
+        val offset = toolsSheetState.offsetOrNull
+        if (fieldHeightPx <= 0 || toolsSheetHeightPx <= 0f || offset == null) {
             0f
         } else {
             val restOffset = fieldHeightPx - sheetPeekPx
-            runCatching {
-                (restOffset - toolsSheetState.requireOffset()) /
-                    toolsSheetHeightPx
-            }.getOrDefault(0f).coerceIn(0f, 1f)
+            ((restOffset - offset) / toolsSheetHeightPx).coerceIn(0f, 1f)
         }
     }
     // The sheet's body only carries semantics while it is on screen — a
@@ -1674,19 +1459,13 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
             args.workspace.catalogueOpen || sheetProgress() > 0f
         }
     }
-    BottomSheetScaffold(
-        scaffoldState = sheetScaffoldState,
+    EditorSheetLayout(
+        state = toolsSheetState,
         // The sheet hides at rest — 1 dp is the smallest legal peek,
         // an invisible sliver of the transparent container's top edge.
-        sheetPeekHeight = 1.dp,
-        sheetSwipeEnabled = true,
-        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        // The body carries its own scaled haze blur — the container
-        // stays clear so the blur reads as the sheet's material.
-        sheetContainerColor = Color.Transparent,
-        sheetTonalElevation = 0.dp,
-        sheetDragHandle = null,
-        sheetContent = {
+        peekHeight = 1.dp,
+        swipeEnabled = true,
+        sheet = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1744,7 +1523,7 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                                 }
                                 .toSet(),
                             onTogglePin = { id ->
-                                args.workspace.togglePhotoPin(id.value)
+                                args.workspace.pinFromCatalogue(id.value)
                             },
                             isPinnable = { id ->
                                 id.value in PHOTO_PINNABLE_DESTINATIONS
@@ -1753,7 +1532,8 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                                 args.workspace.pinEditorOpen = true
                             },
                             showDragHandle = false,
-                            extraCells = photoPhoneCatalogueExtras(args)
+                            extraCells = photoPhoneCatalogueExtras(args),
+                            bottomChrome = EditorV2Layout.PhoneToolbarRegion
                         )
                     }
                 }
@@ -1803,9 +1583,14 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                     actions = args.actions,
                     viewport = args.viewport,
                     imageReady = args.imageCapable,
+                    widthDp = args.widthDp,
                     onBack = args.onRequestClose,
                     onSave = args.actions.saveCopy,
                     onSaveAndOpen = args.onSaveAndOpen,
+                    onShowHistory = {
+                        args.actions.applyToolEdit()
+                        args.workspace.historyOpen = true
+                    },
                     modifier = Modifier.padding(top = topInset + 12.dp)
                 )
             }
@@ -1895,6 +1680,7 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                             !args.workspace.catalogueOpen,
                         onSelectTool = args.onSelectTool,
                         onShowTools = { args.workspace.toggleCatalogue() },
+                        auto = args.autoDock,
                         modifier = Modifier.graphicsLayer {
                             val progress = sheetProgress()
                             alpha = 1f - progress
@@ -1916,7 +1702,7 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
 
 /**
  * The V4 photo tool surface: context header, media field and a shared
- * [BottomSheetScaffold]. Graphs and preset lists choose a usable peek.
+ * [EditorSheetLayout]. Graphs and preset lists choose a usable peek.
  * Controls have no enclosing background at rest; material appears
  * continuously with expansion. Back cancels
  * the transaction; the header's filled Check commits it and collapses —
@@ -1959,6 +1745,10 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
     val topInset = safeInsets.calculateTopPadding()
     val bottomInset = safeInsets.calculateBottomPadding()
     val dockLane = EditorV2Layout.PhoneToolbarRegion + bottomInset
+    // The card rests above the dock: the sheet's foot is the dock lane,
+    // left transparent, so the card never overlaps it.
+    val cardPad = 0.dp
+    val sheetFoot = dockLane
     // Large text grows the card's rows; the resting card reserves that
     // growth instead of clipping the ruler or pushing it under the pill.
     val fontScale = LocalDensity.current.fontScale
@@ -1972,7 +1762,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
     // card reduced to the single parameter's ruler. It never expands and
     // owns no commit row — its edits land per interaction.
     val focusMode = args.workspace.focusMode &&
-        activeTool == EditorToolIds.PhotoLight
+        activeTool == EditorToolIds.PhotoLight &&
+        args.toolUiState.lightTab == LightTab.Basics
     // Two card heights: the resting card carries the tool's primary
     // controls; the expanded card adds its secondary details. Entering or
     // leaving focus morphs between them — the card's height and the
@@ -2015,15 +1806,16 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
         animatedCardPeek
     }
     val cardMax = if (autoSized) cardPeek else animatedCardMax
-    val sheetPeekHeight = cardPeek + dockLane
+    val sheetPeekHeight = cardPeek + sheetFoot
     var scaffoldHeightPx by remember { mutableIntStateOf(0) }
-    val sheetScaffoldState = rememberBottomSheetScaffoldState()
-    val sheetState = sheetScaffoldState.bottomSheetState
+    // Same hoist as the catalogue sheet's state — the tool surface swaps
+    // in and out of composition with every tool open and close.
+    val sheetState = args.toolSheetState
     val peekPx = with(density) { sheetPeekHeight.toPx() }
-    val sheetHeightPx = with(density) { (cardMax + dockLane).toPx() }
+    val sheetHeightPx = with(density) { (cardMax + sheetFoot).toPx() }
     val expansion: () -> Float = {
         photoToolSheetExpansion(
-            runCatching { sheetState.requireOffset() }.getOrDefault(Float.NaN),
+            sheetState.offsetOrNull ?: Float.NaN,
             scaffoldHeightPx.toFloat(), sheetHeightPx, peekPx
         )
     }
@@ -2039,8 +1831,9 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
         }
         // A tool switch starts on the new tool's resting peek — never on
         // the previous tool's expansion (which can be left behind when
-        // the peek height changes under an expanded sheet).
-        runCatching { sheetState.partialExpand() }
+        // the peek height changes under an expanded sheet). The state
+        // keeps the request even before the sheet's first layout.
+        sheetState.partialExpand()
     }
 
     // The media fills the window: the header, the utility lane, the
@@ -2048,18 +1841,11 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
     // design's frame. Only the card and the dock keep their own lane.
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize()) {
-            BottomSheetScaffold(
-                scaffoldState = sheetScaffoldState,
-                sheetPeekHeight = sheetPeekHeight,
-                sheetSwipeEnabled = !args.state.interactionActive && !focusMode,
-                sheetShape = RoundedCornerShape(28.dp),
-                // The card carries its own material; the sheet container
-                // stays clear so the photo reads behind the dock lane.
-                sheetContainerColor = Color.Transparent,
-                sheetTonalElevation = 0.dp,
-                sheetShadowElevation = 0.dp,
-                sheetDragHandle = null,
-                sheetContent = {
+            EditorSheetLayout(
+                state = sheetState,
+                peekHeight = sheetPeekHeight,
+                swipeEnabled = !args.state.interactionActive && !focusMode,
+                sheet = {
                     CompositionLocalProvider(
                         LocalPhotoHistogramVisible provides expanded,
                         LocalPhotoToolSheetExpanded provides expanded,
@@ -2070,7 +1856,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                             cardHeight = cardPeek +
                                 (cardMax - cardPeek) * expansion(),
                             cardMax = cardMax,
-                            dockLane = dockLane,
+                            dockLane = sheetFoot,
+                            cardPad = cardPad,
                             expansion = expansion(),
                             focusMode = focusMode,
                             // A fixed card (Light, Looks) has nothing to
@@ -2082,7 +1869,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                                     measuredCardHeight = height
                                 }
                             },
-                            canFocus = activeTool == EditorToolIds.PhotoLight,
+                            canFocus = activeTool == EditorToolIds.PhotoLight &&
+                                args.toolUiState.lightTab == LightTab.Basics,
                             atRest = { expansion() < 0.05f },
                             onEnterFocus = { args.workspace.focusMode = true },
                             onExitFocus = { args.workspace.focusMode = false }
@@ -2111,7 +1899,7 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                             PaddingValues(
                                 start = 0.dp,
                                 top = topInset +
-                                    if (activeTool in RETOUCH_RESET_ROW_TOOLS) 128.dp else 68.dp,
+                                    if (activeTool in RETOUCH_RESET_ROW_TOOLS) 184.dp else 124.dp,
                                 end = 0.dp,
                                 bottom = sheetPeekHeight
                             )
@@ -2121,12 +1909,11 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                         frameFieldInsets = if (boundedField) {
                             PaddingValues(
                                 start = 0.dp,
-                                // The retouch tools' Reset and ink pill share a
-                                // row under the header, clear of the photo.
+                                // The retouch tools' ink pill sits under the
+                                // header and the tool bar, clear of the photo.
                                 top = topInset + when {
-                                    isCrop || isPerspective -> 124.dp
-                                    activeTool in RETOUCH_RESET_ROW_TOOLS -> 128.dp
-                                    else -> 68.dp
+                                    activeTool in RETOUCH_RESET_ROW_TOOLS -> 184.dp
+                                    else -> 124.dp
                                 },
                                 end = 0.dp,
                                 bottom = sheetPeekHeight
@@ -2173,7 +1960,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                                         state = args.state,
                                         actions = args.actions,
                                         toolUiState = args.toolUiState,
-                                        tool = activeTool
+                                        tool = activeTool,
+                                        viewport = args.viewport
                                     )
                                 activeTool in CONTEXTUAL_PHOTO_TOOLS ->
                                     LayerToolCanvasOverlay(
@@ -2199,7 +1987,7 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .padding(
-                                            top = topInset + 72.dp,
+                                            top = topInset + 128.dp,
                                             start = 12.dp, end = 12.dp,
                                             // Clear the tool card: the
                                             // panel reads above it.
@@ -2240,6 +2028,7 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                                 actions = args.actions,
                                 viewport = args.viewport,
                                 imageReady = args.imageCapable,
+                                widthDp = args.widthDp,
                                 onBack = {
                                     if (focusMode) {
                                         // Focus is a precision view over
@@ -2248,71 +2037,43 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                                         // throw the tool away.
                                         args.workspace.focusMode = false
                                     } else {
-                                        args.actions.cancelToolEdit()
+                                        // Back keeps the tool's changes,
+                                        // like Done.
+                                        args.actions.applyToolEdit()
                                         args.onCollapseContext()
                                     }
                                 },
                                 onSave = args.actions.saveCopy,
                                 onSaveAndOpen = args.onSaveAndOpen,
-                                // Crop owns a full-screen frame and its
-                                // commit sits in the card's foot beside
-                                // Reset (D40); every other tool commits
-                                // from the header.
-                                applyLabel = if (isCrop || isPerspective) {
-                                    null
-                                } else {
-                                    stringResource(Res.string.editor_apply)
-                                },
-                                onApply = if (isCrop || isPerspective) {
-                                    null
-                                } else {
-                                    {
-                                        // Apply ends the tool's focus too:
-                                        // the result is the document home,
-                                        // never the retired full-screen
-                                        // focus chrome.
-                                        args.actions.applyToolEdit()
-                                        args.workspace.focusMode = false
-                                        args.onCollapseContext()
-                                    }
-                                },
+                    onShowHistory = {
+                        args.actions.applyToolEdit()
+                        args.workspace.historyOpen = true
+                    },
+                                // The header never changes with the tool:
+                                // Done and Reset sit in the tool bar below it.
                                 modifier = Modifier.testTag(TAG_PHOTO_HEADER)
                             )
                         }
-                        // The crop actions float directly under the header
-                        // (the reference's Reset / Apply Crop pair), so the
-                        // card carries only its controls.
-                        if (!focusMode && (isCrop || isPerspective)) {
-                            CropActionRow(
-                                enabled = !args.state.interactionActive,
-                                resetLabel = args.toolMenu.resetParameterLabel,
-                                resetEnabled = args.toolMenu.resetParameterEnabled &&
-                                    !args.state.interactionActive,
-                                onReset = args.toolMenu.onResetParameter,
-                                onApply = {
-                                    args.actions.applyToolEdit()
-                                    args.workspace.focusMode = false
-                                    args.onCollapseContext()
-                                },
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
-                        // Light's, Colour's and Curves' reset sit in the crop
-                        // reset's slot: a floating row under the header. The
-                        // header keeps the tool's Apply.
-                        if (activeTool == EditorToolIds.PhotoLight ||
-                            activeTool == EditorToolIds.PhotoColour ||
-                            activeTool == EditorToolIds.PhotoCurves ||
-                            activeTool in RETOUCH_RESET_ROW_TOOLS
-                        ) {
-                            LightResetRow(
-                                resetLabel = args.toolMenu.resetParameterLabel,
-                                resetEnabled = args.toolMenu.resetParameterEnabled &&
-                                    !args.state.interactionActive,
-                                onReset = args.toolMenu.onResetParameter,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
+                        // Done and Reset for whichever tool is open: one bar,
+                        // the same place for every tool, under the header.
+                        ToolActionBar(
+                            title = photoToolTitle(activeTool),
+                            resetLabel = args.toolMenu.resetParameterLabel,
+                            resetEnabled = args.toolMenu.resetParameterEnabled &&
+                                !args.state.interactionActive,
+                            onReset = args.toolMenu.onResetParameter,
+                            resetTag = if (isCrop || isPerspective) {
+                                TAG_RESET_CROP
+                            } else {
+                                TAG_RESET_TOOL
+                            },
+                            doneEnabled = !args.state.interactionActive,
+                            onDone = {
+                                args.actions.applyToolEdit()
+                                args.workspace.focusMode = false
+                                args.onCollapseContext()
+                            }
+                        )
                         // The contextual tools name the layer they act
                         // on; Double exposure's context is the document
                         // itself, so its line keeps the source name.
@@ -2342,9 +2103,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                     }
                 }
             }
-            // The six-slot design dock never leaves the tool surface; it
-            // rides the same 70 dp lane as the home, over the sheet's
-            // transparent foot.
+            // The dock never leaves the tool surface; it rides the same
+            // 70 dp lane as the home, over the sheet's transparent foot.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2362,7 +2122,8 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                         enabled = args.imageCapable &&
                             !args.workspace.catalogueOpen,
                         onSelectTool = args.onSelectTool,
-                        onShowTools = { args.workspace.toggleCatalogue() }
+                        onShowTools = { args.workspace.toggleCatalogue() },
+                        auto = args.autoDock
                     )
                 }
             }
@@ -2383,7 +2144,7 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                     activeTool = activeTool,
                     enabled = args.imageCapable,
                     onSelect = { tool ->
-                        args.actions.cancelToolEdit()
+                        // selectTool keeps the outgoing tool's changes.
                         args.onSelectTool(tool)
                     },
                     title = stringResource(Res.string.editor_all_tools),
@@ -2397,7 +2158,7 @@ private fun PhotoToolCompact(args: PhotoCompactArgs) {
                         }
                         .toSet(),
                     onTogglePin = { id ->
-                        args.workspace.togglePhotoPin(id.value)
+                        args.workspace.pinFromCatalogue(id.value)
                     },
                     isPinnable = { id ->
                         id.value in PHOTO_PINNABLE_DESTINATIONS
@@ -2437,131 +2198,116 @@ private val SheetHeightSpring = spring<Dp>(
 )
 
 /**
- * The crop actions: a floating row directly under the document header —
- * the reference's Reset / Apply Crop pair, lifted out of the card so the
- * card is just the aspect row and the control row.
+ * The open tool's bar under the header, shared by the phone and the
+ * large workspace: Reset on the leading side when the tool publishes
+ * one, the tool title centred, Done on the trailing side. The label
+ * Reset carries names what it resets for talkback; the visible text is
+ * "Reset".
  */
 @Composable
-private fun CropActionRow(
-    enabled: Boolean,
+internal fun ToolActionBar(
+    title: String,
+    subtitle: String? = null,
     resetLabel: String?,
     resetEnabled: Boolean,
     onReset: (() -> Unit)?,
-    onApply: () -> Unit,
-    modifier: Modifier = Modifier
+    resetTag: String,
+    doneEnabled: Boolean,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+    barTag: String = TAG_TOOL_ACTIONS,
+    doneTag: String = TAG_TOOL_APPLY
 ) {
-    Row(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .height(56.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .testTag(barTag)
     ) {
+        // A narrow bar (a side pane) keeps Reset to its icon so the title fits.
+        val narrow = maxWidth < 380.dp
         if (resetLabel != null && onReset != null) {
-            Row(
-                modifier = Modifier
-                    .height(40.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .clickable(
-                        enabled = resetEnabled,
-                        role = Role.Button,
-                        onClickLabel = resetLabel,
-                        onClick = onReset
-                    )
-                    .semantics { contentDescription = resetLabel }
-                    .padding(horizontal = 10.dp)
-                    .testTag(TAG_RESET_CROP),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = EditorSymbols.RestartAlt,
-                    contentDescription = null,
-                    tint = if (resetEnabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = stringResource(Res.string.editor_crop_reset_short),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (resetEnabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    maxLines = 1
-                )
+            val tint = if (resetEnabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             }
-        } else {
-            Spacer(Modifier.width(1.dp))
+            EditorFloatingPanel(
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .height(48.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .height(48.dp)
+                        .clickable(
+                            enabled = resetEnabled,
+                            role = Role.Button,
+                            onClickLabel = resetLabel,
+                            onClick = onReset
+                        )
+                        .semantics { contentDescription = resetLabel }
+                        .padding(horizontal = 16.dp)
+                        .testTag(resetTag),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = EditorSymbols.RestartAlt,
+                        contentDescription = null,
+                        tint = tint,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    if (!narrow) Text(
+                        text = stringResource(Res.string.editor_crop_reset_short),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = tint,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = if (narrow) 100.dp else 120.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (subtitle != null) Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
         WorkbenchPrimaryAction(
-            label = stringResource(Res.string.editor_apply_crop),
-            onClick = onApply,
-            enabled = enabled,
+            label = stringResource(Res.string.editor_done),
+            onClick = onDone,
+            enabled = doneEnabled,
             icon = EditorSymbols.Check,
             compact = true,
-            modifier = Modifier.testTag(TAG_TOOL_APPLY)
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .testTag(doneTag)
         )
     }
 }
 
-/**
- * The Light sub-tool reset in the crop reset's slot: a floating row under
- * the document header, the same 40 dp scale and pill anatomy. The label
- * names the active sub-tool for talkback; the visible text is "Reset".
- */
-@Composable
-private fun LightResetRow(
-    resetLabel: String?,
-    resetEnabled: Boolean,
-    onReset: (() -> Unit)?,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(40.dp)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (resetLabel != null && onReset != null) {
-            Row(
-                modifier = Modifier
-                    .height(40.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .clickable(
-                        enabled = resetEnabled,
-                        role = Role.Button,
-                        onClickLabel = resetLabel,
-                        onClick = onReset
-                    )
-                    .semantics { contentDescription = resetLabel }
-                    .padding(horizontal = 10.dp)
-                    .testTag(TAG_RESET_TOOL),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = EditorSymbols.RestartAlt,
-                    contentDescription = null,
-                    tint = if (resetEnabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = stringResource(Res.string.editor_crop_reset_short),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (resetEnabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    maxLines = 1
-                )
-            }
-        }
-    }
-}
+internal const val TAG_TOOL_ACTIONS = "editor.tool.actions"
 
 /**
  * The floating tool card body. The sheet lane reserves the card, the
- * Apply row and the dock's transparent foot; the card itself grows
+ * the dock's transparent foot; the card itself grows
  * between [cardHeight] and its tool's full height while its bottom edge
  * stays anchored above the dock.
  */
@@ -2572,6 +2318,7 @@ private fun ColumnScope.PhotoSheetContent(
     cardHeight: Dp,
     cardMax: Dp,
     dockLane: Dp,
+    cardPad: Dp,
     expansion: Float,
     focusMode: Boolean,
     showHandle: Boolean,
@@ -2591,7 +2338,16 @@ private fun ColumnScope.PhotoSheetContent(
     // card before the peek did, the scaffold would briefly gain an expanded
     // anchor and read its offset uninitialized. The card measures unbounded
     // inside the lane, and the peek catches up on the next frame.
-    Column(modifier = Modifier.fillMaxWidth().height(cardMax + dockLane)) {
+    // The foot is the transparent dock lane under the card.
+    val foot = if (cardPad > 0.dp) cardPad else dockLane
+    Column(
+        modifier = Modifier.fillMaxWidth().height(cardMax + foot),
+        verticalArrangement = if (cardPad > 0.dp) {
+            Arrangement.Bottom
+        } else {
+            Arrangement.Top
+        }
+    ) {
         PhotoToolSheetSurface(
             expansion = expansion,
             modifier = if (autoHeight) {
@@ -2600,14 +2356,18 @@ private fun ColumnScope.PhotoSheetContent(
                     .padding(horizontal = 12.dp)
                     .wrapContentHeight(align = Alignment.Top, unbounded = true)
                     .onSizeChanged {
-                        onMeasuredHeight(with(density) { it.height.toDp() })
+                        // The reported card excludes its bottom pad —
+                        // the pad is the lane the dock floats over.
+                        onMeasuredHeight(
+                            with(density) { it.height.toDp() } - cardPad
+                        )
                     }
                     .testTag(TAG_V3_SHEET_BODY)
             } else {
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
-                    .height(cardHeight)
+                    .height(cardHeight + cardPad)
                     .testTag(TAG_V3_SHEET_BODY)
             }
         ) {
@@ -2725,7 +2485,7 @@ private fun ColumnScope.PhotoSheetContent(
                     CompositionLocalProvider(
                         LocalPhotoToolMenu provides args.toolMenu
                     ) {
-                        Column {
+                        Column(Modifier.padding(bottom = cardPad)) {
                             // The card's height morphs with FOCUS_MORPH_MS;
                             // the content crossfades over the same beat so
                             // the focus card grows out of the full one.
@@ -2753,7 +2513,9 @@ private fun ColumnScope.PhotoSheetContent(
                 }
             }
         }
-        Box(Modifier.fillMaxWidth().height(dockLane))
+        if (cardPad <= 0.dp) {
+            Box(Modifier.fillMaxWidth().height(dockLane))
+        }
     }
 }
 
@@ -2766,28 +2528,41 @@ private fun ColumnScope.PhotoSheetContent(
  */
 @Composable
 private fun PhotoLayersCompact(args: PhotoCompactArgs) {
+    // The same chrome as a tool: the document header, the tool bar with
+    // Done, the photo, a floating card with the layer list, and the dock.
+    val safeInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime).asPaddingValues()
+    val topInset = safeInsets.calculateTopPadding()
+    val bottomInset = safeInsets.calculateBottomPadding()
+    val glass = editorGlassColors()
+    val cardShape = RoundedCornerShape(24.dp)
     Column(Modifier.fillMaxSize()) {
-        // Same 12 dp window inset as every other compact context header;
-        // the tag rides the capsule so bounds report the 56 dp bar.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp, start = 12.dp, end = 12.dp)
+                .padding(top = topInset + 12.dp)
         ) {
-            WorkbenchFloatingContextHeader(
-                title = stringResource(Res.string.editor_layers),
+            EditorHomeHeader(
+                state = args.state,
+                actions = args.actions,
+                viewport = args.viewport,
+                imageReady = args.imageCapable,
+                widthDp = args.widthDp,
                 onBack = args.onCollapseContext,
-                backTag = TAG_BACK,
-                stacked = args.stacked,
-                modifier = Modifier.testTag(TAG_PHOTO_HEADER),
-                menuContent = { PhotoContextMenuItems(args) },
-                primaryIcon = EditorSymbols.AddPhotoAlternate,
-                primaryLabel = stringResource(Res.string.editor_layer_add_image),
-                onPrimaryAction = args.actions.requestAddImage,
-                primaryEnabled = canAddLayerImage(args.state),
-                primaryTag = TAG_LAYER_ADD_HEADER
+                onSave = args.actions.saveCopy,
+                onSaveAndOpen = args.onSaveAndOpen,
+                onShowHistory = { args.workspace.historyOpen = true },
+                modifier = Modifier.testTag(TAG_PHOTO_HEADER)
             )
         }
+        ToolActionBar(
+            title = stringResource(Res.string.editor_layers),
+            resetLabel = null,
+            resetEnabled = false,
+            onReset = null,
+            resetTag = TAG_RESET_TOOL,
+            doneEnabled = !args.state.interactionActive,
+            onDone = args.onCollapseContext
+        )
         StatusStrips(
             state = args.state,
             actions = args.actions,
@@ -2809,9 +2584,14 @@ private fun PhotoLayersCompact(args: PhotoCompactArgs) {
                 )
             }
         )
-        PhotoInlineInspector(
-            args = args,
-            contentScrollable = false
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+                .heightIn(max = EditorV2Layout.PhoneInlineInspectorMax)
+                .clip(cardShape)
+                .chromeBlur(cardShape, glass.panelGlass)
+                .testTag(TAG_V3_INLINE_INSPECTOR)
         ) {
             PhotoLayersPanel(
                 state = args.state,
@@ -2819,58 +2599,31 @@ private fun PhotoLayersCompact(args: PhotoCompactArgs) {
                 workspace = args.workspace,
                 baseThumbnail = args.originalBitmap ?: args.bitmap,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 10.dp, start = 12.dp, end = 12.dp)
+                    .fillMaxWidth()
+                    .padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 12.dp)
             )
         }
-    }
-}
-
-/**
- * The compact Source/Edits pane — the tool surface's scaffold (context
- * header, canvas, breadcrumb, flat inline inspector) with the pane's
- * real content inside the scroll region. The header's Back is the only
- * exit — the V3 anatomy has no bottom Done strip.
- */
-@Composable
-private fun PhotoPaneCompact(args: PhotoCompactArgs) {
-    val title = stringResource(
-        if (args.workspace.panel == EditorWorkspacePanel.Source) {
-            Res.string.editor_panel_source
-        } else {
-            Res.string.editor_panel_edits
-        }
-    )
-    Column(Modifier.fillMaxSize()) {
-        PhotoContextHeader(
-            args = args,
-            title = title,
-            onBack = args.onCollapseContext
-        )
-        StatusStrips(
-            state = args.state,
-            actions = args.actions,
-            onOpenExport = args.onOpenExport
-        )
-        CompactCanvas(
-            args = args,
-            mediaPadding = PaddingValues(
-                horizontal = 8.dp,
-                vertical = 4.dp
-            ),
-            showFooter = false,
-            showBeforeChip = false
-        )
-        PhotoBreadcrumb(label = title)
-        PhotoInlineInspector(args = args) {
-            when (args.workspace.panel) {
-                EditorWorkspacePanel.Source -> PhotoSourcePanel(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = bottomInset)
+                .height(EditorV2Layout.PhoneToolbarRegion)
+                .testTag(TAG_PHOTO_TOOLBAR_REGION),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
+                EditorFloatingToolbar(
+                    workspace = args.workspace,
                     state = args.state,
-                    originalBitmap = args.originalBitmap
-                )
-                else -> PhotoEditsPanel(
-                    state = args.state,
-                    actions = args.actions
+                    entries = args.toolEntries,
+                    enabled = args.imageCapable && !args.workspace.catalogueOpen,
+                    onSelectTool = args.onSelectTool,
+                    // The catalogue lives on the home: More leaves Layers for it.
+                    onShowTools = {
+                        args.onCollapseContext()
+                        args.workspace.catalogueOpen = true
+                    },
+                    auto = args.autoDock
                 )
             }
         }
@@ -2880,27 +2633,44 @@ private fun PhotoPaneCompact(args: PhotoCompactArgs) {
 /**
  * The real non-tool surfaces that ride the phone catalogue next to the
  * tool grid: the Layers workspace (which lost its default dock slot to
- * the six-slot design) and the Source/Edits panes (which lost the tool
- * header's More menu). They are cells, never fake tools.
+ * the six-slot design), the external editor and the settings. They are
+ * cells, never fake tools.
  */
 @Composable
 private fun photoPhoneCatalogueExtras(
     args: PhotoCompactArgs
 ): List<EditorCatalogueExtraCell> {
     val layers = stringResource(Res.string.editor_layers)
-    val source = stringResource(Res.string.editor_panel_source)
-    val edits = stringResource(Res.string.editor_panel_edits)
     val openIn = stringResource(Res.string.editor_retouch_open_in)
     val settingsLabel = stringResource(Res.string.editor_settings)
     val openExternally = LocalEditorHostTools.current.openInExternalEditor
     fun selected(panel: EditorWorkspacePanel) =
         args.workspace.panel == panel && args.workspace.toolPanelExpanded
+    val historyLabel = stringResource(Res.string.editor_history_title)
     return listOfNotNull(
+        EditorCatalogueExtraCell(
+            icon = EditorSymbols.Timeline,
+            label = historyLabel,
+            tag = TAG_CATALOGUE_HISTORY,
+            enabled = args.imageCapable,
+            section = CatalogueSection.More,
+            description = stringResource(Res.string.editor_tool_desc_history),
+            preview = CataloguePreview.History,
+            onClick = {
+                // A jump must not run under an open tool transaction.
+                args.actions.applyToolEdit()
+                args.workspace.catalogueOpen = false
+                args.workspace.historyOpen = true
+            }
+        ),
         openExternally?.let { open ->
             EditorCatalogueExtraCell(
                 icon = RetouchSymbols.OpenInNew,
                 label = openIn,
                 tag = TAG_CATALOGUE_OPEN_IN,
+                section = CatalogueSection.More,
+                description = stringResource(Res.string.editor_tool_desc_open_in),
+                preview = CataloguePreview.OpenIn,
                 onClick = open
             )
         },
@@ -2910,35 +2680,23 @@ private fun photoPhoneCatalogueExtras(
             tag = TAG_CATALOGUE_LAYERS,
             selected = selected(EditorWorkspacePanel.Layers),
             enabled = args.imageCapable,
+            section = CatalogueSection.Layers,
+            description = stringResource(Res.string.editor_tool_desc_layers),
+            preview = CataloguePreview.Layers,
             onClick = {
                 args.workspace.togglePanel(EditorWorkspacePanel.Layers)
-            }
-        ),
-        EditorCatalogueExtraCell(
-            icon = EditorSymbols.Info,
-            label = source,
-            tag = TAG_PANEL_SOURCE,
-            selected = selected(EditorWorkspacePanel.Source),
-            enabled = args.imageCapable,
-            onClick = {
-                args.workspace.togglePanel(EditorWorkspacePanel.Source)
-            }
-        ),
-        EditorCatalogueExtraCell(
-            icon = EditorSymbols.ViewList,
-            label = edits,
-            tag = TAG_PANEL_EDITS,
-            selected = selected(EditorWorkspacePanel.Edits),
-            enabled = args.imageCapable,
-            onClick = {
-                args.workspace.togglePanel(EditorWorkspacePanel.Edits)
             }
         ),
         EditorCatalogueExtraCell(
             icon = Icons.Outlined.Settings,
             label = settingsLabel,
             tag = TAG_CATALOGUE_SETTINGS,
+            section = CatalogueSection.More,
+            description = stringResource(Res.string.editor_tool_desc_settings),
+            preview = CataloguePreview.Settings,
             onClick = {
+                // Close the sheet first, then open the page; the page is
+                // rendered outside the layout branches, so every mode shows it.
                 args.workspace.catalogueOpen = false
                 args.workspace.settingsOpen = true
             }
@@ -2947,40 +2705,6 @@ private fun photoPhoneCatalogueExtras(
 }
 
 internal const val TAG_CATALOGUE_SETTINGS = "editor.catalogue.settings"
-
-/** The shared context header — Close/context title/More, floating capsule. */
-@Composable
-private fun PhotoContextHeader(
-    args: PhotoCompactArgs,
-    title: String,
-    onBack: () -> Unit,
-    primaryIcon: ImageVector? = null,
-    primaryLabel: String? = null,
-    onPrimaryAction: (() -> Unit)? = null,
-    primaryEnabled: Boolean = true
-) {
-    // The capsule floats on the shared 12 dp window inset; the tag rides
-    // the capsule itself so bounds report the 56 dp bar, not the inset.
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp, start = 12.dp, end = 12.dp)
-    ) {
-        WorkbenchFloatingContextHeader(
-            title = title,
-            onBack = onBack,
-            backTag = TAG_BACK,
-            stacked = args.stacked,
-            modifier = Modifier.testTag(TAG_PHOTO_HEADER),
-            menuContent = { PhotoContextMenuItems(args) },
-            primaryIcon = primaryIcon,
-            primaryLabel = primaryLabel,
-            onPrimaryAction = onPrimaryAction,
-            primaryEnabled = primaryEnabled,
-            primaryTag = TAG_TOOL_APPLY
-        )
-    }
-}
 
 /**
  * Extra More-menu actions a live tool publishes — the compact tool
@@ -3028,8 +2752,8 @@ private fun ColumnScope.PhotoContextMenuItems(args: PhotoCompactArgs) {
 
 /**
  * The real secondary surfaces a photo header's More menu carries: the live
- * tool's published reset, its published compare toggle, the Source and
- * Edits panes and the whole-recipe reset. Shared by the compact context
+ * tool's published reset, its published compare toggle and the
+ * whole-recipe reset. Shared by the compact context
  * header and the tablet document capsule so the two menus never drift.
  */
 @Composable
@@ -3069,24 +2793,6 @@ internal fun ColumnScope.PhotoHeaderMenuItems(
             modifier = Modifier.testTag(toolMenu.compareTag)
         )
     }
-    DropdownMenuItem(
-        text = { Text(stringResource(Res.string.editor_panel_source)) },
-        enabled = imageCapable,
-        onClick = {
-            workspace.togglePanel(EditorWorkspacePanel.Source)
-            onDismiss?.invoke()
-        },
-        modifier = Modifier.testTag(TAG_PANEL_SOURCE)
-    )
-    DropdownMenuItem(
-        text = { Text(stringResource(Res.string.editor_panel_edits)) },
-        enabled = imageCapable,
-        onClick = {
-            workspace.togglePanel(EditorWorkspacePanel.Edits)
-            onDismiss?.invoke()
-        },
-        modifier = Modifier.testTag(TAG_PANEL_EDITS)
-    )
     DropdownMenuItem(
         text = { Text(stringResource(Res.string.editor_reset_edits)) },
         enabled = state.document != null && !state.interactionActive,
@@ -3211,8 +2917,8 @@ private fun CompactCanvasCell(
 }
 
 /** The 32 dp context line under the canvas — layers glyph + section title.
- * On a tool surface it floats as a pill over the photo ([floating]); on the
- * Source/Edits panes it stays a plain section line under the canvas. */
+ * On a tool surface it floats as a pill over the photo ([floating]);
+ * otherwise it is a plain section line under the canvas. */
 @Composable
 private fun PhotoBreadcrumb(label: String, floating: Boolean = false) {
     Row(
@@ -3343,5 +3049,57 @@ private fun PhotoInlineInspector(
                 }
             }
         }
+    }
+}
+
+/**
+ * Reset and Done for the open tool, sized for a header row: the large
+ * windows of both editors put them in their main toolbar instead of a
+ * second bar.
+ */
+@Composable
+internal fun ToolHeaderActions(
+    resetLabel: String?,
+    resetEnabled: Boolean,
+    onReset: (() -> Unit)?,
+    resetTag: String,
+    doneEnabled: Boolean,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+    doneTag: String = TAG_TOOL_APPLY
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (resetLabel != null && onReset != null) {
+            TextButton(
+                onClick = onReset,
+                enabled = resetEnabled,
+                modifier = Modifier
+                    .semantics { contentDescription = resetLabel }
+                    .testTag(resetTag)
+            ) {
+                Icon(
+                    imageVector = EditorSymbols.RestartAlt,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = stringResource(Res.string.editor_crop_reset_short),
+                    modifier = Modifier.padding(start = 6.dp),
+                    maxLines = 1
+                )
+            }
+        }
+        WorkbenchPrimaryAction(
+            label = stringResource(Res.string.editor_done),
+            onClick = onDone,
+            enabled = doneEnabled,
+            icon = EditorSymbols.Check,
+            compact = true,
+            modifier = Modifier.testTag(doneTag)
+        )
     }
 }

@@ -116,13 +116,7 @@ internal fun ColourToneToolContent(
             .padding(RetouchCardPadding)
             .testTag("editor.colourTone")
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        EditorChipRow {
             ColourToneParameters.forEachIndexed { i, param ->
                 ColourParamChip(
                     label = labels[i],

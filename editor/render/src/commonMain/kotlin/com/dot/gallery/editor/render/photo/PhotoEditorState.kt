@@ -1,9 +1,23 @@
 package com.dot.gallery.editor.render.photo
 
+import com.dot.gallery.editor.core.history.HistoryStep
 import com.dot.gallery.editor.core.model.PhotoDocument
+import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.render.SrgbPixels
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
+
+/**
+ * The global document history's committed steps, split at the current
+ * value: [past] holds the steps already applied (oldest first) and
+ * [undone] the steps a redo would re-apply (next first). Tool-local
+ * steps never appear here — a tool transaction mirrors into the global
+ * draft only while it is open.
+ */
+data class PhotoHistorySnapshot(
+    val past: List<HistoryStep<PhotoEdits>> = emptyList(),
+    val undone: List<HistoryStep<PhotoEdits>> = emptyList()
+)
 
 /**
  * Immutable snapshot of everything the photo editor UI binds to. Published
@@ -49,6 +63,11 @@ data class PhotoEditorState(
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
     val isDirty: Boolean = false,
+    /**
+     * The global history's committed steps for read-only consumers (the
+     * Studio History tab). Never includes tool-local steps.
+     */
+    val history: PhotoHistorySnapshot = PhotoHistorySnapshot(),
     /** A layer import decode is in flight; sibling mutations are gated. */
     val importingLayer: Boolean = false,
     /**

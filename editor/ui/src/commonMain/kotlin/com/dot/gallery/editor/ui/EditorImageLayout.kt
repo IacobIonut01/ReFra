@@ -1,7 +1,11 @@
 package com.dot.gallery.editor.ui
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 /**
  * The drawn image's rectangle in canvas-region dp coordinates — the
@@ -33,5 +37,27 @@ internal data class EditorImageLayout(
     val zoomedLeft: Dp = left,
     val zoomedTop: Dp = top,
     val zoomedWidth: Dp = width,
-    val zoomedHeight: Dp = height
+    val zoomedHeight: Dp = height,
+    /**
+     * The zoom transform's scale origin in the same viewing coordinates:
+     * scaling by `s` moves [zoomedLeft] by `pivot * (1 - s)` plus the pan.
+     */
+    val zoomPivotLeft: Dp = 0.dp,
+    val zoomPivotTop: Dp = 0.dp
 )
+
+/**
+ * Places the content at ([left], [top]) in its parent at exactly
+ * [width] x [height], even when that is larger than the parent. A plain
+ * `size`/`requiredSize` is clamped or centred to the parent's bounds, which
+ * shifts a zoomed image off its on-screen rect.
+ */
+internal fun Modifier.placedAt(left: Dp, top: Dp, width: Dp, height: Dp): Modifier =
+    layout { measurable, constraints ->
+        val placeable = measurable.measure(
+            Constraints.fixed(width.roundToPx(), height.roundToPx())
+        )
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            placeable.place(left.roundToPx(), top.roundToPx())
+        }
+    }

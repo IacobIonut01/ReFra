@@ -45,6 +45,8 @@ import com.dot.gallery.editor.core.model.VideoTrackKind
 import com.dot.gallery.editor.render.video.VideoEditorState
 import com.dot.gallery.editor.render.video.VideoExportResult
 import com.dot.gallery.editor.render.video.VideoInsertion
+import com.dot.gallery.editor.ui.ToolActionBar
+import com.dot.gallery.editor.ui.ToolHeaderActions
 import com.dot.gallery.editor.ui.EditorToolGroup
 import com.dot.gallery.editor.ui.EditorToolId
 import com.dot.gallery.editor.ui.EditorToolIds
@@ -59,30 +61,24 @@ import com.dot.gallery.editor.ui.generated.resources.editor_video_add_media
 import com.dot.gallery.editor.ui.generated.resources.editor_video_clip_label
 import com.dot.gallery.editor.ui.generated.resources.editor_video_close_editor
 import com.dot.gallery.editor.ui.generated.resources.editor_video_close_tool
+import com.dot.gallery.editor.ui.generated.resources.editor_video_reset
 import com.dot.gallery.editor.ui.generated.resources.editor_video_empty_sequence
 import com.dot.gallery.editor.ui.generated.resources.editor_video_exit_focus
 import org.jetbrains.compose.resources.stringResource
 
-/** Which of the four presentations a window gets. */
-internal enum class VideoStudioForm { Phone, TabletPortrait, PhoneLandscape, TabletLandscape }
+/** Which presentation a window gets: the phone stack or the one large layout. */
+internal enum class VideoStudioForm { Phone, Large }
 
 /**
- * Landscape windows at least 600 dp tall are tablets (or desktop
- * windows) and get the tablet composition with the command row; only
- * genuinely short landscape windows — phones on their side — get the
- * rail-and-inspector phone landscape form.
+ * Compact windows get the phone stack; every other window, landscape
+ * phones, tablets and desktop windows alike, gets the large layout.
  */
 internal fun videoStudioFormFor(
     layout: VideoLayout,
     widthDp: Float,
     heightDp: Float = 0f
-): VideoStudioForm = when (layout) {
-    VideoLayout.Compact ->
-        if (widthDp >= 600f) VideoStudioForm.TabletPortrait else VideoStudioForm.Phone
-    VideoLayout.Landscape ->
-        if (heightDp >= 600f) VideoStudioForm.TabletLandscape else VideoStudioForm.PhoneLandscape
-    VideoLayout.Desktop -> VideoStudioForm.TabletLandscape
-}
+): VideoStudioForm =
+    if (layout == VideoLayout.Compact) VideoStudioForm.Phone else VideoStudioForm.Large
 
 /** Which lanes a tool's timeline strip keeps on a phone. */
 internal enum class VideoLaneMode { All, Video, Audio, None }
@@ -154,19 +150,19 @@ internal class VideoStudioArgs(
     val onSelectTool: (EditorToolId) -> Unit,
     val onDock: (VideoDockItem) -> Unit,
     val onToggleFocus: () -> Unit,
-    val onAddMedia: () -> Unit
+    val onAddMedia: () -> Unit,
+    val onShowHistory: () -> Unit = {},
+    /** The dock shows the audio tools in place of its four destinations. */
+    val audioDock: Boolean = false,
+    val onAudioBack: () -> Unit = {},
+    val onSettings: () -> Unit = {}
 ) {
     val hasClips: Boolean
         get() = state.sequence?.tracks?.any { it.clips.isNotEmpty() } == true
 
-    /** Tablets and landscape always keep an inspector — Trim by default. */
+    /** The tool card shows only while a tool is open, on every form. */
     val panelTool: EditorToolId?
-        get() = when {
-            activeTool != null -> activeTool
-            form == VideoStudioForm.Phone -> null
-            state.selectedClipId != null -> EditorToolIds.VideoTrim
-            else -> EditorToolIds.VideoArrange
-        }
+        get() = activeTool
 
     val showPanel: Boolean
         get() = panelTool != null && (hasClips || panelTool == EditorToolIds.VideoAddMedia)
@@ -175,6 +171,9 @@ internal class VideoStudioArgs(
 /** The studio workspace for the window's [VideoStudioArgs.form]. */
 @Composable
 internal fun VideoStudioWorkspace(args: VideoStudioArgs) {
+    // One Reset slot per open tool: the tool publishes it, the tool bar shows it.
+    val resetHost = remember(args.activeTool) { VideoPanelResetHost() }
+    androidx.compose.runtime.CompositionLocalProvider(LocalVideoPanelReset provides resetHost) {
     Box(
         Modifier
             .fillMaxSize()
@@ -185,11 +184,10 @@ internal fun VideoStudioWorkspace(args: VideoStudioArgs) {
         } else {
             when (args.form) {
                 VideoStudioForm.Phone -> VideoPhoneStudio(args)
-                VideoStudioForm.TabletPortrait -> VideoTabletPortraitStudio(args)
-                VideoStudioForm.PhoneLandscape -> VideoPhoneLandscapeStudio(args)
-                VideoStudioForm.TabletLandscape -> VideoTabletLandscapeStudio(args)
+                VideoStudioForm.Large -> VideoLargeStudio(args)
             }
         }
+    }
     }
 }
 
@@ -209,6 +207,7 @@ private fun VideoPhoneStudio(args: VideoStudioArgs) {
                 .padding(bottom = 12.dp)
         ) {
             StudioHeader(args, Modifier.padding(top = 4.dp, bottom = 4.dp))
+            if (tool != null) StudioToolBar(args)
             if (!args.hasClips) {
                 VideoStudioStage(
                     args = args,
@@ -268,7 +267,7 @@ private fun VideoPhoneStudio(args: VideoStudioArgs) {
                 StudioPanel(args, Modifier.fillMaxWidth().weight(1f).padding(bottom = 8.dp))
             }
             if (args.hasClips && tool == null) Spacer(Modifier.weight(0.001f))
-            StudioDock(args, Modifier.fillMaxWidth().height(72.dp))
+            StudioDock(args, Modifier)
         }
     }
 }
@@ -299,80 +298,18 @@ private fun StudioToolLanes(
 }
 
 // ---------------------------------------------------------------------------
-// Tablet portrait
+// Large windows
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun VideoTabletPortraitStudio(args: VideoStudioArgs) {
+private fun VideoLargeStudio(args: VideoStudioArgs) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val heightDp = maxHeight
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            StudioHeader(args, Modifier.height(64.dp), title = true)
-            if (!args.hasClips) {
-                VideoStudioStage(args, Modifier.fillMaxWidth().weight(1f).padding(vertical = 8.dp))
-                if (args.showPanel) StudioPanel(args, Modifier.fillMaxWidth().weight(1f).padding(bottom = 8.dp))
-            } else {
-                // Tablets favour the timeline: the preview gives up height so
-                // every lane and Add track stay visible; a tool-first tool
-                // docks it smaller still.
-                val toolFirst = videoToolIsToolFirst(args.activeTool)
-                VideoStudioStage(
-                    args,
-                    Modifier
-                        .fillMaxWidth()
-                        .height(
-                            if (toolFirst) (heightDp * 0.17f).coerceIn(120.dp, 260.dp)
-                            else (heightDp * 0.28f).coerceIn(160.dp, 380.dp)
-                        )
-                        .padding(top = 8.dp)
-                )
-                StudioTransport(args, big = true, Modifier.padding(vertical = 4.dp), timeSize = 28, showFocus = true)
-                val natural = videoStudioTimelineHeight(
-                    args.state.sequence, VideoLaneMetrics.Tablet, showCommands = true
-                )
-                val timelineShare = if (toolFirst) 0.2f else 0.34f
-                VideoStudioTimeline(
-                    state = args.state,
-                    actions = args.actions,
-                    thumbnails = args.thumbnails,
-                    viewport = args.viewport,
-                    metrics = VideoLaneMetrics.Tablet,
-                    showCommands = true,
-                    commandLabels = true,
-                    onOpenTrim = { args.onSelectTool(EditorToolIds.VideoTrim) },
-                    onOpenArrange = { args.onSelectTool(EditorToolIds.VideoArrange) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = natural.coerceAtMost(heightDp * timelineShare))
-                        .testTag(TAG_VIDEO_REGION_TIMELINE)
-                )
-                Spacer(Modifier.height(8.dp))
-                StudioPanel(
-                    args,
-                    Modifier.fillMaxWidth().weight(1f).padding(bottom = 8.dp),
-                    titleSize = 22,
-                    padding = 16.dp
-                )
-            }
-            if (!args.showPanel) Spacer(Modifier.weight(0.001f))
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                StudioDock(args, Modifier.height(72.dp), hug = true)
-            }
+        // A phone on its side is too short to stack the preview over the
+        // timeline: it gets the side-by-side form.
+        if (maxHeight < VideoShortWindow) {
+            VideoShortLargeStudio(args, maxWidth)
+            return@BoxWithConstraints
         }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Phone landscape
-// ---------------------------------------------------------------------------
-
-@Composable
-private fun VideoPhoneLandscapeStudio(args: VideoStudioArgs) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
         val widthDp = maxWidth
         val heightDp = maxHeight
         val toolFirst = videoToolIsToolFirst(args.activeTool)
@@ -382,7 +319,7 @@ private fun VideoPhoneLandscapeStudio(args: VideoStudioArgs) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StudioDock(args, Modifier.width(64.dp).fillMaxHeight(), vertical = true, labels = false)
+            StudioDock(args, Modifier, vertical = true)
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 StudioHeader(args, Modifier.height(48.dp))
                 if (!args.hasClips) {
@@ -392,21 +329,94 @@ private fun VideoPhoneLandscapeStudio(args: VideoStudioArgs) {
                 }
             }
             if (args.showPanel) {
-                StudioPanel(
-                    args,
+                // The tool card: the tool bar on top, then its controls.
+                Column(
                     Modifier
                         .width(
                             if (toolFirst) (widthDp * 0.6f).coerceIn(320.dp, 600.dp)
                             else (widthDp * 0.385f).coerceIn(260.dp, 360.dp)
                         )
-                        .fillMaxHeight(),
-                    padding = 12.dp
+                        .fillMaxHeight()
+                ) {
+                    StudioPanel(args, Modifier.fillMaxWidth().weight(1f), padding = 12.dp)
+                }
+            } else if (args.sheetGroup != null) {
+                StudioCataloguePane(
+                    args,
+                    Modifier.width((widthDp * 0.385f).coerceIn(300.dp, 400.dp)).fillMaxHeight()
                 )
             }
         }
     }
 }
 
+
+/** Below this height the large layout puts the preview beside the timeline. */
+private val VideoShortWindow = 480.dp
+
+/**
+ * The large layout on a short window (a phone on its side): the header
+ * across the top, then the dock rail, the preview with its transport, and
+ * a side pane. With no tool open the pane is the timeline; with a tool it
+ * is the tool bar, the lanes the tool acts on and the tool's controls.
+ */
+@Composable
+private fun VideoShortLargeStudio(args: VideoStudioArgs, widthDp: Dp) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
+        StudioHeader(args, Modifier.height(48.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StudioDock(args, Modifier, vertical = true)
+            Column(Modifier.weight(1f).fillMaxHeight()) {
+                VideoStudioStage(args, Modifier.fillMaxWidth().weight(1f))
+                if (args.hasClips) {
+                    StudioTransport(
+                        args, big = false, Modifier,
+                        timeSize = 18, showTotal = false, showFocus = true
+                    )
+                }
+            }
+            if (args.hasClips || args.showPanel || args.sheetGroup != null) {
+                Column(
+                    Modifier
+                        .width((widthDp * 0.42f).coerceIn(300.dp, 440.dp))
+                        .fillMaxHeight()
+                ) {
+                    if (args.sheetGroup != null && !args.showPanel) {
+                        StudioCataloguePane(args, Modifier.fillMaxWidth().weight(1f))
+                    } else if (args.showPanel) {
+                        // No lane strip here: the short pane keeps its height for the controls.
+                        StudioPanel(args, Modifier.fillMaxWidth().weight(1f), padding = 12.dp)
+                    } else {
+                        VideoStudioTimeline(
+                            state = args.state,
+                            actions = args.actions,
+                            thumbnails = args.thumbnails,
+                            viewport = args.viewport,
+                            metrics = VideoLaneMetrics.PhoneTool,
+                            showCommands = true,
+                            onOpenTrim = { args.onSelectTool(EditorToolIds.VideoTrim) },
+                            onOpenArrange = { args.onSelectTool(EditorToolIds.VideoArrange) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .testTag(TAG_VIDEO_REGION_TIMELINE)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 /**
  * The phone-landscape work column scrolls as one: a scroll that starts on
  * the timeline first shrinks the preview (16:9 kept, frame by frame) down
@@ -448,8 +458,12 @@ private fun ColumnScope.VideoLandscapeWorkColumn(
             actions = args.actions,
             thumbnails = args.thumbnails,
             viewport = args.viewport,
-            metrics = VideoLaneMetrics.PhoneLandscape,
-            showCommands = false,
+            metrics = VideoLaneMetrics.Tablet,
+            // The tall large layout has room for the command row (split,
+            // zoom, trim), as the phone home does.
+            showCommands = true,
+            onOpenTrim = { args.onSelectTool(EditorToolIds.VideoTrim) },
+            onOpenArrange = { args.onSelectTool(EditorToolIds.VideoArrange) },
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -501,86 +515,6 @@ private fun rememberVideoStageCollapse(rangePx: Float, startCollapsed: Boolean):
 }
 
 // ---------------------------------------------------------------------------
-// Tablet landscape
-// ---------------------------------------------------------------------------
-
-@Composable
-private fun VideoTabletLandscapeStudio(args: VideoStudioArgs) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val heightDp = maxHeight
-        val widthDp = maxWidth
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StudioDock(args, Modifier.width(80.dp).fillMaxHeight(), vertical = true, labels = true)
-            Column(Modifier.weight(1f).fillMaxHeight()) {
-                if (!args.hasClips) {
-                    StudioHeader(args, Modifier.height(64.dp), title = true)
-                    VideoStudioStage(args, Modifier.fillMaxWidth().weight(1f).padding(top = 8.dp))
-                    return@Column
-                }
-                val natural = videoStudioTimelineHeight(
-                    args.state.sequence, VideoLaneMetrics.Tablet, showCommands = true
-                )
-                // Tablets favour the timeline (every lane and Add track),
-                // the preview takes what is left; tool-first tools trade
-                // timeline height for a wider card instead.
-                val toolFirst = videoToolIsToolFirst(args.activeTool)
-                val timelineHeight = natural.coerceIn(
-                    160.dp, heightDp * (if (toolFirst) 0.34f else 0.46f)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Column(Modifier.weight(1f).fillMaxHeight()) {
-                        StudioHeader(args, Modifier.height(64.dp), title = true)
-                        VideoStudioStage(args, Modifier.fillMaxWidth().weight(1f).padding(top = 8.dp))
-                        StudioTransport(
-                            args, big = true, Modifier.padding(vertical = 4.dp),
-                            timeSize = 28, showFocus = true
-                        )
-                    }
-                    if (args.showPanel) {
-                        StudioPanel(
-                            args,
-                            Modifier
-                                .width(
-                                    if (toolFirst) (widthDp * 0.55f).coerceIn(420.dp, 760.dp)
-                                    else (widthDp * 0.31f).coerceIn(320.dp, 420.dp)
-                                )
-                                .fillMaxHeight(),
-                            titleSize = 22,
-                            padding = 16.dp,
-                            solid = true
-                        )
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                VideoStudioTimeline(
-                    state = args.state,
-                    actions = args.actions,
-                    thumbnails = args.thumbnails,
-                    viewport = args.viewport,
-                    metrics = VideoLaneMetrics.Tablet,
-                    showCommands = true,
-                    commandLabels = true,
-                    onOpenTrim = { args.onSelectTool(EditorToolIds.VideoTrim) },
-                    onOpenArrange = { args.onSelectTool(EditorToolIds.VideoArrange) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(timelineHeight)
-                        .testTag(TAG_VIDEO_REGION_TIMELINE)
-                )
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Focus
 // ---------------------------------------------------------------------------
 
@@ -621,9 +555,7 @@ private fun VideoFocusStudio(args: VideoStudioArgs) {
 
 @Composable
 private fun StudioHeader(args: VideoStudioArgs, modifier: Modifier = Modifier, title: Boolean = false) {
-    val phoneTool = args.activeTool != null && (
-        args.form == VideoStudioForm.Phone || args.form == VideoStudioForm.PhoneLandscape
-        )
+    val phoneTool = args.activeTool != null
     val toolTitle = args.activeTool?.let { stringResource(videoToolDescriptor(it).title) }
     VideoStudioHeader(
         state = args.state,
@@ -640,10 +572,41 @@ private fun StudioHeader(args: VideoStudioArgs, modifier: Modifier = Modifier, t
         onExport = args.onExport,
         moreOpen = args.moreOpen,
         onMore = args.onMore,
-        onDone = if (phoneTool) args.onCloseTool else null,
+        toolOpen = args.activeTool != null,
+        onShowHistory = args.onShowHistory,
+        toolActions = if (args.form == VideoStudioForm.Large && args.activeTool != null) {
+            { StudioHeaderToolActions(args) }
+        } else null,
         modifier = modifier.testTag(TAG_VIDEO_REGION_HEADER)
     )
 }
+
+/**
+ * The open tool's bar under the header, the same one the photo editor
+ * uses: the Reset the tool publishes, the tool's name over its subject,
+ * and Done. Done closes the tool and keeps its changes.
+ */
+@Composable
+private fun StudioToolBar(args: VideoStudioArgs, modifier: Modifier = Modifier) {
+    val tool = args.activeTool ?: return
+    val reset = LocalVideoPanelReset.current
+    val resetLabel = stringResource(Res.string.editor_video_reset)
+    ToolActionBar(
+        title = stringResource(videoToolDescriptor(tool).title),
+        subtitle = panelSubtitle(args, tool),
+        resetLabel = if (reset?.available == true) resetLabel else null,
+        resetEnabled = reset?.enabled == true && !args.state.isDrafting,
+        onReset = reset?.let { host -> { host.onReset() } },
+        resetTag = TAG_VIDEO_PANEL_RESET,
+        doneEnabled = true,
+        onDone = args.onCloseTool,
+        barTag = TAG_VIDEO_TOOL_ACTIONS,
+        doneTag = TAG_VIDEO_TOOL_DONE,
+        modifier = modifier
+    )
+}
+
+internal const val TAG_VIDEO_TOOL_ACTIONS = "videoEditor.tool.actions"
 
 @Composable
 private fun StudioTransport(
@@ -673,18 +636,19 @@ private fun StudioTransport(
 private fun StudioDock(
     args: VideoStudioArgs,
     modifier: Modifier,
-    vertical: Boolean = false,
-    labels: Boolean = true,
-    hug: Boolean = false
+    vertical: Boolean = false
 ) {
     VideoStudioDock(
-        hug = hug,
         selected = videoDockItemFor(args.activeTool, args.sheetGroup),
         enabled = args.state.sequence != null && !args.state.opening,
         mediaEnabled = args.actions.mediaPickerAvailable,
         onSelect = args.onDock,
         vertical = vertical,
-        labels = labels,
+        state = args.state,
+        audioMode = args.audioDock,
+        activeTool = args.activeTool,
+        onSelectTool = args.onSelectTool,
+        onAudioBack = args.onAudioBack,
         modifier = modifier
     )
 }
@@ -722,8 +686,9 @@ private fun StudioPanel(
     if (!args.showPanel) return
     Box(modifier.testTag(TAG_VIDEO_V3_INLINE_INSPECTOR)) {
     VideoToolPanel(
-        title = stringResource(videoToolDescriptor(tool).title),
-        subtitle = panelSubtitle(args, tool),
+        // The phone's tool bar names the tool; the large card names it itself.
+        title = if (args.form == VideoStudioForm.Large) stringResource(videoToolDescriptor(tool).title) else null,
+        subtitle = if (args.form == VideoStudioForm.Large) panelSubtitle(args, tool) else null,
         titleSize = titleSize.sp,
         contentPadding = padding,
         solid = solid,
@@ -751,7 +716,7 @@ private fun VideoMixerLinks(form: VideoStudioForm, onSelect: (EditorToolId) -> U
             VideoGroupButton(
                 icon = icon,
                 label = stringResource(videoToolDescriptor(id).title),
-                showLabel = form == VideoStudioForm.TabletPortrait,
+                showLabel = form == VideoStudioForm.Large,
                 enabled = true,
                 shape = videoConnectedShape(index, links.size, VideoStudio.GroupEnd),
                 onClick = { onSelect(id) },
@@ -883,4 +848,47 @@ private fun VideoEmptyStage(args: VideoStudioArgs, modifier: Modifier) {
             }
         }
     }
+}
+
+/**
+ * The tools list in the large layout's side pane, where the photo editor
+ * shows its catalogue too. A bottom sheet on a short landscape window
+ * would leave room for two rows.
+ */
+@Composable
+private fun StudioCataloguePane(args: VideoStudioArgs, modifier: Modifier) {
+    val shape = RoundedCornerShape(VideoStudio.CardCorner)
+    Column(
+        modifier
+            .clip(shape)
+            .videoToolCard(shape)
+            .padding(top = 8.dp)
+            .testTag(TAG_VIDEO_CATALOGUE_SHEET)
+    ) {
+        VideoCatalogueList(
+            state = args.state,
+            initialGroup = args.sheetGroup.takeIf { it != EditorToolGroup.Edit },
+            activeTool = args.activeTool,
+            onSelect = args.onSelectTool,
+            onHistory = args.onShowHistory,
+            onSettings = args.onSettings,
+            // The rail's selected Tools item already names the pane.
+            showTitle = false
+        )
+    }
+}
+
+/** Reset and Done in the large header, where the photo editor puts them too. */
+@Composable
+private fun StudioHeaderToolActions(args: VideoStudioArgs) {
+    val reset = LocalVideoPanelReset.current
+    ToolHeaderActions(
+        resetLabel = if (reset?.available == true) stringResource(Res.string.editor_video_reset) else null,
+        resetEnabled = reset?.enabled == true && !args.state.isDrafting,
+        onReset = reset?.let { host -> { host.onReset() } },
+        resetTag = TAG_VIDEO_PANEL_RESET,
+        doneEnabled = true,
+        onDone = args.onCloseTool,
+        doneTag = TAG_VIDEO_TOOL_DONE
+    )
 }

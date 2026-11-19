@@ -259,9 +259,10 @@ class EditorContentUiTest {
                 }
             }
         }
+        // Redo, not Undo: Undo's long press opens History, so it has no tooltip.
         // A bare enter() only marks the cursor hovered — the Enter pointer
         // event is synthesized off the move that follows it.
-        onNodeWithTag(TAG_UNDO).performMouseInput {
+        onNodeWithTag(TAG_REDO).performMouseInput {
             enter()
             moveTo(center + Offset(1f, 0f))
         }
@@ -269,12 +270,12 @@ class EditorContentUiTest {
         waitForIdle()
         // The header chip is an icon-only control, so its label lives in
         // the content description; the hover tooltip adds a text node.
-        val undoNodes = onAllNodes(
-            hasText("Undo") or hasContentDescription("Undo"),
+        val redoNodes = onAllNodes(
+            hasText("Redo") or hasContentDescription("Redo"),
             useUnmergedTree = true
         )
-        assertEquals(2, undoNodes.fetchSemanticsNodes().size)
-        onNodeWithTag(TAG_UNDO).performMouseInput {
+        assertEquals(2, redoNodes.fetchSemanticsNodes().size)
+        onNodeWithTag(TAG_REDO).performMouseInput {
             moveTo(center - Offset(1f, 0f))
             exit()
         }
@@ -283,7 +284,7 @@ class EditorContentUiTest {
         assertEquals(
             1,
             onAllNodes(
-                hasText("Undo") or hasContentDescription("Undo"),
+                hasText("Redo") or hasContentDescription("Redo"),
                 useUnmergedTree = true
             ).fetchSemanticsNodes().size
         )
@@ -516,12 +517,11 @@ class EditorContentUiTest {
         onNodeWithTag(TAG_LAYER_BASE).assertIsDisplayed()
         onNodeWithTag(TAG_LAYER_GROUP).assertIsNotEnabled()
 
-        // Both Add affordances route through the host picker seam.
+        // Add layer routes through the host picker seam.
         onNodeWithTag(TAG_LAYER_ADD).performClick()
-        onNodeWithTag(TAG_LAYER_ADD_HEADER).performClick()
-        assertEquals(listOf("addImage", "addImage"), rec.events)
+        assertEquals(listOf("addImage"), rec.events)
 
-        // Header Back is the V3 exit — the workspace collapses home.
+        // Back (or the tool bar's Done) collapses the workspace home.
         onNodeWithTag(TAG_BACK).performClick()
         onNodeWithTag(TAG_LAYER_ROW_PREFIX + "layer-1").assertDoesNotExist()
         onNodeWithTag(TAG_CATALOGUE).assertIsDisplayed()
@@ -545,7 +545,6 @@ class EditorContentUiTest {
         // An in-flight decode gates the picker buttons and offers a real
         // cancel through the session seam.
         onNodeWithTag(TAG_LAYER_ADD).assertIsNotEnabled()
-        onNodeWithTag(TAG_LAYER_ADD_HEADER).assertIsNotEnabled()
         onNodeWithTag(TAG_LAYER_IMPORT_CANCEL).performClick()
         assertEquals(listOf("cancelImport"), rec.events)
 
@@ -668,7 +667,8 @@ class EditorContentUiTest {
         openLayersWorkspace()
         onNodeWithTag(TAG_LAYER_MORE_PREFIX + "layer-1").performClick()
         onNodeWithText("Edit mask").performClick()
-        assertEquals(listOf("cancelTool", "beginTool:Mask"), rec.events)
+        // Back keeps the open tool's changes, so it applies before the mask opens.
+        assertEquals(listOf("applyTool", "beginTool:Mask"), rec.events)
         onNodeWithTag(TAG_MASK_ERASE).assertIsDisplayed()
         onNodeWithTag(TAG_MASK_PAINT).assertIsDisplayed()
     }

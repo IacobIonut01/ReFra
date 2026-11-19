@@ -24,8 +24,10 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
             EditorSettings(
                 histogramMode = enumOrNull<PhotoHistogramMode>(preferences.getString(KEY_HISTOGRAM, null))
                     ?: defaults.histogramMode,
+                showHistogram = preferences.getBoolean(KEY_SHOW_HISTOGRAM, defaults.showHistogram),
                 histogramClipping = preferences.getBoolean(KEY_CLIPPING, defaults.histogramClipping),
                 straightenGrid = preferences.getBoolean(KEY_GRID, defaults.straightenGrid),
+                rulerHintSeen = preferences.getBoolean(KEY_RULER_HINT, defaults.rulerHintSeen),
                 copyFormat = enumOrNull<PhotoExportFormat>(preferences.getString(KEY_COPY_FORMAT, null)),
                 rawFormat = enumOrNull<PhotoExportFormat>(preferences.getString(KEY_RAW_FORMAT, null)),
                 videoSnap = preferences.getBoolean(KEY_SNAP, defaults.videoSnap),
@@ -40,8 +42,10 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
         runCatching {
             preferences.edit()
                 .putString(KEY_HISTOGRAM, settings.histogramMode.name)
+                .putBoolean(KEY_SHOW_HISTOGRAM, settings.showHistogram)
                 .putBoolean(KEY_CLIPPING, settings.histogramClipping)
                 .putBoolean(KEY_GRID, settings.straightenGrid)
+                .putBoolean(KEY_RULER_HINT, settings.rulerHintSeen)
                 .putString(KEY_COPY_FORMAT, settings.copyFormat?.name)
                 .putString(KEY_RAW_FORMAT, settings.rawFormat?.name)
                 .putBoolean(KEY_SNAP, settings.videoSnap)
@@ -62,8 +66,10 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
         const val TAG = "editor.settings"
         const val PREFS = "editor_settings"
         const val KEY_HISTOGRAM = "histogram_mode"
+        const val KEY_SHOW_HISTOGRAM = "show_histogram"
         const val KEY_CLIPPING = "histogram_clipping"
         const val KEY_GRID = "straighten_grid"
+        const val KEY_RULER_HINT = "ruler_hint_seen"
         const val KEY_COPY_FORMAT = "copy_format"
         const val KEY_RAW_FORMAT = "raw_format"
         const val KEY_SNAP = "video_snap"

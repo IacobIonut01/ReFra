@@ -1,31 +1,18 @@
 package com.dot.gallery.editor.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,7 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -80,7 +65,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -89,13 +73,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.progressBarRangeInfo
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.editor.core.model.ColorAdjustments
 import com.dot.gallery.editor.core.model.PhotoEdits
@@ -104,8 +86,8 @@ import com.dot.gallery.editor.core.model.contrastFactor
 import com.dot.gallery.editor.core.model.toEdits
 import com.dot.gallery.editor.render.photo.PhotoEditorState
 import com.dot.gallery.editor.ui.generated.resources.Res
-import com.dot.gallery.editor.ui.generated.resources.editor_exit_focus
-import com.dot.gallery.editor.ui.generated.resources.editor_focus
+import com.dot.gallery.editor.ui.generated.resources.editor_light_tab_basics
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_curves
 import com.dot.gallery.editor.ui.generated.resources.editor_blacks
 import com.dot.gallery.editor.ui.generated.resources.editor_contrast
 import com.dot.gallery.editor.ui.generated.resources.editor_exposure
@@ -117,8 +99,6 @@ import com.dot.gallery.editor.ui.generated.resources.editor_precision_ruler
 import com.dot.gallery.editor.ui.generated.resources.editor_reset_parameter
 import com.dot.gallery.editor.ui.generated.resources.editor_shadows
 import com.dot.gallery.editor.ui.generated.resources.editor_whites
-import com.dot.gallery.editor.ui.icons.EditorSymbols
-import com.dot.gallery.editor.ui.icons.RestartAlt
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -160,8 +140,6 @@ internal const val TAG_VALUE_BLACKS = "editor.value.blacks"
  * authored full domain the numeric dialog and model validation accept;
  * [rulerRange] is the narrower precision window the painted scale shows
  * (Exposure drags across ±2 EV while exact entry still reaches ±10).
- * [chipWidth] is the chip's minimum width — chips measure their content
- * inside that floor.
  */
 internal class LightParam(
     val key: String,
@@ -170,7 +148,6 @@ internal class LightParam(
     val icon: ImageVector,
     val displayRange: ClosedFloatingPointRange<Float>,
     val rulerRange: ClosedFloatingPointRange<Float> = displayRange,
-    val chipWidth: Dp,
     val step: Float,
     val unitSuffix: String = "",
     val read: (ColorAdjustments) -> Float,
@@ -190,7 +167,6 @@ internal val LightParameters = listOf(
         displayRange = -10f..10f,
         // The user's chosen precision window: five stops each way.
         rulerRange = -5f..5f,
-        chipWidth = 88.dp,
         step = 0.1f,
         unitSuffix = " EV",
         read = { it.exposureStops },
@@ -201,7 +177,6 @@ internal val LightParameters = listOf(
         labelRes = Res.string.editor_contrast,
         icon = Icons.Outlined.Contrast,
         displayRange = -100f..100f,
-        chipWidth = 85.dp,
         step = 1f,
         read = { contrastAmount(it.contrast) },
         // An unchanged displayed amount maps back to the exact existing
@@ -213,7 +188,6 @@ internal val LightParameters = listOf(
         labelRes = Res.string.editor_highlights,
         icon = Icons.Outlined.Layers,
         displayRange = -100f..100f,
-        chipWidth = 93.dp,
         step = 1f,
         read = { it.highlights * 100f },
         write = { adj, v -> adj.copy(highlights = v / 100f) }
@@ -223,7 +197,6 @@ internal val LightParameters = listOf(
         labelRes = Res.string.editor_shadows,
         icon = Icons.Outlined.FilterDrama,
         displayRange = -100f..100f,
-        chipWidth = 86.dp,
         step = 1f,
         read = { it.shadows * 100f },
         write = { adj, v -> adj.copy(shadows = v / 100f) }
@@ -233,7 +206,6 @@ internal val LightParameters = listOf(
         labelRes = Res.string.editor_whites,
         icon = Icons.Outlined.Circle,
         displayRange = -100f..100f,
-        chipWidth = 74.dp,
         step = 1f,
         read = { it.whites * 100f },
         write = { adj, v -> adj.copy(whites = v / 100f) }
@@ -243,7 +215,6 @@ internal val LightParameters = listOf(
         labelRes = Res.string.editor_blacks,
         icon = Icons.Outlined.RadioButtonUnchecked,
         displayRange = -100f..100f,
-        chipWidth = 71.dp,
         step = 1f,
         read = { it.blacks * 100f },
         write = { adj, v -> adj.copy(blacks = v / 100f) }
@@ -252,7 +223,7 @@ internal val LightParameters = listOf(
 
 /**
  * The Light tool's V3 sheet: one scrollable 48 dp strip of parameter
- * chips (a modified dot, the label and the live value), a meta row with
+ * chips (the label and the live value, tinted when modified), a meta row with
  * the active parameter's visible Reset and the painted ruler window as
  * the caption, then a 56 dp slab — minus/plus step buttons flanking the
  * transparent precision ruler — with the value pill hovering over it.
@@ -354,6 +325,92 @@ internal fun LightToolContent(
         }
     }
 
+    if (!minimal && toolUi != null) {
+        Column(modifier.fillMaxWidth()) {
+            ConnectedButtonGroup(
+                itemCount = LightTab.entries.size,
+                selectedIndex = toolUi.lightTab.ordinal,
+                enabled = enabled,
+                scrolling = false,
+                label = { idx -> stringResource(
+                    if (LightTab.entries[idx] == LightTab.Basics) Res.string.editor_light_tab_basics
+                    else Res.string.editor_tool_curves
+                ) },
+                tag = { idx -> "editor.light.tab." + LightTab.entries[idx].name.lowercase() },
+                onSelect = { idx -> toolUi.lightTab = LightTab.entries[idx] },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            if (toolUi.lightTab == LightTab.Curves) {
+                CurvesToolContent(state, actions)
+                return
+            }
+            LightBasicsColumn(
+                state = state,
+                actions = actions,
+                modifier = Modifier,
+                minimal = minimal,
+                params = params,
+                labels = labels,
+                activeIndex = activeIndex,
+                active = active,
+                activeLabel = activeLabel,
+                enabled = enabled,
+                sourceRef = sourceRef,
+                toolUi = toolUi,
+                selectParam = ::selectParam,
+                editsFor = ::editsFor,
+                owner = owner,
+                dialogParamKey = dialogParamKey,
+                onDialogParamKey = { dialogParamKey = it }
+            )
+        }
+        return
+    }
+    LightBasicsColumn(
+        state = state,
+        actions = actions,
+        modifier = modifier,
+        minimal = minimal,
+        params = params,
+        labels = labels,
+        activeIndex = activeIndex,
+        active = active,
+        activeLabel = activeLabel,
+        enabled = enabled,
+        sourceRef = sourceRef,
+        toolUi = toolUi,
+        selectParam = ::selectParam,
+        editsFor = ::editsFor,
+        owner = owner,
+        dialogParamKey = dialogParamKey,
+        onDialogParamKey = { dialogParamKey = it }
+    )
+}
+
+/** The Light Basics column: the parameter strip, the ruler and the numeric entry. */
+@Composable
+private fun LightBasicsColumn(
+    state: PhotoEditorState,
+    actions: PhotoEditorActions,
+    modifier: Modifier,
+    minimal: Boolean,
+    params: List<LightParam>,
+    labels: List<String>,
+    activeIndex: Int,
+    active: LightParam,
+    activeLabel: String,
+    enabled: Boolean,
+    sourceRef: Any?,
+    toolUi: PhotoToolUiState?,
+    selectParam: (Int) -> Unit,
+    editsFor: (LightParam, Float) -> PhotoEdits?,
+    owner: NumericEntryOwner,
+    dialogParamKey: String?,
+    onDialogParamKey: (String?) -> Unit
+) {
+    val latestState by rememberUpdatedState(state)
+    val latestActions by rememberUpdatedState(actions)
+    val adjustments = state.document?.adjustments ?: ColorAdjustments()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -365,118 +422,23 @@ internal fun LightToolContent(
                 else Modifier.padding(top = 16.dp, bottom = 16.dp)
             )
     ) {
-        // 1. The chips strip — content-measured pills: a 4 dp dot when the
-        // parameter carries a non-zero edit, the label and the live value
-        // in the accent color. The selected chip earns a primary outline.
-        if (!minimal) Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                // The fade belongs to the scroller's viewport: declared
-                // before `horizontalScroll`, it stays pinned to the two
-                // edges while the chips slide underneath it. Its width is
-                // the strip's own inset, so a resting first chip is not
-                // dimmed.
-                .softHorizontalEdges(Color(0xFF141416), width = 8.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // 1. The chips strip — the shared selector pills: the active
+        // parameter fills with a check, a non-zero edit tints its value.
+        if (!minimal) EditorChipRow(
+            contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             params.forEachIndexed { index, param ->
                 val value = param.read(adjustments)
-                val selected = index == activeIndex
-                val chipShape = RoundedCornerShape(16.dp)
-                val chipBg by animateColorAsState(
-                    targetValue = if (selected) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    },
-                    animationSpec = tween(180),
-                    label = "paramChipBg"
+                EditorChip(
+                    label = labels[index],
+                    selected = index == activeIndex,
+                    onClick = { selectParam(index) },
+                    enabled = enabled,
+                    value = param.displayOf(adjustments),
+                    valueModified = value != 0f,
+                    leadingIcon = param.icon,
+                    tag = "editor.param.${param.key}"
                 )
-                val chipBorder by animateColorAsState(
-                    targetValue = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        Color.Transparent
-                    },
-                    animationSpec = tween(180),
-                    label = "paramChipBorder"
-                )
-                val chipScale by animateFloatAsState(
-                    targetValue = if (selected) 1.04f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
-                    label = "paramChipScale"
-                )
-                Row(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = chipScale
-                            scaleY = chipScale
-                        }
-                        .clip(chipShape)
-                        .background(chipBg)
-                        .border(1.5.dp, chipBorder, chipShape)
-                        .clickable(
-                            enabled = enabled,
-                            role = Role.Tab,
-                            onClickLabel = labels[index]
-                        ) { selectParam(index) }
-                        .defaultMinSize(
-                            minWidth = param.chipWidth,
-                            minHeight = 36.dp
-                        )
-                        .padding(horizontal = 10.dp)
-                        .semantics { this.selected = selected }
-                        .testTag("editor.param.${param.key}"),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // The legacy editor's lighting icon names each row; the
-                    // dot at the far edge marks a modified value, like the
-                    // reference card.
-                    Icon(
-                        imageVector = param.icon,
-                        contentDescription = null,
-                        tint = if (selected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = labels[index],
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                    Text(
-                        text = param.displayOf(adjustments),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (value != 0f) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                    if (value != 0f) {
-                        Box(
-                            Modifier
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
-                    }
-                }
             }
         }
         // 2. Focus swaps the title row for the swipeable sub-tool
@@ -499,7 +461,7 @@ internal fun LightToolContent(
                     activeIndex = activeIndex,
                     enabled = enabled,
                     valueOf = { it.read(adjustments) },
-                    onSelect = ::selectParam
+                    onSelect = selectParam
                 )
             }
         }
@@ -535,6 +497,15 @@ internal fun LightToolContent(
             sliderTag = "editor.slider.${active.key}",
             valueTag = "editor.value.${active.key}",
             stepKey = active.key,
+            track = when (active.key) {
+                "exposure" -> EditorSliderTrack.Tonal.Exposure
+                "contrast" -> EditorSliderTrack.Tonal.Contrast
+                "highlights" -> EditorSliderTrack.Tonal.Highlights
+                "shadows" -> EditorSliderTrack.Tonal.Shadows
+                "whites" -> EditorSliderTrack.Tonal.Whites
+                "blacks" -> EditorSliderTrack.Tonal.Blacks
+                else -> null
+            },
             limitStartLabel =
                 formatSignedCompact(active.rulerRange.start) + active.unitSuffix,
             limitEndLabel =
@@ -543,7 +514,7 @@ internal fun LightToolContent(
                 if (latestState.document != null) {
                     try {
                         latestActions.beginEdit("Adjust $activeLabel")
-                        dialogParamKey = active.key
+                        onDialogParamKey(active.key)
                         owner.open(latestState.info?.reference)
                     } catch (rejected: IllegalStateException) {
                         // Another interaction owns the draft; nothing opens.
@@ -556,7 +527,12 @@ internal fun LightToolContent(
             },
             onCommitInteraction = latestActions.commitEdit,
             onCancelInteraction = latestActions.cancelEdit,
-            onApplyStep = { applyStep(it) }
+            onApplyStep = { applyStep(it) },
+            onResetValue = {
+                editsFor(active, 0f)?.let {
+                    latestActions.applyEdits("Reset $activeLabel", it)
+                }
+            }
         )
         // No inline histogram here: the pill's panel is the one histogram
         // surface (D17). Duplicating it in the card was the largest block
@@ -651,9 +627,13 @@ internal fun EditorPrecisionRuler(
     limitEndLabel: String? = null,
     // A lower-profile rail for secondary surfaces (the Looks intensity):
     // a 44 dp slab, shorter ticks and a 16 dp needle.
-    compact: Boolean = false
+    compact: Boolean = false,
+    // Double-tap resets the ruler to its neutral value as one undo step.
+    // A single tap waits out the double-tap window when this is set.
+    onDoubleTapReset: (() -> Unit)? = null
 ) {
     var gestureOpen by remember { mutableStateOf(false) }
+    val latestDoubleTapReset by rememberUpdatedState(onDoubleTapReset)
     val interactionSource = remember { MutableInteractionSource() }
     val focusRequester = remember { FocusRequester() }
     val textMeasurer = rememberTextMeasurer()
@@ -827,10 +807,20 @@ internal fun EditorPrecisionRuler(
                 true
             }
             .focusable(interactionSource = interactionSource)
-            .pointerInput(identity) {
+            .pointerInput(identity, onDoubleTapReset != null) {
                 val insetPx = 12.dp.toPx()
                 detectTapGestures(
                     onPress = { focusRequester.requestFocus() },
+                    onDoubleTap = if (onDoubleTapReset == null) {
+                        null
+                    } else {
+                        { _ ->
+                            if (canStart()) {
+                                latestDoubleTapReset?.invoke()
+                                stepHaptic(0f)
+                            }
+                        }
+                    },
                     onTap = { offset ->
                         if (!canStart()) return@detectTapGestures
                         val tapped = quantizedAt(

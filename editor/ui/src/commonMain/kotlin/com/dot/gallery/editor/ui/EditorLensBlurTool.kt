@@ -3,6 +3,7 @@ package com.dot.gallery.editor.ui
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -120,14 +121,9 @@ internal fun LensBlurToolContent(
     )
 
     PhotoParameterControls(modifier = modifier, tabs = {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+        EditorChipRow(
+            modifier = Modifier.height(56.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             modes.forEach { (m, label, key) ->
                 FinishingChip(

@@ -4,20 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.layout.offset
 import com.dot.gallery.editor.ui.icons.Crop
 import com.dot.gallery.editor.ui.icons.KeyboardArrowDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -229,16 +226,30 @@ internal fun CropToolContent(
                 // one row, leaving the row below to the scrubber.
                 CropPillsRow(
                     ops = ops,
-                    tab = tab,
-                    tabs = tabLabels,
                     enabled = canEdit,
-                    canEdit = canEdit,
-                    onSelectTab = { next ->
+                    canEdit = canEdit
+                )
+                ConnectedButtonGroup(
+                    itemCount = CropTab.entries.size,
+                    selectedIndex = CropTab.entries.indexOf(tab),
+                    enabled = enabled,
+                    scrolling = false,
+                    label = { tabLabels.getValue(CropTab.entries[it]) },
+                    tag = {
+                        when (CropTab.entries[it]) {
+                            CropTab.Straighten -> TAG_CROP_TAB_STRAIGHTEN
+                            CropTab.Vertical -> TAG_CROP_TAB_VERTICAL
+                            CropTab.Horizontal -> TAG_CROP_TAB_HORIZONTAL
+                        }
+                    },
+                    onSelect = { index ->
+                        val next = CropTab.entries[index]
                         if (next != uiState.cropTab) {
                             if (latestState.interactionActive) latestActions.cancelEdit()
                             uiState.cropTab = next
                         }
-                    }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
                 CropControlRow(
                     ops = ops,
@@ -256,7 +267,8 @@ internal fun CropToolContent(
                     onUpdate = { ops.updateValue(tab, it) },
                     onCommit = { ops.endValue(commit = true) },
                     onCancel = { ops.endValue(commit = false) },
-                    onStep = { ops.stepValue("Adjust $label", tab, it) }
+                    onStep = { ops.stepValue("Adjust $label", tab, it) },
+                    onReset = { ops.stepValue("Reset $label", tab, 0f) }
                 )
             }
         },
@@ -265,14 +277,9 @@ internal fun CropToolContent(
             // inspector keeps the three labelled tabs.
             if (LocalPhotoToolSheetExpanded.current != null) return@PhotoParameterControls
             Column(Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp)
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
+                EditorChipRow(
+                    modifier = Modifier.heightIn(min = 56.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     CropTab.entries.forEach { t ->
                         FinishingChip(
@@ -524,11 +531,8 @@ private fun CropAspectPill(ops: CropToolOps, enabled: Boolean) {
 @Composable
 private fun CropPillsRow(
     ops: CropToolOps,
-    tab: CropTab,
-    tabs: Map<CropTab, String>,
     enabled: Boolean,
-    canEdit: Boolean,
-    onSelectTab: (CropTab) -> Unit
+    canEdit: Boolean
 ) {
     // At large text the two pills would clip in one row with the circles,
     // so they take a second row instead of squeezing.
@@ -551,12 +555,6 @@ private fun CropPillsRow(
     }
     val pills: @Composable () -> Unit = {
         CropAspectPill(ops = ops, enabled = enabled)
-        CropAxisChip(
-            tab = tab,
-            tabs = tabs,
-            enabled = enabled,
-            onSelect = onSelectTab
-        )
     }
     if (stacked) {
         Column(
@@ -603,8 +601,8 @@ private fun CropPillsRow(
  */
 /**
  * The card's control row, matching the approved crop frame: rotate and flip
- * as 44 dp tonal circles, the active axis' ruler drawn bare (no slab) with
- * its angle pill riding above the needle, and the axis chip that switches
+ * as 44 dp tonal circles, the active axis' ruler slab with its angle pill
+ * riding the needle, and the axis chip that switches
  * straighten / vertical / horizontal where the mock carries Auto.
  */
 @Composable
@@ -624,11 +622,12 @@ private fun CropControlRow(
     onUpdate: (Float) -> Unit,
     onCommit: () -> Unit,
     onCancel: () -> Unit,
-    onStep: (Float) -> Unit
+    onStep: (Float) -> Unit,
+    onReset: (() -> Unit)? = null
 ) {
     val ruler: @Composable (Modifier) -> Unit = { m ->
         Box(m) {
-            // Desktop wheel scrubbing still works over the bare ruler.
+            // Desktop wheel scrubbing still works over the ruler slab.
             CropWheelScrub(
                 ops = ops,
                 tab = tab,
@@ -650,7 +649,8 @@ private fun CropControlRow(
                     onUpdate = onUpdate,
                     onCommit = onCommit,
                     onCancel = onCancel,
-                    onStep = onStep
+                    onStep = onStep,
+                    onReset = onReset
                 )
             }
         }
@@ -694,9 +694,10 @@ private fun CropCircleButton(
 }
 
 /**
- * The bare precision ruler: only the tick ladder, with the angle pill above
- * its needle. The slab background and the −/+ pair are gone — the card's
- * rotate/flip circles flank it instead, like the reference.
+ * The crop ruler slab: the shared [EditorRulerSlab] anatomy — the −/+
+ * step pair, the tick ladder with the angle pill riding the needle and
+ * the limit labels under the ticks. Straighten and keystone have no
+ * cheap rendered band, so the slab takes no track.
  */
 @Composable
 private fun CropAngleRuler(
@@ -715,176 +716,41 @@ private fun CropAngleRuler(
     onCommit: () -> Unit,
     onCancel: () -> Unit,
     onStep: (Float) -> Unit,
+    onReset: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val scale = if (tab == CropTab.Straighten) StraightenScale else KeystoneScale
-    // The box grows with the text so the pill never clips its value.
-    val fontScale = LocalDensity.current.fontScale
-    val boxHeight = 58.dp + ((fontScale - 1f).coerceAtLeast(0f) * 36f).dp
-    BoxWithConstraints(modifier.fillMaxWidth().height(boxHeight)) {
-        val density = LocalDensity.current
-        val fraction = ((value - range.start) / (range.endInclusive - range.start))
-            .coerceIn(0f, 1f)
-        var pillWidthPx by remember { mutableIntStateOf(0) }
-        var pillHeightPx by remember { mutableIntStateOf(0) }
-        val pillHalf = with(density) { pillWidthPx.toDp() / 2f }
-        val pillHeight = with(density) {
-            if (pillHeightPx > 0) pillHeightPx.toDp() else 24.dp
-        }
-        // The pill rides the ruler's top edge (a 6 dp overlap), wherever
-        // the taller box put the ladder.
-        val rulerTop = maxHeight - 40.dp
-        val pillY = (rulerTop - pillHeight + 6.dp).coerceAtLeast(0.dp)
-        val needleX = 4.dp + (maxWidth - 8.dp) * fraction
-        val pillX = (needleX - pillHalf)
-            .coerceIn(0.dp, (maxWidth - pillHalf * 2f).coerceAtLeast(0.dp))
-        CropAnglePill(
-            text = display,
-            enabled = enabled && !interactionActive,
-            onClick = onOpenEntry,
-            modifier = Modifier
-                .offset(x = pillX, y = pillY)
-                .onSizeChanged {
-                    pillWidthPx = it.width
-                    pillHeightPx = it.height
-                }
-                .testTag(
-                    if (tab == CropTab.Straighten) TAG_STRAIGHTEN_VALUE
-                    else "editor.crop.value.${tab.name.lowercase()}"
-                )
-        )
-        EditorPrecisionRuler(
-            value = value,
-            range = range,
-            step = step,
-            summary = "$label $display",
-            description = stringResource(Res.string.editor_precision_ruler, label, display),
-            enabled = enabled,
-            interactionActive = interactionActive,
-            identity = identity,
-            sliderTag = if (tab == CropTab.Straighten) TAG_STRAIGHTEN
-            else "editor.crop.ruler.${tab.name.lowercase()}",
-            onBeginInteraction = onBegin,
-            onUpdateInteraction = onUpdate,
-            onCommitInteraction = onCommit,
-            onCancelInteraction = onCancel,
-            onApplyStep = onStep,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(40.dp),
-            showSummary = false,
-            showLabels = false,
-            containerColor = Color.Transparent,
-            scale = scale,
-            hapticAt = scale::isDetent,
-            needleGlow = true
-        )
-    }
-}
-
-/**
- * The small angle readout that rides the ruler's needle — the reference's
- * white pill with dark text, whatever the value.
- */
-@Composable
-private fun CropAnglePill(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val content = Color(0xFF1B1B1F)
-    Row(
+    val straighten = tab == CropTab.Straighten
+    EditorRulerSlab(
+        label = label,
+        value = value,
+        display = display,
+        accent = value != 0f || interactionActive,
+        range = range,
+        step = step,
+        summary = "$label $display",
+        description = stringResource(Res.string.editor_precision_ruler, label, display),
+        enabled = enabled,
+        interactionActive = interactionActive,
+        identity = identity,
+        sliderTag = if (straighten) TAG_STRAIGHTEN
+        else "editor.crop.ruler.${tab.name.lowercase()}",
+        valueTag = if (straighten) TAG_STRAIGHTEN_VALUE
+        else "editor.crop.value.${tab.name.lowercase()}",
+        stepKey = tab.name.lowercase(),
+        scale = scale,
+        hapticAt = scale::isDetent,
+        limitStartLabel = formatCropValue(tab, range.start),
+        limitEndLabel = formatCropValue(tab, range.endInclusive),
+        onOpenEntry = onOpenEntry,
+        onBeginInteraction = onBegin,
+        onUpdateInteraction = onUpdate,
+        onCommitInteraction = onCommit,
+        onCancelInteraction = onCancel,
+        onApplyStep = onStep,
+        onResetValue = onReset,
         modifier = modifier
-            .heightIn(min = 24.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = if (enabled) 1f else 0.6f))
-            .clickable(enabled = enabled, role = Role.Button, onClickLabel = text, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = EditorSymbols.Crop,
-            contentDescription = null,
-            tint = content,
-            modifier = Modifier.size(11.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = content,
-            maxLines = 1,
-            softWrap = false
-        )
-    }
-}
-
-/**
- * The axis control that takes the reference's Auto slot: the active axis on a
- * tonal chip, opening the three real rulers. Auto crop/straighten is not
- * shipped (no such engine operation).
- */
-@Composable
-private fun CropAxisChip(
-    tab: CropTab,
-    tabs: Map<CropTab, String>,
-    enabled: Boolean,
-    onSelect: (CropTab) -> Unit
-) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        Row(
-            modifier = Modifier
-                .height(40.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .testTag(TAG_CROP_AXIS)
-                .clickable(
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClickLabel = tabs.getValue(tab),
-                    onClick = { open = true }
-                )
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = tabs.getValue(tab),
-                style = MaterialTheme.typography.labelLarge,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                maxLines = 1,
-                softWrap = false
-            )
-            Icon(
-                imageVector = EditorSymbols.KeyboardArrowDown,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            CropTab.entries.forEach { t ->
-                DropdownMenuItem(
-                    text = { Text(tabs.getValue(t)) },
-                    onClick = {
-                        open = false
-                        onSelect(t)
-                    },
-                    modifier = Modifier.testTag(
-                        when (t) {
-                            CropTab.Straighten -> TAG_CROP_TAB_STRAIGHTEN
-                            CropTab.Vertical -> TAG_CROP_TAB_VERTICAL
-                            CropTab.Horizontal -> TAG_CROP_TAB_HORIZONTAL
-                        }
-                    )
-                )
-            }
-        }
-    }
+    )
 }
 
 /** One 64 dp labelled action: icon above a single-line label, 16 dp V4 corners. */

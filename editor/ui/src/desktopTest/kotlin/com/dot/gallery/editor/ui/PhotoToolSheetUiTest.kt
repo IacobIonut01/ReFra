@@ -134,13 +134,13 @@ class PhotoToolSheetUiTest {
             }
             for (entry in entries.filter { it.catalogued }) {
                 openPhotoTool(entry.tag)
-                assertAndCaptureStates(entry.descriptor.id.value)
+                assertAndCaptureStates(entry.descriptor.id)
                 onNodeWithTag(TAG_BACK).performClick()
             }
             openLayersWorkspace()
             onNodeWithTag(TAG_LAYER_MORE_PREFIX + layer.id).performClick()
             onNodeWithTag(TAG_LAYER_ROUTE_MASK).performClick()
-            assertAndCaptureStates(EditorToolIds.PhotoLayerMask.value)
+            assertAndCaptureStates(EditorToolIds.PhotoLayerMask)
         }
 
     @Test
@@ -177,18 +177,20 @@ class PhotoToolSheetUiTest {
             }
         }
 
-    private fun ComposeUiTest.assertAndCaptureStates(name: String) {
+    private fun ComposeUiTest.assertAndCaptureStates(tool: EditorToolId) {
+        val name = tool.value
         onNodeWithTag(TAG_V3_ADJUSTMENT_SHEET).assertIsDisplayed()
         onNodeWithTag(TAG_V3_INLINE_INSPECTOR).assertDoesNotExist()
-        // The floating card is always painted; the Apply row lives in its
-        // foot, above the six-slot dock.
+        // The floating card is always painted. It runs under the dock to
+        // the bottom edge; its Done action rests above the dock.
         onNodeWithTag(TAG_PHOTO_SHEET_MATERIAL).assertIsDisplayed()
         onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
         val card = onNodeWithTag(TAG_V3_SHEET_BODY).getUnclippedBoundsInRoot()
         val dock = onNodeWithTag(TAG_EDITOR_PINS).getUnclippedBoundsInRoot()
+        val apply = onNodeWithTag(TAG_TOOL_APPLY).getUnclippedBoundsInRoot()
         assertTrue(
-            card.bottom <= dock.top,
-            "$name card foot ${card.bottom} overlaps the dock at ${dock.top}"
+            apply.bottom <= dock.top,
+            "$name Done ${apply.bottom} overlaps the dock at ${dock.top}"
         )
         val lastControl = when (name) {
             // The catalogue chips are the bottom-most row now.
@@ -200,17 +202,14 @@ class PhotoToolSheetUiTest {
         if (lastControl != null) {
             val control = onNodeWithTag(lastControl).getUnclippedBoundsInRoot()
             assertTrue(
-                control.bottom <= card.bottom,
+                control.bottom <= card.bottom && control.bottom <= dock.top,
                 "$name clips its last collapsed control"
             )
         }
         saveCapture("$name-collapsed")
-        // Light and Looks have no expanded state: their resting card is
-        // the whole card and paints no grab strip (D47, D51).
-        val nonExpanding = name == EditorToolIds.PhotoLight.value ||
-            name == EditorToolIds.PhotoLooks.value ||
-            name == EditorToolIds.PhotoColour.value
-        if (nonExpanding) {
+        // Auto-sized cards have no expanded state: their resting card is
+        // the whole card and paints no grab strip.
+        if (photoToolSheetIsAutoSized(tool)) {
             onNodeWithTag(TAG_V3_SHEET_HANDLE, useUnmergedTree = true)
                 .assertDoesNotExist()
             return

@@ -417,7 +417,7 @@ class EditorRetouchUiTest {
                 runDesktopComposeUiTest(width = width, height = height) {
                     val session = staged()
                     try {
-                        onNodeWithTag(TAG_CATEGORY_MARKUP).performScrollTo().performClick()
+                        openPhotoTool(TAG_CATEGORY_MARKUP)
                         onNodeWithTag("editor.markup").assertIsDisplayed()
                         drawStroke(session, 1)
                         save(name)

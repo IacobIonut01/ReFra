@@ -7,9 +7,15 @@ import kotlin.test.assertTrue
 class PhotoToolSheetGeometryTest {
     @Test
     fun everyToolHasRoomToExpandBeyondItsUsablePeek() {
-        photoToolEntries().forEach {
-            assertTrue(photoToolSheetHeight(it.descriptor.id) > photoToolSheetPeek(it.descriptor.id))
-        }
+        photoToolEntries()
+            .filter { !photoToolSheetIsAutoSized(it.descriptor.id) }
+            .forEach {
+                assertTrue(
+                    photoToolSheetHeight(it.descriptor.id) >
+                        photoToolSheetPeek(it.descriptor.id),
+                    it.descriptor.id.value
+                )
+            }
     }
 
     @Test

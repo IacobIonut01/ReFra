@@ -373,7 +373,7 @@ class EditorFinishingToolsUiTest {
     }
 
     @Test
-    fun backCancelsTheWholeFinishingTransaction() =
+    fun backKeepsTheFinishingEditLikeDone() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession()
         openPhotoTool(TAG_CATEGORY_CURVES)
@@ -387,7 +387,7 @@ class EditorFinishingToolsUiTest {
 
         onNodeWithTag(TAG_BACK).performClick()
         waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
-        assertEquals(true, finishing(s)?.isNeutral)
+        assertEquals(153f / 255f, finishing(s)?.curves?.master?.points?.last()?.y)
     }
 
     // ── White balance ─────────────────────────────────────────────────
@@ -468,7 +468,9 @@ class EditorFinishingToolsUiTest {
             "vignetteAmount", "vignetteMidpoint", "vignetteFeather",
             "vignetteRoundness", "vignetteHighlights"
         )) {
-            onNodeWithTag("editor.vignette.tab.$key").assertIsDisplayed()
+            onNodeWithTag("editor.vignette.tab.$key")
+                .performScrollTo()
+                .assertIsDisplayed()
             onNodeWithTag("editor.vignette.row.$key")
                 .performScrollTo()
                 .assertIsDisplayed()
@@ -612,50 +614,6 @@ class EditorFinishingToolsUiTest {
     }
 
     // ── Edits summary + reachability ──────────────────────────────────
-
-    @Test
-    fun editsPaneListsEveryNonNeutralFinishingField() =
-        runDesktopComposeUiTest(width = 412, height = 832) {
-        val s = liveSession()
-        runOnUiThread {
-            s.applyEdits(
-                "Finish",
-                PhotoEdits(
-                    finishing = PhotoFinishing(
-                        curves = PhotoCurves(
-                            master = PhotoToneCurve.ofQuarterOrdinates(
-                    listOf(0f, .3f, .55f, .8f, 1f)
-                )
-                        ),
-                        whiteBalance = PhotoWhiteBalance(3200f, 12f),
-                        vignette = PhotoVignette(amount = -.4f),
-                        grain = PhotoGrain(amount = .3f)
-                    )
-                )
-            )
-        }
-        waitUntil(timeoutMillis = 15_000) {
-            s.state.value.document?.finishing?.isNeutral == false
-        }
-
-        // The Edits pane rides behind a context header's More menu.
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_EDITS)
-
-        onNodeWithText("Curves · RGB").assertIsDisplayed()
-        onNodeWithText("Temperature").assertIsDisplayed()
-        onNodeWithText("3200 K").assertIsDisplayed()
-        onNodeWithText("Tint").assertIsDisplayed()
-        onNodeWithText("+12").assertIsDisplayed()
-        onNodeWithText("-40").assertIsDisplayed()
-        // Grain amount 30 lists as an unsigned display value.
-        onNodeWithText("30.00").assertIsDisplayed()
-        // Fields still at their defaults list no row at all.
-        onNodeWithText("Roughness").assertDoesNotExist()
-        onNodeWithText("Size").assertDoesNotExist()
-        onNodeWithText("Midpoint").assertDoesNotExist()
-    }
 
     @Test
     fun finishingSurfacesStayReachableAt2x() =

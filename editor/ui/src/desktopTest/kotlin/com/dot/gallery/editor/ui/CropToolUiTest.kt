@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -67,6 +68,15 @@ class CropToolUiTest {
     private fun ComposeUiTest.awaitState(condition: (PhotoEditorState) -> Boolean) {
         val s = session ?: error("no session")
         waitUntil(timeoutMillis = 15_000) { condition(s.state.value) }
+    }
+
+    @Test
+    fun cropOpensOnFree() = runComposeUiTest {
+        liveSession()
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing }
+        // An untouched photo starts free, not locked to its own ratio.
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("Free", substring = true)
     }
 
     @Test
@@ -247,7 +257,7 @@ class CropToolUiTest {
     }
 
     @Test
-    fun backCancelsTheToolAndRestoresThePreToolGeometry() = runComposeUiTest {
+    fun backKeepsTheToolsGeometryLikeDone() = runComposeUiTest {
         val s = liveSession()
         val committed = PhotoGeometry(warp = PhotoWarp(rotationDegrees = 2f))
         runOnUiThread {
@@ -272,10 +282,13 @@ class CropToolUiTest {
             down(center); moveTo(center + Offset(width * 0.2f, 0f)); up()
         }
         awaitState { !it.interactionActive && it.document?.geometry?.warp?.verticalPerspective != 0f }
+        val edited = s.state.value.document!!.geometry
 
         onNodeWithTag(TAG_BACK).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
-        assertEquals(seeded, s.state.value.document!!.geometry)
+        // Back keeps the tool's changes, the same as Done.
+        assertEquals(edited, s.state.value.document!!.geometry)
+        assertTrue(edited != seeded)
     }
 
     @Test

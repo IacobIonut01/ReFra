@@ -76,6 +76,8 @@ data class VideoEditorActions(
     val cancelImport: () -> Unit = {},
     val undo: () -> Unit,
     val redo: () -> Unit,
+    /** Undoes or redoes to the step count the History list picked. */
+    val jumpToHistory: (Int) -> Unit = {},
     val saveCopy: () -> Unit,
     val cancelExport: () -> Unit,
     val clearError: () -> Unit,

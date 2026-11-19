@@ -14,6 +14,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -35,6 +36,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -426,7 +428,7 @@ internal fun LooksToolContent(
                 // Pinned to the viewport, not the content, so the tiles
                 // fade at the edges while a cut tile is softened; the
                 // width is the strip's inset so a resting tile is not.
-                .softHorizontalEdges(Color(0xFF141416), width = 16.dp)
+                .softHorizontalEdges(looksCardColor(), width = 16.dp)
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -541,68 +543,22 @@ internal fun LooksToolContent(
             )
         }
         // 4. The catalogue chips along the card's bottom edge.
-        Row(
+        EditorChipRow(
             modifier = Modifier
-                .fillMaxWidth()
                 .heightIn(min = 40.dp)
                 // Pinned to the viewport, not the content, so the chips
                 // fade at the edges while a cut chip is softened; the
                 // width is the strip's inset so a resting chip is not.
-                .softHorizontalEdges(Color(0xFF141416), width = 16.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .softHorizontalEdges(looksCardColor(), width = 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp)
         ) {
             LooksCategory.entries.forEach { entry ->
-                val selected = entry == category
-                val chipBg by animateColorAsState(
-                    targetValue = if (selected) {
-                        MaterialTheme.colorScheme.secondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    },
-                    animationSpec = tween(180),
-                    label = "lookCategoryBg"
-                )
-                val chipText by animateColorAsState(
-                    targetValue = if (selected) {
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    animationSpec = tween(180),
-                    label = "lookCategoryText"
-                )
-                val chipScale by animateFloatAsState(
-                    targetValue = if (selected) 1.04f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
-                    label = "lookCategoryScale"
-                )
-                Text(
-                    text = categoryLabels.getValue(entry),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = chipText,
-                    maxLines = 1,
-                    softWrap = false,
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = chipScale
-                            scaleY = chipScale
-                        }
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(chipBg)
-                        .clickable(
-                            enabled = enabled,
-                            role = Role.Tab,
-                            onClickLabel = categoryLabels.getValue(entry)
-                        ) { category = entry }
-                        .semantics { this.selected = selected }
-                        .padding(horizontal = 12.dp, vertical = 7.dp)
-                        .testTag("editor.look.category.${entry.key}")
+                EditorChip(
+                    label = categoryLabels.getValue(entry),
+                    selected = entry == category,
+                    enabled = enabled,
+                    tag = "editor.look.category.${entry.key}",
+                    onClick = { category = entry }
                 )
             }
         }
@@ -714,6 +670,15 @@ private data class PresetDialog(
     val initialName: String,
     val nextNumber: Int
 )
+
+/** The Looks card's base: near-black in dark mode, the light-mode 0xFF141416 otherwise. */
+@Composable
+private fun looksCardColor(): Color =
+    if (MaterialTheme.colorScheme.surface.luminance() < .5f) {
+        Color(0xFF0B0B0B)
+    } else {
+        Color(0xFF141416)
+    }
 
 @Composable
 private fun LookTile(
@@ -1042,7 +1007,7 @@ private fun PresetSheet(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             Surface(
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                color = Color(0xFF141416),
+                color = looksCardColor(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(TAG_LOOK_PRESET_SHEET)

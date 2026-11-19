@@ -1,5 +1,13 @@
 package com.dot.gallery.editor.ui.video
 
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_settings
+import com.dot.gallery.editor.ui.generated.resources.editor_tool_desc_history
+import com.dot.gallery.editor.ui.CataloguePreview
+import com.dot.gallery.editor.ui.EditorCatalogueExtraCell
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,12 +51,26 @@ import com.dot.gallery.editor.ui.EditorToolId
 import com.dot.gallery.editor.ui.EditorToolIds
 import com.dot.gallery.editor.ui.TAG_CATALOGUE_GRID
 import com.dot.gallery.editor.ui.TAG_CATALOGUE_SEARCH
+import com.dot.gallery.editor.ui.CatalogueSection
+import com.dot.gallery.editor.ui.EditorToolCatalogueSheet
+import org.jetbrains.compose.resources.StringResource
 import com.dot.gallery.editor.ui.generated.resources.Res
 import com.dot.gallery.editor.ui.generated.resources.editor_all_tools
-import com.dot.gallery.editor.ui.generated.resources.editor_group_audio
-import com.dot.gallery.editor.ui.generated.resources.editor_group_deliver
-import com.dot.gallery.editor.ui.generated.resources.editor_group_edit
-import com.dot.gallery.editor.ui.generated.resources.editor_group_picture
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_export
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_voice
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_eq
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_ducking
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_routing
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_mixer
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_clip_audio
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_add_audio
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_layers
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_colour
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_transform
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_trim
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_arrange
+import com.dot.gallery.editor.ui.generated.resources.editor_video_desc_add_media
+import com.dot.gallery.editor.ui.generated.resources.editor_history_title
 import com.dot.gallery.editor.ui.generated.resources.editor_search_tools
 import com.dot.gallery.editor.ui.generated.resources.editor_settings
 import com.dot.gallery.editor.ui.generated.resources.editor_video_exit_focus
@@ -61,169 +83,110 @@ internal const val TAG_VIDEO_MORE_SHEET = "videoEditor.moreSheet"
 internal const val TAG_VIDEO_MORE_ALL_TOOLS = "videoEditor.more.allTools"
 internal const val TAG_VIDEO_MORE_MIXER = "videoEditor.more.mixer"
 internal const val TAG_VIDEO_MORE_SETTINGS = "videoEditor.more.settings"
-
-private val VIDEO_CATEGORIES = listOf(
-    Res.string.editor_group_edit to EditorToolGroup.Edit,
-    Res.string.editor_group_picture to EditorToolGroup.Picture,
-    Res.string.editor_group_audio to EditorToolGroup.Audio,
-    Res.string.editor_group_deliver to EditorToolGroup.Deliver
-)
+internal const val TAG_VIDEO_MORE_HISTORY = "videoEditor.more.history"
 
 /**
- * All tools: the search pill, the connected Edit · Picture · Audio ·
- * Deliver group and the tile grid of the real registry. A query spans
- * every category; tiles the session cannot honour yet stay disabled.
+ * All tools: the same list the photo editor uses — search, the Edit ·
+ * Picture · Audio · Deliver chips and one row per tool with its preview
+ * tile and a line on what it does. A query spans every section; rows the
+ * session cannot honour yet stay disabled.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun VideoCatalogueSheet(
     state: VideoEditorState,
     phone: Boolean,
-    initialGroup: EditorToolGroup,
+    initialGroup: EditorToolGroup?,
     activeTool: EditorToolId?,
     onSelect: (EditorToolId) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onHistory: () -> Unit = {},
+    onSettings: () -> Unit = {}
 ) {
-    var group by rememberSaveable(initialGroup) { mutableStateOf(initialGroup.name) }
-    var query by rememberSaveable { mutableStateOf("") }
-    val entries = videoToolEntries()
-    VideoStudioSheet(
-        title = stringResource(Res.string.editor_video_tools_title),
-        phone = phone,
-        onDismiss = onDismiss,
-        tag = TAG_VIDEO_CATALOGUE_SHEET
+    // The same modal sheet the photo editor's All tools uses, on every
+    // window: the drag handle, the list's own title row, no extra chrome.
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
-        val searchLabel = stringResource(Res.string.editor_search_tools)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 52.dp)
-                .clip(CircleShape)
-                .background(videoSlabColor())
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                VideoGlyphs.Search, null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp)
-            )
-            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (query.isEmpty()) {
-                    Text(
-                        searchLabel,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                BasicTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics { contentDescription = searchLabel }
-                        .testTag(TAG_CATALOGUE_SEARCH)
-                )
-            }
-        }
-        val q = query.trim()
-        if (q.isEmpty()) {
-            VideoPillSegments(
-                options = VIDEO_CATEGORIES.map { (label, category) ->
-                    VideoSegment(
-                        label = stringResource(label),
-                        selected = group == category.name,
-                        onClick = { group = category.name },
-                        tag = "editor.catalogue.group." + category.name
-                    )
-                }
-            )
-        }
-        val titles = entries.associate { it.descriptor.id to stringResource(it.descriptor.title) }
-        val visible = entries.filter { entry ->
-            if (q.isNotEmpty()) {
-                titles[entry.descriptor.id].orEmpty().contains(q, ignoreCase = true)
-            } else {
-                entry.descriptor.group.name == group
-            }
-        }
-        BoxWithConstraints(Modifier.fillMaxWidth().testTag(TAG_CATALOGUE_GRID)) {
-            val columns = (maxWidth.value / 112f).toInt().coerceIn(2, 5)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                visible.chunked(columns).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        row.forEachIndexed { index, entry ->
-                            val id = entry.descriptor.id
-                            VideoCatalogueTile(
-                                icon = videoToolGlyph(id),
-                                label = titles[id].orEmpty(),
-                                selected = id == activeTool,
-                                shapeIndex = index,
-                                enabled = state.sequence != null && !state.isDrafting &&
-                                    entry.available(state),
-                                onClick = { onSelect(id) },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag(entry.tag)
-                            )
-                        }
-                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-                    }
-                }
-            }
+        Column(Modifier.testTag(TAG_VIDEO_CATALOGUE_SHEET)) {
+            VideoCatalogueList(state, initialGroup, activeTool, onSelect, onHistory, onSettings)
         }
     }
 }
 
+/**
+ * The video tools list itself, shared by the phone sheet and the large
+ * layout's side pane.
+ */
 @Composable
-private fun VideoCatalogueTile(
-    icon: ImageVector,
-    label: String,
-    selected: Boolean,
-    shapeIndex: Int,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+internal fun VideoCatalogueList(
+    state: VideoEditorState,
+    initialGroup: EditorToolGroup?,
+    activeTool: EditorToolId?,
+    onSelect: (EditorToolId) -> Unit,
+    onHistory: () -> Unit,
+    onSettings: () -> Unit,
+    showTitle: Boolean = true
 ) {
-    val corner = when {
-        selected -> 36.dp
-        shapeIndex % 3 == 1 -> 28.dp
-        else -> 20.dp
-    }
-    val ink = when {
-        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        selected -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    Column(
-        modifier = modifier
-            .heightIn(min = 96.dp)
-            .clip(RoundedCornerShape(corner))
-            .background(
-                if (selected) MaterialTheme.colorScheme.primaryContainer
-                else videoSlabColor()
+    EditorToolCatalogueSheet(
+        entries = videoToolEntries(),
+        state = state,
+        activeTool = activeTool ?: EditorToolId(""),
+        enabled = state.sequence != null && !state.isDrafting,
+        onSelect = onSelect,
+        title = if (showTitle) stringResource(Res.string.editor_all_tools) else null,
+        initialGroup = initialGroup,
+        showDragHandle = false,
+        chips = VIDEO_CATALOGUE_CHIPS,
+        describe = ::videoToolDescription,
+        extraCells = listOf(
+            EditorCatalogueExtraCell(
+                icon = VideoGlyphs.Undo,
+                label = stringResource(Res.string.editor_history_title),
+                tag = TAG_VIDEO_CATALOGUE_HISTORY,
+                description = stringResource(Res.string.editor_tool_desc_history),
+                preview = CataloguePreview.History,
+                onClick = onHistory
+            ),
+            EditorCatalogueExtraCell(
+                icon = Icons.Outlined.Settings,
+                label = stringResource(Res.string.editor_settings),
+                tag = TAG_VIDEO_CATALOGUE_SETTINGS,
+                description = stringResource(Res.string.editor_video_desc_settings),
+                preview = CataloguePreview.Settings,
+                onClick = onSettings
             )
-            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
-    ) {
-        Icon(icon, null, tint = ink, modifier = Modifier.size(28.dp))
-        Text(
-            text = label,
-            fontSize = 13.sp,
-            lineHeight = 16.sp,
-            color = ink,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
         )
-    }
+    )
+}
+
+internal const val TAG_VIDEO_CATALOGUE_HISTORY = "videoEditor.catalogue.history"
+internal const val TAG_VIDEO_CATALOGUE_SETTINGS = "videoEditor.catalogue.settings"
+
+private val VIDEO_CATALOGUE_CHIPS = listOf(
+    CatalogueSection.Edit, CatalogueSection.Picture,
+    CatalogueSection.Audio, CatalogueSection.Deliver
+)
+
+/** The line a video tool's catalogue row shows. */
+internal fun videoToolDescription(id: EditorToolId): StringResource? = when (id) {
+    EditorToolIds.VideoAddMedia -> Res.string.editor_video_desc_add_media
+    EditorToolIds.VideoArrange -> Res.string.editor_video_desc_arrange
+    EditorToolIds.VideoTrim -> Res.string.editor_video_desc_trim
+    EditorToolIds.VideoTransform -> Res.string.editor_video_desc_transform
+    EditorToolIds.VideoColour -> Res.string.editor_video_desc_colour
+    EditorToolIds.VideoLayers -> Res.string.editor_video_desc_layers
+    EditorToolIds.VideoAddAudio -> Res.string.editor_video_desc_add_audio
+    EditorToolIds.VideoClipAudio -> Res.string.editor_video_desc_clip_audio
+    EditorToolIds.VideoMixer -> Res.string.editor_video_desc_mixer
+    EditorToolIds.VideoRouting -> Res.string.editor_video_desc_routing
+    EditorToolIds.VideoDucking -> Res.string.editor_video_desc_ducking
+    EditorToolIds.VideoEq -> Res.string.editor_video_desc_eq
+    EditorToolIds.VideoVoice -> Res.string.editor_video_desc_voice
+    EditorToolIds.VideoExport -> Res.string.editor_video_desc_export
+    else -> null
 }
 
 /** The studio glyph for a registered tool. */
@@ -253,7 +216,8 @@ internal fun VideoMoreSheet(
     onAllTools: () -> Unit,
     onMixer: () -> Unit,
     onDismiss: () -> Unit,
-    onSettings: (() -> Unit)? = null
+    onSettings: (() -> Unit)? = null,
+    onHistory: (() -> Unit)? = null
 ) {
     VideoStudioSheet(
         title = stringResource(Res.string.editor_video_more),
@@ -283,6 +247,14 @@ internal fun VideoMoreSheet(
                 onClick = onMixer,
                 modifier = Modifier.testTag(TAG_VIDEO_MORE_MIXER)
             )
+            if (onHistory != null) {
+                VideoMoreRow(
+                    icon = VideoGlyphs.Undo,
+                    label = stringResource(Res.string.editor_history_title),
+                    onClick = onHistory,
+                    modifier = Modifier.testTag(TAG_VIDEO_MORE_HISTORY)
+                )
+            }
             if (onSettings != null) {
                 VideoMoreRow(
                     icon = Icons.Outlined.Settings,

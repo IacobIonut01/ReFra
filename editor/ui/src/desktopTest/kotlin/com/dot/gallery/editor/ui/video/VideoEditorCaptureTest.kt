@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -39,6 +41,7 @@ import com.dot.gallery.editor.render.video.VideoMediaAccess
 import com.dot.gallery.editor.render.video.VideoPlayback
 import com.dot.gallery.editor.render.video.VoiceRecorder
 import com.dot.gallery.editor.render.video.VoiceSupport
+import com.dot.gallery.editor.ui.TAG_CATALOGUE_GRID
 import com.dot.gallery.editor.ui.TAG_HEADER_MORE
 import com.dot.gallery.editor.ui.TAG_VIDEO_V3_INLINE_INSPECTOR
 import com.dot.gallery.editor.ui.TestEditorRoot
@@ -356,11 +359,11 @@ class VideoEditorCaptureTest {
     ) {
         openDockDestination(com.dot.gallery.editor.ui.video.TAG_VIDEO_TOOLS)
         if (group != null) {
-            onNodeWithTag("editor.catalogue.group." + group)
+            onNodeWithTag("editor.catalogue.chip." + group)
                 .performClick()
         }
-        onNodeWithTag(tag).performScrollTo()
-            .performSemanticsAction(SemanticsActions.OnClick)
+        onNodeWithTag(TAG_CATALOGUE_GRID).performScrollToNode(hasTestTag(tag))
+        onNodeWithTag(tag).performSemanticsAction(SemanticsActions.OnClick)
         waitForIdle()
     }
 

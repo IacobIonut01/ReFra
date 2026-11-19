@@ -335,10 +335,11 @@ internal fun RetouchCanvasOverlay(
     state: PhotoEditorState,
     actions: PhotoEditorActions,
     toolUiState: PhotoToolUiState,
-    tool: EditorToolId
+    tool: EditorToolId,
+    viewport: EditorViewportState
 ) {
     if (tool == EditorToolIds.PhotoMarkup) {
-        MarkupCanvasOverlay(layout, state, actions, toolUiState)
+        MarkupCanvasOverlay(layout, state, actions, toolUiState, viewport)
     } else {
         CutoutCanvasOverlay(layout, toolUiState)
     }

@@ -1,5 +1,13 @@
 package com.dot.gallery.editor.ui.video
 
+import com.dot.gallery.editor.ui.generated.resources.editor_back
+import com.dot.gallery.editor.ui.icons.ArrowBack
+import com.dot.gallery.editor.ui.icons.EditorSymbols
+import com.dot.gallery.editor.ui.EditorToolId
+import com.dot.gallery.editor.ui.EditorToolGroup
+import com.dot.gallery.editor.ui.EditorDockItem
+import com.dot.gallery.editor.ui.EditorDock
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -8,6 +16,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,6 +89,7 @@ import com.dot.gallery.editor.core.time.EditorTime
 import com.dot.gallery.editor.render.video.VideoEditorState
 import com.dot.gallery.editor.ui.TAG_HEADER_MORE
 import com.dot.gallery.editor.ui.TAG_VIDEO_REGION_TOOLBAR
+import com.dot.gallery.editor.ui.EditorChip
 import com.dot.gallery.editor.ui.generated.resources.Res
 import com.dot.gallery.editor.ui.generated.resources.editor_done
 import com.dot.gallery.editor.ui.generated.resources.editor_layers
@@ -87,6 +97,7 @@ import com.dot.gallery.editor.ui.generated.resources.editor_more_options
 import com.dot.gallery.editor.ui.generated.resources.editor_redo
 import com.dot.gallery.editor.ui.generated.resources.editor_tools
 import com.dot.gallery.editor.ui.generated.resources.editor_undo
+import com.dot.gallery.editor.ui.generated.resources.editor_show_history
 import com.dot.gallery.editor.ui.generated.resources.editor_video_audio
 import com.dot.gallery.editor.ui.generated.resources.editor_video_exit_focus
 import com.dot.gallery.editor.ui.generated.resources.editor_video_export
@@ -122,8 +133,9 @@ internal enum class VideoDockItem { Media, Layers, Audio, Tools }
 /**
  * The studio header: the 48 dp glass Close circle, the source name on
  * tablets, the glass Undo · Redo capsule and the trailing action — the
- * Export split button at home (Export plus the More chevron), a single
- * Done pill while a phone tool owns the screen.
+ * Export split button (Export plus the More chevron). The header never
+ * changes with the tool: Done lives in the tool bar, and Export turns tonal
+ * while a tool is open so Done is the one filled action.
  */
 @Composable
 internal fun VideoStudioHeader(
@@ -138,7 +150,10 @@ internal fun VideoStudioHeader(
     onExport: (() -> Unit)? = null,
     moreOpen: Boolean = false,
     onMore: (() -> Unit)? = null,
-    onDone: (() -> Unit)? = null
+    toolOpen: Boolean = false,
+    onShowHistory: (() -> Unit)? = null,
+    /** The open tool's Reset and Done, on large windows. */
+    toolActions: (@Composable () -> Unit)? = null
 ) {
     val canUndo = state.canUndo && !state.isDrafting
     val canRedo = state.canRedo && !state.isDrafting
@@ -181,6 +196,8 @@ internal fun VideoStudioHeader(
                 label = stringResource(Res.string.editor_undo),
                 onClick = actions.undo,
                 enabled = canUndo,
+                onLongClick = onShowHistory,
+                onLongClickLabel = stringResource(Res.string.editor_show_history),
                 modifier = Modifier.testTag(TAG_VIDEO_UNDO)
             )
             VideoPlainIconButton(
@@ -192,47 +209,14 @@ internal fun VideoStudioHeader(
             )
         }
         if (title == null) Spacer(Modifier.weight(1f))
-        when {
-            onDone != null -> {
-                val doneLabel = stringResource(Res.string.editor_done)
-                Row(
-                    modifier = Modifier
-                        .height(VideoStudio.Control)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable(
-                            role = Role.Button,
-                            onClickLabel = doneLabel,
-                            onClick = onDone
-                        )
-                        .testTag(TAG_VIDEO_TOOL_DONE)
-                        .padding(start = 16.dp, end = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = VideoGlyphs.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    if (fontScale < 1.5f) {
-                        Text(
-                            text = doneLabel,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-            onExport != null -> VideoExportSplitButton(
-                enabled = exportEnabled,
-                moreOpen = moreOpen,
-                onExport = onExport,
-                onMore = onMore
-            )
-        }
+        toolActions?.invoke()
+        if (onExport != null) VideoExportSplitButton(
+            enabled = exportEnabled,
+            moreOpen = moreOpen,
+            onExport = onExport,
+            onMore = onMore,
+            tonal = toolOpen
+        )
     }
 }
 
@@ -246,14 +230,25 @@ private fun VideoExportSplitButton(
     enabled: Boolean,
     moreOpen: Boolean,
     onExport: () -> Unit,
-    onMore: (() -> Unit)?
+    onMore: (() -> Unit)?,
+    tonal: Boolean = false
 ) {
     val exportLabel = stringResource(Res.string.editor_video_export)
     val moreLabel = stringResource(Res.string.editor_more_options)
-    val container = if (enabled) MaterialTheme.colorScheme.primary
-    else videoSlabColor()
-    val content = if (enabled) MaterialTheme.colorScheme.onPrimary
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val container = when {
+        !enabled -> videoSlabColor()
+        tonal -> MaterialTheme.colorScheme.surfaceContainerHigh
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val content = when {
+        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        tonal -> MaterialTheme.colorScheme.onSurface
+        else -> MaterialTheme.colorScheme.onPrimary
+    }
+    val moreContainer = if (tonal) MaterialTheme.colorScheme.surfaceContainerHigh
+    else MaterialTheme.colorScheme.primary
+    val moreContent = if (tonal) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onPrimary
     val showLabel = LocalDensity.current.fontScale < 1.5f
     Row(horizontalArrangement = Arrangement.spacedBy(VideoStudio.GroupGap)) {
         Box(
@@ -303,7 +298,7 @@ private fun VideoExportSplitButton(
                             topEnd = 24.dp, bottomEnd = 24.dp
                         )
                     )
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(moreContainer)
                     .clickable(
                         role = Role.Button,
                         onClickLabel = moreLabel,
@@ -319,7 +314,7 @@ private fun VideoExportSplitButton(
                 Icon(
                     imageVector = VideoGlyphs.ExpandMore,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = moreContent,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -370,16 +365,20 @@ internal fun VideoPlainIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     selected: Boolean? = null,
-    tint: Color = MaterialTheme.colorScheme.onSurface
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null
 ) {
     Box(
         modifier = modifier
             .size(VideoStudio.Control)
             .clip(CircleShape)
-            .clickable(
+            .combinedClickable(
                 enabled = enabled,
                 role = Role.Button,
                 onClickLabel = label,
+                onLongClickLabel = onLongClickLabel,
+                onLongClick = onLongClick,
                 onClick = onClick
             )
             .semantics {
@@ -402,13 +401,10 @@ internal fun VideoPlainIconButton(
 // ---------------------------------------------------------------------------
 
 /**
- * The studio dock — Media, Layers, Audio, Tools in the photo editor's
- * navigation anatomy: [PillSlot]s (the 48×32 dp selection pill behind a
- * 22 dp icon, 12 sp label) on the floating chrome material. A full-width
- * bar on phones; on large portrait windows ([hug]) the bar keeps the photo
- * slot pitch and is only as wide as its four slots. In landscape it is a
- * rail with the slots packed from the top at the photo rail's 62 dp pitch
- * (icon-only at 64 dp on phones, labelled at 80 dp on tablets).
+ * The studio dock — Media, Layers, Audio and Tools on the photo editor's
+ * [EditorDock]: the same glass pill along the bottom on phones and the
+ * same rail on large windows. Audio swaps the items for the audio tools,
+ * with Back as a fixed first item that returns to the four destinations.
  */
 @Composable
 internal fun VideoStudioDock(
@@ -418,63 +414,67 @@ internal fun VideoStudioDock(
     onSelect: (VideoDockItem) -> Unit,
     modifier: Modifier = Modifier,
     vertical: Boolean = false,
-    labels: Boolean = true,
-    hug: Boolean = false
+    state: VideoEditorState? = null,
+    audioMode: Boolean = false,
+    activeTool: EditorToolId? = null,
+    onSelectTool: (EditorToolId) -> Unit = {},
+    onAudioBack: () -> Unit = {}
 ) {
+    val orientation = if (vertical) Orientation.Vertical else Orientation.Horizontal
+    if (audioMode) {
+        val audioTools = videoToolEntries().filter { it.descriptor.group == EditorToolGroup.Audio }
+        EditorDock(
+            items = audioTools.map { entry ->
+                val id = entry.descriptor.id
+                EditorDockItem(
+                    id = id.value,
+                    label = stringResource(entry.descriptor.title),
+                    icon = videoToolGlyph(id),
+                    selected = activeTool == id,
+                    enabled = enabled && (state == null || entry.available(state)),
+                    tag = entry.tag
+                )
+            },
+            leading = EditorDockItem(
+                id = AUDIO_DOCK_BACK,
+                label = stringResource(Res.string.editor_back),
+                icon = EditorSymbols.ArrowBack,
+                selected = false,
+                tag = TAG_VIDEO_AUDIO_DOCK_BACK
+            ),
+            orientation = orientation,
+            onSelect = { id ->
+                if (id == AUDIO_DOCK_BACK) onAudioBack() else onSelectTool(EditorToolId(id))
+            },
+            modifier = modifier.testTag(TAG_VIDEO_REGION_TOOLBAR)
+        )
+        return
+    }
     val items = listOf(
         Triple(VideoDockItem.Media, VideoGlyphs.Media, TAG_VIDEO_MEDIA),
         Triple(VideoDockItem.Layers, VideoGlyphs.Layers, TAG_VIDEO_LAYERS),
         Triple(VideoDockItem.Audio, VideoGlyphs.Audio, TAG_VIDEO_AUDIO),
         Triple(VideoDockItem.Tools, VideoGlyphs.Tune, TAG_VIDEO_TOOLS)
     )
-    val shape = RoundedCornerShape(VideoStudio.CardCorner)
-    val content: @Composable (Modifier) -> Unit = { itemModifier ->
-        items.forEach { (item, icon, tag) ->
-            PillSlot(
-                icon = icon,
+    EditorDock(
+        items = items.map { (item, icon, tag) ->
+            EditorDockItem(
+                id = item.name,
                 label = videoDockLabel(item),
+                icon = icon,
                 selected = selected == item,
                 enabled = enabled && (item != VideoDockItem.Media || mediaEnabled),
-                onClick = { onSelect(item) },
-                labelled = labels,
-                modifier = itemModifier.testTag(tag)
+                tag = tag
             )
-        }
-    }
-    if (vertical) {
-        Column(
-            modifier = modifier
-                .clip(shape)
-                .videoGlass(shape)
-                .padding(vertical = if (labels) 12.dp else 8.dp)
-                .testTag(TAG_VIDEO_REGION_TOOLBAR),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            content(
-                Modifier
-                    .padding(horizontal = if (labels) 12.dp else 8.dp)
-                    .fillMaxWidth()
-                    .height(if (labels) VideoStudio.RailSlot else VideoStudio.Control)
-            )
-        }
-    } else {
-        Row(
-            modifier = modifier
-                .clip(shape)
-                .videoGlass(shape)
-                .padding(horizontal = 4.dp)
-                .testTag(TAG_VIDEO_REGION_TOOLBAR),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            content(
-                if (hug) Modifier.width(VideoStudio.BarSlot).fillMaxHeight()
-                else Modifier.weight(1f).fillMaxHeight()
-            )
-        }
-    }
+        },
+        orientation = orientation,
+        onSelect = { id -> onSelect(VideoDockItem.valueOf(id)) },
+        modifier = modifier.testTag(TAG_VIDEO_REGION_TOOLBAR)
+    )
 }
 
+private const val AUDIO_DOCK_BACK = "audio.back"
+internal const val TAG_VIDEO_AUDIO_DOCK_BACK = "videoEditor.audioDock.back"
 @Composable
 internal fun videoDockLabel(item: VideoDockItem): String = when (item) {
     VideoDockItem.Media -> stringResource(Res.string.editor_video_media)
@@ -767,14 +767,15 @@ internal fun PublishVideoPanelReset(enabled: Boolean, onReset: () -> Unit) {
 }
 
 /**
- * One tool's floating card: the title with its subject (the clip or lane
- * it edits), the Reset the surface publishes, an optional trailing slot
- * (the mixer's links) and the scrolling body. [solid] drops the glass for
+ * One tool's floating card: an optional title with its subject (the clip
+ * or lane it edits), an optional trailing slot (the mixer's links) and the
+ * scrolling body. The Reset the surface publishes shows in the tool bar
+ * above the card ([LocalVideoPanelReset] is provided by the workspace). [solid] drops the glass for
  * the opaque inspector card of tablet landscape.
  */
 @Composable
 internal fun VideoToolPanel(
-    title: String,
+    title: String?,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     titleSize: TextUnit = 18.sp,
@@ -785,7 +786,6 @@ internal fun VideoToolPanel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val shape = RoundedCornerShape(VideoStudio.CardCorner)
-    val reset = remember { VideoPanelResetHost() }
     Column(
         modifier = modifier
             .clip(shape)
@@ -798,7 +798,7 @@ internal fun VideoToolPanel(
             .testTag(TAG_VIDEO_PANEL),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
+        if (title != null || subtitle != null || trailing != null) Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 44.dp)
@@ -811,7 +811,7 @@ internal fun VideoToolPanel(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
+                if (title != null) Text(
                     text = title,
                     fontSize = titleSize,
                     lineHeight = 28.sp,
@@ -831,33 +831,9 @@ internal fun VideoToolPanel(
                     )
                 }
             }
-            if (reset.available) {
-                val label = stringResource(Res.string.editor_video_reset)
-                val tint = if (reset.enabled) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outline
-                Row(
-                    modifier = Modifier
-                        .heightIn(min = 44.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                            enabled = reset.enabled,
-                            role = Role.Button,
-                            onClickLabel = label
-                        ) { reset.onReset() }
-                        .testTag(TAG_VIDEO_PANEL_RESET)
-                        .padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(VideoGlyphs.Reset, null, tint = tint, modifier = Modifier.size(18.dp))
-                    Text(label, style = MaterialTheme.typography.labelLarge, color = tint)
-                }
-            }
             trailing?.invoke(this)
         }
-        androidx.compose.runtime.CompositionLocalProvider(LocalVideoPanelReset provides reset) {
-            content()
-        }
+        content()
     }
 }
 
@@ -878,47 +854,21 @@ internal fun VideoValueChip(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     enabled: Boolean = true,
-    tag: String? = null
+    tag: String? = null,
+    modified: Boolean = false
 ) {
-    val background by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-        else videoSlabColor(),
-        label = "chipBackground"
+    // The photo editor's chip: a filled selection and a dot on changed values.
+    EditorChip(
+        label = label,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        value = value,
+        valueModified = modified,
+        leadingIcon = icon,
+        tag = tag
     )
-    val ring by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        label = "chipRing"
-    )
-    Row(
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .clip(CircleShape)
-            .background(background)
-            .border(2.dp, ring, CircleShape)
-            .clickable(enabled = enabled, role = Role.Tab, onClickLabel = label, onClick = onClick)
-            .semantics { this.selected = selected }
-            .then(if (tag != null) Modifier.testTag(tag) else Modifier)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        val ink = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.38f)
-        if (icon != null) Icon(icon, null, tint = ink, modifier = Modifier.size(18.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = ink,
-            maxLines = 1,
-            softWrap = false
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Normal),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            softWrap = false
-        )
-    }
 }
 
 /**

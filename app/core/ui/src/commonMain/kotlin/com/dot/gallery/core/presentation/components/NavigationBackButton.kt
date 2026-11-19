@@ -39,11 +39,15 @@ fun NavigationBackButton(
     containerModifier: Modifier = Modifier,
     forcedAction: (() -> Unit)? = null
 ) {
-    val eventHandler = LocalEventHandler.current
+    // Only a back that navigates up reads the handler: a screen with a forced
+    // action may run outside any event handler, like the editor's settings host.
+    val onBack: () -> Unit = forcedAction ?: LocalEventHandler.current.let { handler ->
+        { handler.navigateUpAction() }
+    }
     val railHost = LocalGalleryRailBackHost.current
     if (railHost != null) {
         // The rail shows the back button for this screen; keep its action current there.
-        RailBackRegistration(railHost, forcedAction ?: { eventHandler.navigateUpAction() })
+        RailBackRegistration(railHost, onBack)
         return
     }
     IconButton(
@@ -54,9 +58,7 @@ fun NavigationBackButton(
                 color = containerColor,
                 shape = CircleShape
             ),
-        onClick = {
-            forcedAction?.invoke() ?: eventHandler.navigateUpAction()
-        }
+        onClick = onBack
     ) {
         Icon(
             imageVector = icon,

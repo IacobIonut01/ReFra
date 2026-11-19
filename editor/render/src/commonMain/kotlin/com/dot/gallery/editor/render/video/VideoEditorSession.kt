@@ -976,6 +976,19 @@ class VideoEditorSession(
     }
 
     /**
+     * Undoes or redoes until [pastCount] committed steps remain, as one
+     * publish. Refused while a draft is open.
+     */
+    fun jumpToHistory(pastCount: Int) {
+        if (closed) return
+        val h = history ?: return
+        if (h.isDrafting) return
+        pause()
+        playGeneration += 1L
+        if (h.jumpTo(pastCount)) publishAfterEdit()
+    }
+
+    /**
      * Saves the committed sequence as a new H.264/AAC MP4 copy. Single-flight;
      * exports the snapshot taken now — edits that land during the export stay
      * dirty. The media port's `onPublished` callback is the commit receipt: a
@@ -2484,6 +2497,8 @@ class VideoEditorSession(
             waveforms = waveformsFor(sequence),
             canUndo = h.canUndo,
             canRedo = h.canRedo,
+            historyPast = h.pastSteps.map { it.label },
+            historyUndone = h.undoneSteps.map { it.label },
             isDirty = h.isDirty,
             isDrafting = h.isDrafting,
             // A draft keeps the tiles decoded before it — resampling mid-

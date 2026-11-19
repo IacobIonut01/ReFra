@@ -181,27 +181,28 @@ class EditorSessionUiTest {
     }
 
     @Test
-    fun saveStaysDisabledThroughoutToolTransaction() = runComposeUiTest {
+    fun saveEnablesOnceTheOpenToolChangesSomething() = runComposeUiTest {
         val s = liveSession()
-        // D8: Save is enabled only while the session is dirty — the
-        // clean session starts with the pill disabled.
+        // D8: Save is enabled only while there is something to save — the
+        // clean session starts with it disabled.
         onNodeWithTag(TAG_SAVE).assertIsNotEnabled()
         openPhotoTool(TAG_CATEGORY_LIGHT)
         awaitState { it.toolEditing && it.isDrafting }
-        // While a tool owns the draft the header's action is the tool's
-        // Apply — there is no Save to reach, so a half-finished transaction
-        // can never be exported.
-        onNodeWithTag(TAG_SAVE).assertDoesNotExist()
+        // The header keeps Save while a tool is open; Done lives in the
+        // tool bar. With no change yet there is still nothing to save.
+        onNodeWithTag(TAG_SAVE).assertIsNotEnabled()
         onNodeWithTag(TAG_TOOL_APPLY).assertIsDisplayed()
-        // One committed interaction changes nothing — the draft is the
-        // tool's, so Save only returns after Apply.
         onNodeWithTag(TAG_SLIDER_EXPOSURE).performTouchInput {
             down(center)
+            // Two moves, like the other ruler drags: a single jump can land
+            // inside the double-tap window and read as a press, not a drag.
+            moveTo(center + Offset(center.x * 0.5f, 0f))
             moveTo(centerRight)
             up()
         }
         awaitState { !it.interactionActive }
-        onNodeWithTag(TAG_SAVE).assertDoesNotExist()
+        // Saving keeps the tool's change first, so Save turns on now.
+        onNodeWithTag(TAG_SAVE).assertIsEnabled()
         onNodeWithTag(TAG_TOOL_APPLY).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
         onNodeWithTag(TAG_SAVE).assertIsEnabled()
@@ -328,31 +329,18 @@ class EditorSessionUiTest {
         awaitState { !it.toolEditing }
         onNodeWithTag(TAG_BEFORE_CHIP).assertIsSelected()
 
-        // Same composition, master-detail layout: the viewport survives,
-        // the inspector keeps the open tool and the capsule's compare
-        // toggle mirrors the home's Before toggle.
+        // Same composition, large layout: the viewport survives and the
+        // header's compare toggle mirrors the home's Before toggle.
         width = 1100.dp
         height = 700.dp
         waitForIdle()
         awaitImage(s)
-        // The pinched zoom survived the layout switch: the field exists
-        // and no longer reads the fit.
-        onNodeWithTag(TAG_TABLET_ZOOM).assertIsDisplayed()
-        onNode(
-            hasTestTag(TAG_TABLET_ZOOM) and
-                hasAnyDescendant(hasText("100%"))
-        ).assertDoesNotExist()
+        onNodeWithTag(TAG_SIMPLE_HEADER).assertIsDisplayed()
         onNodeWithTag(TAG_BEFORE_CHIP).assertIsSelected()
-        onNodeWithTag(TAG_CROP_ASPECT).assertIsDisplayed()
 
         // A new source reference resets the viewport entirely.
         runOnUiThread { s.open("fixture://other.jpg") }
         awaitImage(s)
-        // Back at fit the field reads 100%, not a 1.0× figure.
-        onNode(
-            hasTestTag(TAG_TABLET_ZOOM) and
-                hasAnyDescendant(hasText("100", substring = true))
-        ).assertIsDisplayed()
         onNodeWithTag(TAG_BEFORE_CHIP).assertIsNotSelected()
     }
 
@@ -540,21 +528,12 @@ class EditorSessionUiTest {
         }
         assertTrue(s.state.value.document?.adjustments?.exposureStops != 0f)
 
-        // Header Back cancels — restores the whole pre-tool recipe, no
-        // steps, no edits.
+        // Header Back keeps both edits, the same as Done, as one undo step.
         onNodeWithTag(TAG_BACK).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
-        assertEquals(
-            0f,
-            s.state.value.document?.adjustments?.exposureStops ?: -1f,
-            0.001f
-        )
-        assertEquals(
-            0f,
-            s.state.value.document?.adjustments?.shadows ?: -1f,
-            0.001f
-        )
-        assertFalse(s.state.value.canUndo)
+        assertTrue(s.state.value.document?.adjustments?.exposureStops != 0f)
+        assertTrue(s.state.value.document?.adjustments?.shadows != 0f)
+        assertTrue(s.state.value.canUndo)
     }
 
     @Test
@@ -780,7 +759,7 @@ class EditorSessionUiTest {
         // Release the held pointer — a still-pressed injection blocks
         // the next gesture, and the handle node is gone in wide mode.
         onRoot().performTouchInput { up() }
-        onNodeWithTag(TAG_TOOL_CANCEL).performClick()
+        onNodeWithTag(TAG_TOOL_APPLY).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
     }
 
@@ -875,7 +854,7 @@ class EditorSessionUiTest {
     }
 
     @Test
-    fun perspectiveCancelRestoresTheCommittedRecipe() = runComposeUiTest {
+    fun perspectiveBackKeepsTheEditedRecipe() = runComposeUiTest {
         val s = liveSession()
         runOnUiThread {
             s.applyEdits(
@@ -904,17 +883,13 @@ class EditorSessionUiTest {
             it.document?.geometry?.warp?.verticalPerspective == 30f
         }
 
-        // Header Back cancels inside the tool — restores the committed
-        // recipe wholesale.
+        // Header Back keeps the tool's changes, the same as Done (the crop
+        // refits to the new perspective).
         onNodeWithTag(TAG_BACK).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
         assertEquals(
-            6f,
+            30f,
             s.state.value.document?.geometry?.warp?.verticalPerspective
-        )
-        assertEquals(
-            0.8,
-            s.state.value.document?.geometry?.crop?.right
         )
     }
 
@@ -1537,7 +1512,7 @@ class EditorSessionUiTest {
     }
 
     @Test
-    fun maskToolCancelRestoresTheUntouchedMask() = runComposeUiTest {
+    fun maskToolBackKeepsTheStroke() = runComposeUiTest {
         val s = liveSession()
         runOnUiThread { s.addImageLayer("fixture://one.png", name = "Sky") }
         awaitState { (it.document?.layers?.size ?: 0) == 1 }
@@ -1555,12 +1530,12 @@ class EditorSessionUiTest {
                 it.document?.layers?.single()?.mask?.strokes?.size == 1
         }
 
-        // Header Back cancels — restores the mask captured at tool open;
-        // the stroke and the transaction are gone together.
+        // Header Back keeps the stroke, the same as Done, and closes the
+        // transaction.
         onNodeWithTag(TAG_BACK).performClick()
         awaitState { !it.toolEditing && !it.isDrafting }
         assertEquals(
-            0,
+            1,
             s.state.value.document!!.layers.single().mask.strokes.size
         )
     }

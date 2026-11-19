@@ -26,9 +26,13 @@ import com.dot.gallery.editor.core.model.PixelSize
  * [seedPreset] the first time the crop surface composes with a loaded
  * document; afterwards it is user state (preset clicks, resets).
  */
+/** The Light tool's two segments: the parameter strip and the Curves graph. */
+internal enum class LightTab { Basics, Curves }
+
 @Stable
 internal class PhotoToolUiState {
-    var cropPreset by mutableStateOf(CropAspectPreset.Original)
+    var lightTab by mutableStateOf(LightTab.Basics)
+    var cropPreset by mutableStateOf(CropAspectPreset.Free)
     var presetSeeded by mutableStateOf(false)
     var showGrid by mutableStateOf(true)
 
@@ -122,7 +126,8 @@ internal class PhotoToolUiState {
                     it.brushFlow,
                     it.cropPortrait,
                     it.cropTab.name,
-                    it.lightParamKey
+                    it.lightParamKey,
+                    it.lightTab.name
                 )
             },
             restore = { saved ->
@@ -150,6 +155,9 @@ internal class PhotoToolUiState {
                     lightParamKey = (saved.getOrNull(9) as? String)
                         ?.takeIf { key -> LightParameters.any { it.key == key } }
                         ?: LightParameters.first().key
+                    lightTab = (saved.getOrNull(10) as? String)?.let { name ->
+                        LightTab.entries.firstOrNull { it.name == name }
+                    } ?: LightTab.Basics
                 }
             }
         )

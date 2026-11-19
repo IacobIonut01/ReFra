@@ -86,6 +86,7 @@ fun VideoEditorScreen(
             cancelImport = session::cancelImport,
             undo = session::undo,
             redo = session::redo,
+            jumpToHistory = session::jumpToHistory,
             // Encoding shares the decoder path with playback — the UI
             // pauses before asking so a live preview never contends with
             // the encoder (the session also pauses defensively).
@@ -149,7 +150,7 @@ fun VideoEditorScreen(
         LocalVideoLiveState provides { session.state.value },
         LocalEditorSettingsStore provides settingsStore
     ) {
-        com.dot.gallery.editor.ui.VideoWorkspaceTheme {
+        com.dot.gallery.editor.ui.EditorWorkspaceTheme {
             VideoEditorContent(
                 state = state,
                 actions = actions,

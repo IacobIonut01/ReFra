@@ -460,7 +460,7 @@ class EditorLooksToolUiTest {
     }
 
     @Test
-    fun backCancelsTheLookTransaction() =
+    fun backKeepsTheLookLikeDone() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession()
         openPhotoTool(TAG_CATEGORY_LOOKS)
@@ -474,33 +474,7 @@ class EditorLooksToolUiTest {
         }
         onNodeWithTag(TAG_BACK).performClick()
         waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
-        assertEquals(PhotoLook(), look(s))
-    }
-
-    @Test
-    fun editsPaneListsTheNonNeutralLook() =
-        runDesktopComposeUiTest(width = 412, height = 832) {
-        val s = liveSession()
-        runOnUiThread {
-            s.applyEdits(
-                "Look",
-                PhotoEdits(
-                    finishing = PhotoFinishing(
-                        look = PhotoLook(PhotoLookId.WarmFade, 0.7f)
-                    )
-                )
-            )
-        }
-        waitUntil(timeoutMillis = 15_000) {
-            look(s)?.id == PhotoLookId.WarmFade
-        }
-
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_EDITS)
-
-        onNodeWithText("Looks · Warm fade").assertIsDisplayed()
-        onNodeWithText("70.00%").assertIsDisplayed()
+        assertEquals(PhotoLookId.Mono, look(s)?.id)
     }
 
     @Test

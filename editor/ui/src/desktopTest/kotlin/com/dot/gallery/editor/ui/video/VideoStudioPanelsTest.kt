@@ -8,6 +8,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
@@ -33,9 +36,10 @@ import com.dot.gallery.editor.render.video.VideoLevels
 import com.dot.gallery.editor.render.video.VideoMediaAccess
 import com.dot.gallery.editor.render.video.VideoPlayback
 import com.dot.gallery.editor.render.video.VoiceRecorder
+import com.dot.gallery.editor.ui.TAG_CATALOGUE_GRID
 import com.dot.gallery.editor.ui.TestEditorRoot
-import com.dot.gallery.editor.ui.V3VideoDarkColors
-import com.dot.gallery.editor.ui.V3VideoLightColors
+import com.dot.gallery.editor.ui.V3DarkColors
+import com.dot.gallery.editor.ui.V3LightColors
 import com.dot.gallery.editor.ui.captureWindowImage
 import com.dot.gallery.editor.ui.samplePixels
 import java.io.File
@@ -204,10 +208,13 @@ class VideoStudioPanelsTest {
     }
 
     private fun ComposeUiTest.openTool(toolTag: String, group: String) {
+        if (onAllNodesWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).fetchSemanticsNodes().isNotEmpty()) {
+            onNodeWithTag(TAG_VIDEO_AUDIO_DOCK_BACK).performClick()
+        }
         onNodeWithTag(TAG_VIDEO_TOOLS).performClick()
-        onNodeWithTag("editor.catalogue.group.$group").performClick()
-        onNodeWithTag(toolTag).performScrollTo()
-            .performSemanticsAction(SemanticsActions.OnClick)
+        onNodeWithTag("editor.catalogue.chip.$group").performClick()
+        onNodeWithTag(TAG_CATALOGUE_GRID).performScrollToNode(hasTestTag(toolTag))
+        onNodeWithTag(toolTag).performSemanticsAction(SemanticsActions.OnClick)
         waitForIdle()
         // The sheet leaves and the panel's spring settles.
         mainClock.advanceTimeBy(1_000)
@@ -395,15 +402,15 @@ class VideoStudioPanelsTest {
         }
 
     @Test
-    fun tabletWidthPanelShowsEveryRulerWithoutChips() =
+    fun tabletCardUsesTheChipStripLikeThePhone() =
         runDesktopComposeUiTest(width = 1280, height = 800) {
             val session = stagedVideo()
             try {
                 openTool(TAG_VIDEO_TOOL_COLOUR, "Picture")
-                onNodeWithTag(TAG_VIDEO_COLOUR_PARAM_PREFIX + "contrast").assertDoesNotExist()
-                listOf("exposure", "contrast", "highlights", "shadows").forEach { key ->
-                    onNodeWithTag(TAG_VIDEO_COLOUR_SLIDER_PREFIX + key).assertExists()
-                }
+                // The large layout's tool card is 360 dp at most, so it uses the
+                // same chips and single ruler as the phone.
+                onNodeWithTag(TAG_VIDEO_COLOUR_PARAM_PREFIX + "contrast").assertExists()
+                onNodeWithTag(TAG_VIDEO_COLOUR_SLIDER_PREFIX + "exposure").assertExists()
             } finally {
                 runOnUiThread { session.close() }
             }
@@ -411,10 +418,9 @@ class VideoStudioPanelsTest {
 
     @Test
     fun tonalControlsSitOneStepAboveThePanelInEveryScheme() {
-        listOf(V3VideoDarkColors, V3VideoLightColors).forEach { scheme ->
+        listOf(V3DarkColors, V3LightColors).forEach { scheme ->
             assertNotEquals(scheme.surfaceContainer, scheme.surfaceContainerHigh)
         }
-        assertEquals(Color(0xFF004787), V3VideoDarkColors.primaryContainer)
     }
 
     @Test
@@ -427,7 +433,7 @@ class VideoStudioPanelsTest {
                     .captureToImage().toPixelMap()
                 // Past the corner, before the centred icon and label.
                 assertEquals(
-                    V3VideoDarkColors.surfaceContainerHigh,
+                    V3DarkColors.surfaceContainerHigh,
                     pixels[8, pixels.height / 2]
                 )
             } finally {
@@ -436,15 +442,18 @@ class VideoStudioPanelsTest {
         }
 
     @Test
-    fun phoneLandscapeStacksTheTrimSteppers() =
+    fun phoneLandscapeTrimCardKeepsBothSteppers() =
         runDesktopComposeUiTest(width = 884, height = 390) {
             val session = stagedVideo()
             try {
-                // Phone landscape opens on Trim in its narrow side panel.
+                // Open Trim from the command row: its card is the side pane.
+                onNodeWithTag(TAG_VIDEO_COMMAND_TRIM).performClick()
+                waitForIdle()
                 val inMinus = onNodeWithTag(TAG_VIDEO_TRIM_IN_MINUS).fetchSemanticsNode().boundsInRoot
                 val outMinus = onNodeWithTag(TAG_VIDEO_TRIM_OUT_MINUS).fetchSemanticsNode().boundsInRoot
-                assertEquals(inMinus.left, outMinus.left)
-                assertTrue(outMinus.top >= inMinus.bottom)
+                // The side pane is wide enough for In and Out side by side.
+                assertEquals(inMinus.top, outMinus.top)
+                assertTrue(outMinus.left > inMinus.right)
             } finally {
                 runOnUiThread { session.close() }
             }

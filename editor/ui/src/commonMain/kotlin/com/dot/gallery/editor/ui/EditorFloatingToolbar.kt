@@ -7,16 +7,16 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -42,23 +42,29 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dot.gallery.editor.core.model.PhotoEdits
+import com.dot.gallery.editor.core.model.toEdits
 import com.dot.gallery.editor.render.photo.PhotoEditorState
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_dock_auto
+import com.dot.gallery.editor.ui.generated.resources.editor_dock_more
 import com.dot.gallery.editor.ui.generated.resources.editor_layers
 import com.dot.gallery.editor.ui.generated.resources.editor_show_all_tools
 import com.dot.gallery.editor.ui.generated.resources.editor_tool_crop_short
-import com.dot.gallery.editor.ui.generated.resources.editor_tools
+import com.dot.gallery.editor.ui.icons.AutoAwesome
 import com.dot.gallery.editor.ui.icons.EditorSymbols
 import com.dot.gallery.editor.ui.icons.Layers
-import com.dot.gallery.editor.ui.icons.Tune
+import com.dot.gallery.editor.ui.icons.MoreVert
 import org.jetbrains.compose.resources.stringResource
 
 internal const val TAG_CATALOGUE = "editor.catalogue"
-internal const val TAG_CATALOGUE_GRID = "editor.catalogue.grid"
-internal const val TAG_PANEL_SOURCE = "editor.panel.source"
-internal const val TAG_PANEL_EDITS = "editor.panel.edits"
 internal const val TAG_LAYERS = "editor.layers"
 internal const val TAG_FOCUS = "editor.focus"
+internal const val TAG_DOCK_AUTO = "editor.dock.auto"
+
+/** Ids the shared Simple dock items carry for its non-tool slots. */
+internal const val DOCK_ID_AUTO = "dock.auto"
+internal const val DOCK_ID_MORE = "dock.more"
 
 private val RAW_DOCK = listOf(
     EditorToolIds.PhotoCrop.value,
@@ -67,16 +73,12 @@ private val RAW_DOCK = listOf(
 )
 
 /**
- * The approved phone dock — a 68 dp capsule with up to four saveable
- * favourites from [EditorWorkspaceState.pinnedPhotoDestinations], the
- * permanent Tools slot and the fixed Colour slot last. Exactly the six
- * slots of the Stitch navigation bar ship by default: Crop, Light,
- * Markup, Looks, Tools, Colour. Each slot is a full-height tap target
- * with the 48×32 dp selection pill behind its 22 dp icon and a 12 sp
- * label below. The [PHOTO_PIN_LAYERS] destination routes to the Layers
- * workspace; tool destinations select through [onSelectTool]. Tools is
- * never pinnable, and an upward swipe past 24 dp — or the "Show all
- * tools" custom action — opens the catalogue without a tap on the slot.
+ * The Simple dock — [EditorDock] items of Auto, the pinned
+ * destinations (or the RAW set Crop/Develop/Looks) and More. On narrow
+ * windows the item width drops to 60 dp and pins that would not fit
+ * stay reachable through the catalogue instead of clipping the pill.
+ * The pill keeps the approved swipe-up and "Show all tools" custom
+ * action.
  */
 @Composable
 internal fun EditorFloatingToolbar(
@@ -86,124 +88,177 @@ internal fun EditorFloatingToolbar(
     enabled: Boolean,
     onSelectTool: (EditorToolId) -> Unit,
     onShowTools: () -> Unit,
+    auto: PhotoAutoDock,
     modifier: Modifier = Modifier
 ) {
     val showAllLabel = stringResource(Res.string.editor_show_all_tools)
-    val layersLabel = stringResource(Res.string.editor_layers)
-    val toolsLabel = stringResource(Res.string.editor_tools)
-    EditorFloatingPanel(
-        shape = RoundedCornerShape(EditorV2Layout.PhonePillHeight / 2),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(EditorV2Layout.PhonePillHeight)
-            .testTag(TAG_EDITOR_PINS)
-            .semantics {
-                customActions = listOf(
-                    CustomAccessibilityAction(label = showAllLabel) {
-                        if (!enabled) {
-                            false
-                        } else {
-                            onShowTools()
-                            true
-                        }
-                    }
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val itemWidth = if (maxWidth < 600.dp) 60.dp else 72.dp
+        // Auto and More always show; the pins between them take what
+        // the remaining width affords (16 dp of side insets included).
+        val fitCount = (
+            (maxWidth - 16.dp) / itemWidth
+            ).toInt() - 2
+        val items = photoDockItems(
+            workspace = workspace,
+            state = state,
+            entries = entries,
+            auto = auto,
+            enabled = enabled,
+            maxPins = fitCount.coerceAtLeast(0)
+        )
+        EditorDock(
+            items = items,
+            orientation = Orientation.Horizontal,
+            onSelect = { id ->
+                photoDockSelect(
+                    id = id,
+                    workspace = workspace,
+                    onSelectTool = onSelectTool,
+                    onShowTools = onShowTools,
+                    auto = auto
                 )
-            }
-            .pointerInput(enabled) {
-                var drag = 0f
-                val threshold = 24.dp.toPx()
-                detectVerticalDragGestures(
-                    onVerticalDrag = { change, amount ->
-                        if (enabled) {
-                            drag += amount
-                            change.consume()
+            },
+            itemWidth = itemWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(TAG_EDITOR_PINS)
+                .semantics {
+                    customActions = listOf(
+                        CustomAccessibilityAction(label = showAllLabel) {
+                            if (!enabled) {
+                                false
+                            } else {
+                                onShowTools()
+                                true
+                            }
                         }
-                    },
-                    onDragEnd = {
-                        if (enabled && drag <= -threshold) onShowTools()
-                        drag = 0f
-                    },
-                    onDragCancel = { drag = 0f }
-                )
-            }
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // A RAW dock is the design's own: Crop, Develop, Looks and Tools.
-            val rawSource = state.info?.isRaw == true
-            val destinations = if (rawSource) RAW_DOCK else workspace.pinnedPhotoDestinations
-            destinations.forEach { destination ->
-                if (destination == PHOTO_PIN_LAYERS) {
-                    PillSlot(
-                        icon = EditorSymbols.Layers,
-                        label = layersLabel,
-                        selected = workspace.panel ==
-                            EditorWorkspacePanel.Layers &&
-                            workspace.toolPanelExpanded,
-                        enabled = enabled,
-                        onClick = {
-                            workspace.togglePanel(
-                                EditorWorkspacePanel.Layers
-                            )
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag(photoPinTag(PHOTO_PIN_LAYERS))
                     )
-                } else {
-                    entries.firstOrNull {
-                        it.descriptor.id.value == destination
-                    }?.let { entry ->
-                        PillSlot(
-                            icon = entry.descriptor.icon,
-                            label = entry.pillLabel(),
-                            selected = workspace.activeTool ==
-                                entry.descriptor.id &&
-                                workspace.toolPanelExpanded,
-                            // The slot mirrors the catalogue gate — an
-                            // unavailable contextual tool shows but
-                            // refuses the tap.
-                            enabled = enabled && entry.available(state),
-                            onClick = { onSelectTool(entry.descriptor.id) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag(photoPinTag(destination))
-                        )
-                    }
                 }
-            }
-            // The fixed Colour slot — a tool, so it never leaves, except on a
-            // RAW, whose colour lives in Develop.
+                .pointerInput(enabled) {
+                    var drag = 0f
+                    val threshold = 24.dp.toPx()
+                    detectVerticalDragGestures(
+                        onVerticalDrag = { change, amount ->
+                            if (enabled) {
+                                drag += amount
+                                change.consume()
+                            }
+                        },
+                        onDragEnd = {
+                            if (enabled && drag <= -threshold) onShowTools()
+                            drag = 0f
+                        },
+                        onDragCancel = { drag = 0f }
+                    )
+                }
+        )
+    }
+}
+
+/**
+ * The Simple dock's item list: Auto first, then the pinned
+ * destinations with Colour fixed at index two — capped at [maxPins]
+ * so narrow windows shed the tail into More — then the catalogue's
+ * More slot. A RAW source swaps the pins for its own
+ * Crop/Develop/Looks set and leaves Colour out.
+ */
+@Composable
+internal fun photoDockItems(
+    workspace: EditorWorkspaceState,
+    state: PhotoEditorState,
+    entries: List<EditorToolEntry<PhotoEditorState, PhotoEditorActions>>,
+    auto: PhotoAutoDock,
+    enabled: Boolean,
+    maxPins: Int = Int.MAX_VALUE
+): List<EditorDockItem> {
+    val autoLabel = stringResource(Res.string.editor_dock_auto)
+    val moreLabel = stringResource(Res.string.editor_dock_more)
+    val layersLabel = stringResource(Res.string.editor_layers)
+    val rawSource = state.info?.isRaw == true
+    val pinned = if (rawSource) RAW_DOCK else workspace.pinnedPhotoDestinations
+    // Colour is a fixed member of the Simple dock too — it follows the
+    // second pin, tagged like any other destination.
+    val destinations = (
+        if (rawSource) pinned
+        else pinned.take(2) + EditorToolIds.PhotoColour.value + pinned.drop(2)
+        ).take(maxPins.coerceAtLeast(0))
+    val items = mutableListOf<EditorDockItem>()
+    items += EditorDockItem(
+        id = DOCK_ID_AUTO,
+        label = autoLabel,
+        icon = EditorSymbols.AutoAwesome,
+        selected = auto.selected,
+        enabled = auto.enabled && enabled,
+        tag = TAG_DOCK_AUTO
+    )
+    destinations.forEach { destination ->
+        if (destination == PHOTO_PIN_LAYERS) {
+            items += EditorDockItem(
+                id = destination,
+                label = layersLabel,
+                icon = EditorSymbols.Layers,
+                selected = workspace.panel ==
+                    EditorWorkspacePanel.Layers &&
+                    workspace.toolPanelExpanded,
+                enabled = enabled,
+                tag = photoPinTag(destination)
+            )
+        } else {
             entries.firstOrNull {
-                it.descriptor.id == EditorToolIds.PhotoColour && !rawSource
+                it.descriptor.id.value == destination
             }?.let { entry ->
-                PillSlot(
-                    icon = entry.descriptor.icon,
+                items += EditorDockItem(
+                    id = destination,
                     label = entry.pillLabel(),
-                    selected = workspace.activeTool == entry.descriptor.id &&
+                    icon = entry.descriptor.icon,
+                    selected = workspace.panel ==
+                        EditorWorkspacePanel.Edit &&
+                        workspace.activeTool ==
+                        entry.descriptor.id &&
                         workspace.toolPanelExpanded,
+                    // The slot mirrors the catalogue gate — an
+                    // unavailable contextual tool shows but refuses
+                    // the tap.
                     enabled = enabled && entry.available(state),
-                    onClick = { onSelectTool(entry.descriptor.id) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .testTag(photoPinTag(entry.descriptor.id.value))
+                    tag = photoPinTag(destination),
+                    edited = photoToolEditCount(
+                        entry.descriptor.id,
+                        state.document?.toEdits() ?: PhotoEdits()
+                    ) > 0 || (entry.descriptor.id == EditorToolIds.PhotoLight &&
+                        photoToolEditCount(
+                            EditorToolIds.PhotoCurves,
+                            state.document?.toEdits() ?: PhotoEdits()
+                        ) > 0)
                 )
             }
-            // Tools closes the dock: the catalogue is the last destination,
-            // not a tool — the bar is a tool strip that ends at the drawer.
-            PillSlot(
-                icon = EditorSymbols.Tune,
-                label = toolsLabel,
-                selected = workspace.catalogueOpen,
-                enabled = enabled,
-                onClick = onShowTools,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag(TAG_CATALOGUE)
-            )
         }
+    }
+    items += EditorDockItem(
+        id = DOCK_ID_MORE,
+        label = moreLabel,
+        icon = EditorSymbols.MoreVert,
+        selected = workspace.catalogueOpen,
+        enabled = enabled,
+        tag = TAG_CATALOGUE
+    )
+    return items
+}
+
+/** Routes a Simple dock selection: Auto applies/undoes, More opens the
+ * catalogue, the Layers pin toggles its pane, tools select normally. */
+internal fun photoDockSelect(
+    id: String,
+    workspace: EditorWorkspaceState,
+    onSelectTool: (EditorToolId) -> Unit,
+    onShowTools: () -> Unit,
+    auto: PhotoAutoDock
+) {
+    when (id) {
+        DOCK_ID_AUTO -> auto.onSelect()
+        DOCK_ID_MORE -> onShowTools()
+        PHOTO_PIN_LAYERS -> workspace.togglePanel(EditorWorkspacePanel.Layers)
+        else -> onSelectTool(EditorToolId(id))
     }
 }
 
@@ -213,7 +268,7 @@ internal fun EditorFloatingToolbar(
  * the registry title.
  */
 @Composable
-private fun EditorToolEntry<PhotoEditorState, PhotoEditorActions>.pillLabel(): String =
+internal fun EditorToolEntry<PhotoEditorState, PhotoEditorActions>.pillLabel(): String =
     stringResource(
         if (descriptor.id == EditorToolIds.PhotoCrop) {
             Res.string.editor_tool_crop_short

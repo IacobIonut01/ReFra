@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.HazeBlurStyle
@@ -30,15 +31,37 @@ import dev.chrisbanes.haze.blur.hazeBlur
 internal fun EditorFloatingPanel(
     shape: Shape,
     modifier: Modifier = Modifier,
+    /** The panel tint under the blur — [editorGlassColors]' panelGlass
+     * for the near-opaque card material, the floating capsule tint otherwise. */
+    baseColor: Color = floatingCapsuleColor(),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
             .clip(shape)
-            .chromeBlur(shape),
+            .chromeBlur(shape, baseColor),
         content = content
     )
 }
+
+/** Floating capsules are near-black in dark mode and the chrome surface in light. */
+@Composable
+private fun floatingCapsuleColor(): Color =
+    if (MaterialTheme.colorScheme.surface.luminance() < .5f) {
+        Color(0xFF161616)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+
+/**
+ * The haze tint's alpha for [baseColor]. A translucent panel colour —
+ * [editorGlassColors]' panelGlass — keeps its own coverage, so a large
+ * surface floating over the canvas reads as the near-opaque card the
+ * design calls for and the blur survives only as a faint wash. An opaque
+ * chrome colour takes the material's glass factor instead.
+ */
+internal fun hazeTintAlpha(baseColor: Color, opaqueAlpha: Float): Float =
+    if (baseColor.alpha < 1f) baseColor.alpha else opaqueAlpha
 
 /**
  * The sheet-blur material — a wider 24 dp backdrop blur under a heavier
@@ -59,7 +82,11 @@ internal fun Modifier.editorSheetBlur(
             blurRadius(blurRadius)
             noiseFactor(0f)
             colorEffects(
-                listOf(HazeColorEffect.tint(baseColor.copy(alpha = 0.82f)))
+                listOf(
+                    HazeColorEffect.tint(
+                        baseColor.copy(alpha = hazeTintAlpha(baseColor, 0.82f))
+                    )
+                )
             )
             fallbackColorEffect(
                 HazeColorEffect.tint(baseColor)

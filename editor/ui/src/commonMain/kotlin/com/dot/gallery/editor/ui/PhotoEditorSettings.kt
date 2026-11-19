@@ -32,6 +32,8 @@ import com.dot.gallery.editor.ui.generated.resources.editor_settings_format_webp
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_grid
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_grid_summary
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_histogram
+import com.dot.gallery.editor.ui.generated.resources.editor_settings_show_histogram
+import com.dot.gallery.editor.ui.generated.resources.editor_settings_show_histogram_summary
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_histogram_luma
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_photo_title
 import com.dot.gallery.editor.ui.generated.resources.editor_settings_pinned
@@ -42,6 +44,7 @@ import com.dot.gallery.editor.ui.generated.resources.editor_settings_workspace
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
+internal const val TAG_SETTINGS_SHOW_HISTOGRAM = "editor.settings.showHistogram"
 internal const val TAG_SETTINGS_HISTOGRAM = "editor.settings.histogram"
 internal const val TAG_SETTINGS_CLIPPING = "editor.settings.clipping"
 internal const val TAG_SETTINGS_GRID = "editor.settings.grid"
@@ -113,6 +116,14 @@ internal fun PhotoEditorSettingsPage(
             EditorSettingsSection(
                 stringResource(Res.string.editor_settings_workspace),
                 listOf(
+                    EditorSettingRow.Toggle(
+                        Icons.Outlined.ShowChart,
+                        stringResource(Res.string.editor_settings_show_histogram),
+                        stringResource(Res.string.editor_settings_show_histogram_summary),
+                        TAG_SETTINGS_SHOW_HISTOGRAM,
+                        checked = settings.showHistogram,
+                        onCheckedChange = { on -> store.update { it.copy(showHistogram = on) } }
+                    ),
                     EditorSettingRow.Choice(
                         Icons.Outlined.ShowChart,
                         stringResource(Res.string.editor_settings_histogram), null,

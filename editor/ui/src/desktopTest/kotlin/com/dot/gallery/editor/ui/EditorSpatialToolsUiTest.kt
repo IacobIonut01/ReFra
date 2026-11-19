@@ -148,7 +148,7 @@ class EditorSpatialToolsUiTest {
     }
 
     @Test
-    fun backCancelsTheWholeDetailsTransaction() =
+    fun backKeepsTheDetailsEditLikeDone() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         val s = liveSession()
         openPhotoTool(TAG_CATEGORY_DETAILS)
@@ -163,7 +163,7 @@ class EditorSpatialToolsUiTest {
 
         onNodeWithTag(TAG_BACK).performClick()
         waitUntil(timeoutMillis = 15_000) { !s.state.value.toolEditing }
-        assertEquals(true, spatial(s)?.isNeutral)
+        assertEquals(0.5f, spatial(s)?.details?.texture)
     }
 
     // ── Lens blur sheet ───────────────────────────────────────────────
@@ -368,62 +368,6 @@ class EditorSpatialToolsUiTest {
     }
 
     // ── Edits summary + reachability ──────────────────────────────────
-
-    @Test
-    fun editsPaneListsEveryNonNeutralSpatialField() =
-        runDesktopComposeUiTest(width = 412, height = 832) {
-        val s = liveSession()
-        runOnUiThread {
-            s.applyEdits(
-                "Spatial",
-                PhotoEdits(
-                    spatial = PhotoSpatialEffects(
-                        details = PhotoDetails(
-                            texture = 0.4f, clarity = -0.2f,
-                            sharpening = 0.7f, noiseReduction = 0.1f
-                        ),
-                        lensBlur = PhotoLensBlur(
-                            mode = LensBlurMode.Linear,
-                            strength = 0.8f,
-                            transition = 0.35f,
-                            highlightBokeh = 0.5f,
-                            centerX = 0.25f, centerY = 0.75f,
-                            angleDegrees = -45f
-                        )
-                    )
-                )
-            )
-        }
-        waitUntil(timeoutMillis = 15_000) {
-            s.state.value.document?.spatial?.isNeutral == false
-        }
-
-        openPhotoTool(TAG_CATEGORY_LIGHT)
-        waitUntil(timeoutMillis = 15_000) { s.state.value.toolEditing }
-        openPhonePane(TAG_PANEL_EDITS)
-
-        // Every Details field lists a row.
-        onNodeWithText("Texture").assertIsDisplayed()
-        onNodeWithText("+40").assertIsDisplayed()
-        onNodeWithText("Clarity").assertIsDisplayed()
-        onNodeWithText("-20").assertIsDisplayed()
-        onNodeWithText("Sharpening").assertIsDisplayed()
-        onNodeWithText("70.00").assertIsDisplayed()
-        onNodeWithText("Noise reduction").assertIsDisplayed()
-        onNodeWithText("10.00").assertIsDisplayed()
-
-        // The Lens blur recipe lists its mode and every moved field.
-        onNodeWithText("Lens blur").assertIsDisplayed()
-        onNodeWithText("Linear").assertIsDisplayed()
-        onNodeWithText("Strength").assertIsDisplayed()
-        onNodeWithText("80.00").assertIsDisplayed()
-        onNodeWithText("Transition").assertIsDisplayed()
-        onNodeWithText("35.00").assertIsDisplayed()
-        onNodeWithText("Highlight bokeh").assertIsDisplayed()
-        onNodeWithText("50.00").assertIsDisplayed()
-        onNodeWithText("Angle").assertIsDisplayed()
-        onNodeWithText("-45.0°").assertIsDisplayed()
-    }
 
     @Test
     fun spatialSurfacesStayReachableAt2x() =

@@ -63,6 +63,9 @@ data class VideoEditorState(
     val rippleEnabled: Boolean = true,
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
+    /** The committed steps' labels, oldest first, and the undone ones, next first. */
+    val historyPast: List<String> = emptyList(),
+    val historyUndone: List<String> = emptyList(),
     val isDirty: Boolean = false,
     val error: VideoErrorKind? = null,
     /**
