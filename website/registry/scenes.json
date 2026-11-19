@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-17T14:15:07.506Z",
-  "capturedAtMs": 1794924635863,
+  "generatedAt": "2026-11-19T11:01:45.321Z",
+  "capturedAtMs": 1795086085623,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
@@ -6356,7 +6356,7 @@
         "Long-press action"
       ],
       "states": [
-        "rotate",
+        "default",
         "cutout-unavailable"
       ],
       "presentation": "screen",
@@ -6375,19 +6375,10 @@
             "widthDp": 768,
             "heightDp": 932
           },
-          "rotate": {
-            "src": "captures/long-press-action/light/foldable-rotate.webp",
-            "type": "image",
-            "file": "long-press-action/light/foldable-rotate.webp",
-            "width": 1344,
-            "height": 1631,
-            "widthDp": 768,
-            "heightDp": 932
-          },
           "default": {
-            "src": "captures/long-press-action/light/foldable-rotate.webp",
+            "src": "captures/long-press-action/light/foldable-default.webp",
             "type": "image",
-            "file": "long-press-action/light/foldable-rotate.webp",
+            "file": "long-press-action/light/foldable-default.webp",
             "width": 1344,
             "height": 1631,
             "widthDp": 768,
@@ -6399,26 +6390,17 @@
             "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
             "type": "image",
             "file": "long-press-action/light/phone-cutout-unavailable.webp",
-            "width": 721,
-            "height": 1601,
-            "widthDp": 412,
-            "heightDp": 915
-          },
-          "rotate": {
-            "src": "captures/long-press-action/light/phone-rotate.webp",
-            "type": "image",
-            "file": "long-press-action/light/phone-rotate.webp",
-            "width": 721,
-            "height": 1601,
+            "width": 1079,
+            "height": 2396,
             "widthDp": 412,
             "heightDp": 915
           },
           "default": {
-            "src": "captures/long-press-action/light/phone-rotate.webp",
+            "src": "captures/long-press-action/light/phone-default.webp",
             "type": "image",
-            "file": "long-press-action/light/phone-rotate.webp",
-            "width": 721,
-            "height": 1601,
+            "file": "long-press-action/light/phone-default.webp",
+            "width": 1079,
+            "height": 2396,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -6433,19 +6415,10 @@
             "widthDp": 840,
             "heightDp": 1180
           },
-          "rotate": {
-            "src": "captures/long-press-action/light/tablet-rotate.webp",
-            "type": "image",
-            "file": "long-press-action/light/tablet-rotate.webp",
-            "width": 1470,
-            "height": 2065,
-            "widthDp": 840,
-            "heightDp": 1180
-          },
           "default": {
-            "src": "captures/long-press-action/light/tablet-rotate.webp",
+            "src": "captures/long-press-action/light/tablet-default.webp",
             "type": "image",
-            "file": "long-press-action/light/tablet-rotate.webp",
+            "file": "long-press-action/light/tablet-default.webp",
             "width": 1470,
             "height": 2065,
             "widthDp": 840,
@@ -6465,19 +6438,10 @@
               "widthDp": 768,
               "heightDp": 932
             },
-            "rotate": {
-              "src": "captures/long-press-action/dark/foldable-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/dark/foldable-rotate.webp",
-              "width": 1344,
-              "height": 1631,
-              "widthDp": 768,
-              "heightDp": 932
-            },
             "default": {
-              "src": "captures/long-press-action/dark/foldable-rotate.webp",
+              "src": "captures/long-press-action/dark/foldable-default.webp",
               "type": "image",
-              "file": "long-press-action/dark/foldable-rotate.webp",
+              "file": "long-press-action/dark/foldable-default.webp",
               "width": 1344,
               "height": 1631,
               "widthDp": 768,
@@ -6489,26 +6453,17 @@
               "src": "captures/long-press-action/dark/phone-cutout-unavailable.webp",
               "type": "image",
               "file": "long-press-action/dark/phone-cutout-unavailable.webp",
-              "width": 721,
-              "height": 1601,
-              "widthDp": 412,
-              "heightDp": 915
-            },
-            "rotate": {
-              "src": "captures/long-press-action/dark/phone-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/dark/phone-rotate.webp",
-              "width": 721,
-              "height": 1601,
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             },
             "default": {
-              "src": "captures/long-press-action/dark/phone-rotate.webp",
+              "src": "captures/long-press-action/dark/phone-default.webp",
               "type": "image",
-              "file": "long-press-action/dark/phone-rotate.webp",
-              "width": 721,
-              "height": 1601,
+              "file": "long-press-action/dark/phone-default.webp",
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6523,19 +6478,10 @@
               "widthDp": 840,
               "heightDp": 1180
             },
-            "rotate": {
-              "src": "captures/long-press-action/dark/tablet-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/dark/tablet-rotate.webp",
-              "width": 1470,
-              "height": 2065,
-              "widthDp": 840,
-              "heightDp": 1180
-            },
             "default": {
-              "src": "captures/long-press-action/dark/tablet-rotate.webp",
+              "src": "captures/long-press-action/dark/tablet-default.webp",
               "type": "image",
-              "file": "long-press-action/dark/tablet-rotate.webp",
+              "file": "long-press-action/dark/tablet-default.webp",
               "width": 1470,
               "height": 2065,
               "widthDp": 840,
@@ -6554,19 +6500,10 @@
               "widthDp": 768,
               "heightDp": 932
             },
-            "rotate": {
-              "src": "captures/long-press-action/light/foldable-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/light/foldable-rotate.webp",
-              "width": 1344,
-              "height": 1631,
-              "widthDp": 768,
-              "heightDp": 932
-            },
             "default": {
-              "src": "captures/long-press-action/light/foldable-rotate.webp",
+              "src": "captures/long-press-action/light/foldable-default.webp",
               "type": "image",
-              "file": "long-press-action/light/foldable-rotate.webp",
+              "file": "long-press-action/light/foldable-default.webp",
               "width": 1344,
               "height": 1631,
               "widthDp": 768,
@@ -6578,26 +6515,17 @@
               "src": "captures/long-press-action/light/phone-cutout-unavailable.webp",
               "type": "image",
               "file": "long-press-action/light/phone-cutout-unavailable.webp",
-              "width": 721,
-              "height": 1601,
-              "widthDp": 412,
-              "heightDp": 915
-            },
-            "rotate": {
-              "src": "captures/long-press-action/light/phone-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/light/phone-rotate.webp",
-              "width": 721,
-              "height": 1601,
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             },
             "default": {
-              "src": "captures/long-press-action/light/phone-rotate.webp",
+              "src": "captures/long-press-action/light/phone-default.webp",
               "type": "image",
-              "file": "long-press-action/light/phone-rotate.webp",
-              "width": 721,
-              "height": 1601,
+              "file": "long-press-action/light/phone-default.webp",
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -6612,19 +6540,10 @@
               "widthDp": 840,
               "heightDp": 1180
             },
-            "rotate": {
-              "src": "captures/long-press-action/light/tablet-rotate.webp",
-              "type": "image",
-              "file": "long-press-action/light/tablet-rotate.webp",
-              "width": 1470,
-              "height": 2065,
-              "widthDp": 840,
-              "heightDp": 1180
-            },
             "default": {
-              "src": "captures/long-press-action/light/tablet-rotate.webp",
+              "src": "captures/long-press-action/light/tablet-default.webp",
               "type": "image",
-              "file": "long-press-action/light/tablet-rotate.webp",
+              "file": "long-press-action/light/tablet-default.webp",
               "width": 1470,
               "height": 2065,
               "widthDp": 840,
@@ -10350,8 +10269,8 @@
             "src": "captures/settings-gestures/light/phone-cutout-unavailable.webp",
             "type": "image",
             "file": "settings-gestures/light/phone-cutout-unavailable.webp",
-            "width": 721,
-            "height": 1601,
+            "width": 1079,
+            "height": 2396,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -10359,8 +10278,8 @@
             "src": "captures/settings-gestures/light/phone-default.webp",
             "type": "image",
             "file": "settings-gestures/light/phone-default.webp",
-            "width": 721,
-            "height": 1601,
+            "width": 1079,
+            "height": 2396,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -10475,8 +10394,8 @@
               "src": "captures/settings-gestures/light/phone-cutout-unavailable.webp",
               "type": "image",
               "file": "settings-gestures/light/phone-cutout-unavailable.webp",
-              "width": 721,
-              "height": 1601,
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -10484,8 +10403,8 @@
               "src": "captures/settings-gestures/light/phone-default.webp",
               "type": "image",
               "file": "settings-gestures/light/phone-default.webp",
-              "width": 721,
-              "height": 1601,
+              "width": 1079,
+              "height": 2396,
               "widthDp": 412,
               "heightDp": 915
             }

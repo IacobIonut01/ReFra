@@ -645,7 +645,7 @@ val sceneRegistry: List<DocsScene> = listOf(
         id = "long-press-action",
         title = "Long-press action",
         pathTrace = listOf("Settings", "Gestures", "Long-press action"),
-        states = listOf("rotate", "cutout-unavailable"),
+        states = listOf("default", "cutout-unavailable"),
     ) { state -> DocsLongPressActionScene(state) },
     DocsScene(
         id = "settings-backup-wizard",

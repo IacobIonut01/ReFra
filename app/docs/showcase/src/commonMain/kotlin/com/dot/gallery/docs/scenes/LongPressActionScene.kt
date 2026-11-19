@@ -15,6 +15,7 @@ import com.dot.gallery.core.ui.components.PreferenceOption
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_CUTOUT
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_NONE
 import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
+import com.dot.gallery.domain.settings.resolveLongPressAction
 
 /**
  * The real [ChooserPreferenceDetailScreen] shell the media-viewer settings
@@ -25,8 +26,12 @@ import com.dot.gallery.domain.settings.LONG_PRESS_ACTION_ROTATE
  */
 @Composable
 fun DocsLongPressActionScene(state: String?) {
-    var selected by rememberSaveable { mutableStateOf(LONG_PRESS_ACTION_ROTATE) }
     val cutoutUnavailable = state == "cutout-unavailable"
+    var selected by rememberSaveable(cutoutUnavailable) {
+        mutableStateOf(
+            resolveLongPressAction(storedValue = "", legacyCutout = false, cutoutInstalled = !cutoutUnavailable),
+        )
+    }
     // feature.settings Res accessors are module-internal; literals mirror
     // long_press_action_* strings verbatim.
     ChooserPreferenceDetailScreen(
@@ -34,9 +39,9 @@ fun DocsLongPressActionScene(state: String?) {
         description = "Choose what a long-press on an image does in the viewer. " +
             "Rotate turns the image 90° for viewing; you can save the rotation " +
             "from the button that appears. Cut out subject starts an on-device " +
-            "subject cut-out. None does nothing. When long-press cuts out a " +
-            "subject, a Rotate button is shown on screen instead. You can " +
-            "always cut out a subject from the built-in editor's Cutout tool.",
+            "subject cut-out. None does nothing. To rotate with a button, add " +
+            "Rotate to the viewer action bar. You can always cut out a subject " +
+            "from the built-in editor's Cutout tool.",
         options = listOf(
             PreferenceOption(
                 value = LONG_PRESS_ACTION_ROTATE,
