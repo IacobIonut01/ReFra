@@ -931,13 +931,13 @@ object Settings {
         fun rememberDisableSmoothing() =
             rememberPreference(SettingsKeys.disableSmoothing)
 
-        // One of LONG_PRESS_ACTION_ROTATE (default), _CUTOUT or _NONE. Falls back to the legacy
-        // long_press_cutout switch until the user picks an action.
+        // One of LONG_PRESS_ACTION_CUTOUT (default when installed), _NONE (default when not) or
+        // _ROTATE. Falls back to the legacy long_press_cutout switch until the user picks an action.
         @Composable
-        fun rememberLongPressAction(): String {
+        fun rememberLongPressAction(cutoutInstalled: Boolean): String {
             val legacyCutout by rememberPreference(SettingsKeys.longPressCutout)
             val storedAction by rememberPreference(SettingsKeys.longPressAction)
-            return resolveLongPressAction(storedAction, legacyCutout)
+            return resolveLongPressAction(storedAction, legacyCutout, cutoutInstalled)
         }
 
         // ==== Re-encode / save quality (format-preserving overwrite) ====

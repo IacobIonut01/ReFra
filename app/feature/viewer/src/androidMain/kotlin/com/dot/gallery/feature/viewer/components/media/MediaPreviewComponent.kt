@@ -32,6 +32,8 @@ import com.dot.gallery.core.presentation.util.LocalHazeState
 import dev.chrisbanes.haze.hazeSource
 import com.dot.gallery.domain.util.isVideo
 import com.dot.gallery.feature.viewer.components.video.VideoPlayer
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 
 fun shouldRenderMotionPhotoSurface(
@@ -51,6 +53,7 @@ fun <T : Media> MediaPreviewComponent(
     // Viewer chrome is showing and interactive; found codes are only drawn and tappable
     // while it is (see ZoomablePagerImage).
     chromeVisible: Boolean = true,
+    rotateRequests: Flow<Unit> = emptyFlow(),
     playWhenReady: State<Boolean>,
     onItemClick: () -> Unit,
     onImageTap: (Offset) -> Unit = { onItemClick() },
@@ -177,6 +180,7 @@ fun <T : Media> MediaPreviewComponent(
                         isSelected = isSelected,
                         uiVisible = uiEnabled,
                         chromeVisible = chromeVisible,
+                        rotateRequests = rotateRequests,
                         cutoutEnabled = cutoutEnabled && !slideshowActive
                     )
                 }

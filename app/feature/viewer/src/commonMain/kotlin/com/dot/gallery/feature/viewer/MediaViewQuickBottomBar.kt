@@ -88,6 +88,8 @@ fun <T : Media> MediaViewQuickBottomBar(
     placement: ViewerActionPlacement = ViewerActionPlacement.BOTTOM,
     // Cast slot: the app-side CastButton, rendered when CAST is the configured action.
     castButton: (@Composable (followTheme: Boolean) -> Unit)? = null,
+    // Rotate slot: null when rotation does not apply to the current item, which hides the action.
+    onRotate: (() -> Unit)? = null,
     followThemeOverride: Boolean? = null,
 ) {
     val visualPolicy = LocalMediaViewerVisualPolicy.current
@@ -172,6 +174,14 @@ fun <T : Media> MediaViewQuickBottomBar(
                             )
                         }
                         ViewerQuickAction.CAST -> castButton?.invoke(followTheme)
+                        ViewerQuickAction.ROTATE -> if (onRotate != null) {
+                            RotateButton(
+                                media = currentMedia,
+                                enabled = enabled,
+                                followTheme = followTheme,
+                                onRotate = onRotate
+                            )
+                        }
                         ViewerQuickAction.COPY_TO_CLIPBOARD -> if (capabilities.copyToClipboard) {
                             CopyToClipboardButton(
                                 media = currentMedia,

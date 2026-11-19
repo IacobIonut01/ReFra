@@ -62,12 +62,19 @@ class SettingsTruthRegressionTest {
     }
 
     @Test
-    fun longPressActionFallsBackToLegacyCutoutSwitchUntilChosen() {
-        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction("", legacyCutout = false))
-        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(null, legacyCutout = true))
-        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction(LONG_PRESS_ACTION_NONE, legacyCutout = true))
-        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction(LONG_PRESS_ACTION_ROTATE, legacyCutout = true))
-        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction("bogus", legacyCutout = true))
+    fun longPressActionDefaultsToCutoutWhenInstalledAndStoredChoiceWins() {
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(null, legacyCutout = false, cutoutInstalled = true))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction("", legacyCutout = false, cutoutInstalled = true))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction("bogus", legacyCutout = false, cutoutInstalled = true))
+        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction(null, legacyCutout = false, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction("", legacyCutout = false, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction("bogus", legacyCutout = false, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(null, legacyCutout = true, cutoutInstalled = true))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(null, legacyCutout = true, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction(LONG_PRESS_ACTION_ROTATE, legacyCutout = false, cutoutInstalled = true))
+        assertEquals(LONG_PRESS_ACTION_ROTATE, resolveLongPressAction(LONG_PRESS_ACTION_ROTATE, legacyCutout = true, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_CUTOUT, resolveLongPressAction(LONG_PRESS_ACTION_CUTOUT, legacyCutout = false, cutoutInstalled = false))
+        assertEquals(LONG_PRESS_ACTION_NONE, resolveLongPressAction(LONG_PRESS_ACTION_NONE, legacyCutout = true, cutoutInstalled = true))
     }
 
     @Test

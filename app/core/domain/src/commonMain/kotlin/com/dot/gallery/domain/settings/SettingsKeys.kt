@@ -109,7 +109,10 @@ object SettingsKeys {
     val disableSmoothing = PrefKey.bool("disable_smoothing", default = false)
     /** Legacy boolean superseded by [longPressAction]; still read to derive its default. */
     val longPressCutout = PrefKey.bool("long_press_cutout", default = false)
-    /** Empty means unset — resolve through [resolveLongPressAction] with [longPressCutout]. */
+    /**
+     * Empty means unset — resolve through [resolveLongPressAction] with [longPressCutout] and
+     * whether the cut-out models are installed.
+     */
     val longPressAction = PrefKey.string("long_press_action", default = "")
     /** Read QR codes and barcodes in the photo on screen, on the device. */
     val codeScanEnabled = PrefKey.bool("code_scan_enabled", default = true)
@@ -357,13 +360,15 @@ const val LONG_PRESS_ACTION_CUTOUT = "cutout"
 const val LONG_PRESS_ACTION_NONE = "none"
 
 /**
- * Effective viewer long-press action. A missing or unknown stored value falls back to the legacy
- * `long_press_cutout` switch so users who enabled cut-out before the chooser existed keep it.
+ * Effective viewer long-press action. A stored ROTATE, CUTOUT or NONE is returned unchanged, even
+ * when cut-out is not installed. Otherwise the legacy `long_press_cutout` switch counts as a
+ * stored choice and selects CUTOUT. When neither is set, the default is CUTOUT if the cut-out
+ * models are installed and NONE if they are not.
  */
-fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean): String =
+fun resolveLongPressAction(storedValue: String?, legacyCutout: Boolean, cutoutInstalled: Boolean): String =
     when (storedValue) {
         LONG_PRESS_ACTION_ROTATE, LONG_PRESS_ACTION_CUTOUT, LONG_PRESS_ACTION_NONE -> storedValue
-        else -> if (legacyCutout) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_ROTATE
+        else -> if (legacyCutout || cutoutInstalled) LONG_PRESS_ACTION_CUTOUT else LONG_PRESS_ACTION_NONE
     }
 
 /** Text recognition modes stored in [SettingsKeys.ocrMode]. */

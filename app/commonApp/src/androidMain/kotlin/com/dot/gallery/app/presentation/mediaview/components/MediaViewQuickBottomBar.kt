@@ -97,6 +97,7 @@ fun <T : Media> MediaViewQuickBottomBar(
     // Top-bar slot instances borrow the app bar's follow-theme and may render CAST.
     placement: ViewerActionPlacement = ViewerActionPlacement.BOTTOM,
     castButton: (@Composable (followTheme: Boolean) -> Unit)? = null,
+    onRotate: (() -> Unit)? = null,
     followThemeOverride: Boolean? = null
 ) {
     val context = LocalContext.current
@@ -183,6 +184,7 @@ fun <T : Media> MediaViewQuickBottomBar(
         onVisualSearch = onVisualSearch,
         placement = placement,
         castButton = castButton,
+        onRotate = onRotate,
         followThemeOverride = followThemeOverride,
         isFavorite = isFavorite,
         onToggleFavorite = { media, target ->

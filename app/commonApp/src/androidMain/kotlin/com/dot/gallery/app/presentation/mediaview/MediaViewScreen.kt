@@ -1613,6 +1613,13 @@ fun <T : Media> MediaViewScreen(
         }
 
         var isLocked by rememberSaveable { mutableStateOf(false) }
+        // Rotate requests from the quick-action bars; only the selected page consumes them.
+        val rotateRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
+        val rotateAction: (() -> Unit)? = if (
+            currentMedia?.isImage == true && !isLocked && currentCapabilities?.rotate == true
+        ) {
+            { rotateRequests.tryEmit(Unit) }
+        } else null
         var viewerWidth by remember { mutableIntStateOf(0) }
         val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         val tapZoneAt: (Offset) -> TapNavigationZone = { offset ->
@@ -2558,6 +2565,7 @@ fun <T : Media> MediaViewScreen(
                                     motionPhotoState = motionPhotoState,
                                     currentVault = currentVault,
                                     rotationDisabled = isLocked || currentCapabilities?.rotate != true,
+                                    rotateRequests = rotateRequests,
                                     onImageRotated = { newRotation ->
                                         // Reduce the accumulated rotation to the 0..359 range so that
                                         // every full turn (360, 720, ...) is treated as "no rotation".
@@ -3020,6 +3028,7 @@ fun <T : Media> MediaViewScreen(
                             onTrashConfirmed = onTrashConfirmed,
                             placement = placement,
                             castButton = castSlot,
+                            onRotate = rotateAction,
                             followThemeOverride = followTheme,
                         )
                     }
@@ -3438,6 +3447,7 @@ fun <T : Media> MediaViewScreen(
                                             onVisualSearch = onVisualSearch,
                                             onTrashConfirmed = onTrashConfirmed,
                                             castButton = castSlot,
+                                            onRotate = rotateAction,
                                         )
                                     }
                                 }

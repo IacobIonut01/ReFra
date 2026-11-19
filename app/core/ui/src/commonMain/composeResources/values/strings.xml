@@ -71,6 +71,7 @@
     <string name="action_desc_download_item">Download the current cloud item to your device</string>
     <string name="action_desc_rename_item">Rename the current file</string>
     <string name="action_desc_edit_item">Open the current item in the photo editor</string>
+    <string name="action_desc_rotate_item">Rotate the current item 90° clockwise</string>
     <string name="action_desc_trash_item">Move the current item to the trash</string>
     <string name="private_folder_move_out">Move out</string>
 <string name="rename_section">Rename section</string>

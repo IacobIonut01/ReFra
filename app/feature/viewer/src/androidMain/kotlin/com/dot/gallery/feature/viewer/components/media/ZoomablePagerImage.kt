@@ -8,9 +8,6 @@ package com.dot.gallery.feature.viewer.components.media
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -21,8 +18,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,7 +38,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.ScreenRotationAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -128,6 +122,8 @@ import com.dot.gallery.core.decoder.format.TiffImageDecoder
 import com.dot.gallery.core.decoder.isAnimatedAvif
 import com.dot.gallery.core.decoder.isAnimatedWebp
 import com.dot.gallery.core.ml.CutoutHelper
+import com.dot.gallery.core.ml.ModelGroup
+import com.dot.gallery.core.ml.ModelStatus
 import com.dot.gallery.core.presentation.components.util.LocalBatteryStatus
 import com.dot.gallery.core.presentation.components.util.ProvideBatteryStatus
 import com.dot.gallery.core.util.HdrCapabilities
@@ -167,6 +163,8 @@ import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ScalesCalculator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -386,6 +384,8 @@ fun <T : Media> ZoomablePagerImage(
     // Viewer chrome (bars and sheets) is showing and interactive; found codes are only
     // drawn and tappable while it is — a hidden-chrome tap must reach onItemClick instead.
     chromeVisible: Boolean = true,
+    // Each emission rotates the selected page, as a long-press rotate would.
+    rotateRequests: Flow<Unit> = emptyFlow(),
     // When false (e.g. during a slideshow) both the long-press cut-out gesture and the
     // background subject-suggestion detection are disabled.
     cutoutEnabled: Boolean = true,
@@ -902,11 +902,18 @@ fun <T : Media> ZoomablePagerImage(
             }
         }
     }
+    val currentRotate by rememberUpdatedState(rotateImage)
+    LaunchedEffect(isSelected, rotateRequests) {
+        if (isSelected) rotateRequests.collect { currentRotate() }
+    }
 
     // --- Subject cutout (on-device MobileSAM) ---
     val modelManager = remember { viewerRuntime.modelManager }
-    // User-chosen long-press action. When it is cutout, Rotate is offered as an on-screen pill.
-    val longPressAction = Settings.Misc.rememberLongPressAction()
+    val cutoutStatus by modelManager.status(ModelGroup.CUTOUT).collectAsState()
+    // User-chosen long-press action.
+    val longPressAction = Settings.Misc.rememberLongPressAction(
+        cutoutInstalled = cutoutStatus == ModelStatus.READY,
+    )
 
     // Pulsing glow for the cutout contour. The infinite animation is only created while it's
     // actually needed (a cutout is active). An unconditional rememberInfiniteTransition would run a
@@ -1318,33 +1325,12 @@ fun <T : Media> ZoomablePagerImage(
                 }
             }
         }
-
-        val chromeVisible = isSelected && uiVisible && !textSelecting && !cutoutState.isActive && !cutoutState.isProcessing
-
-        if (longPressAction == LONG_PRESS_ACTION_CUTOUT) {
-            // Long-press does cutout → offer Rotate as a pill.
-            AnimatedVisibility(
-                visible = chromeVisible && !rotationDisabled,
-                enter = if (animationsEnabled) fadeIn() else EnterTransition.None,
-                exit = if (animationsEnabled) fadeOut() else ExitTransition.None,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = 96.dp)
-            ) {
-                MediaViewActionPill(
-                    icon = Icons.Outlined.ScreenRotationAlt,
-                    label = stringResource(Res.string.rotate),
-                    onClick = rotateImage
-                )
-            }
-        }
     }
 }
 
 /**
  * Small pill button matching the media viewer's motion-photo / rotate chip style, used for viewer
- * actions such as retrying an image load or rotating when cutout owns the long-press gesture.
+ * actions such as retrying an image load.
  */
 @Composable
 private fun MediaViewActionPill(

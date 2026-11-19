@@ -85,7 +85,11 @@ fun SettingsGesturesContent(
     var swipeToDismiss by rememberPreference(SettingsKeys.viewerSwipeToDismiss)
     val legacyLongPressCutout by rememberPreference(SettingsKeys.longPressCutout)
     var storedLongPressAction by rememberPreference(SettingsKeys.longPressAction)
-    val longPressAction = resolveLongPressAction(storedLongPressAction, legacyLongPressCutout)
+    val longPressAction = resolveLongPressAction(
+        storedLongPressAction,
+        legacyLongPressCutout,
+        state.cutoutModelAvailable,
+    )
     val onTapNavigationChange: (Boolean) -> Unit = { enabled ->
         tapSidesToNavigate = enabled
         actions.onTapSidesChanged()

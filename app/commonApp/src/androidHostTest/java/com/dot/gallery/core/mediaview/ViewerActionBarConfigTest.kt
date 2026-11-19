@@ -40,6 +40,29 @@ class ViewerActionBarConfigTest {
     }
 
     @Test
+    fun rotateIsOptInAndSurvivesSanitizeAndJsonInBottomOrTopSlot() {
+        val defaults = ViewerActionBarConfig()
+        assertFalse(defaults.actions.contains(ViewerQuickAction.ROTATE))
+        assertFalse(defaults.topActions.contains(ViewerQuickAction.ROTATE))
+
+        val inBottom = ViewerActionBarConfig(
+            actions = listOf(ViewerQuickAction.SHARE, ViewerQuickAction.ROTATE, ViewerQuickAction.TRASH),
+        )
+        val inTopEnd = ViewerActionBarConfig(topEnd = ViewerQuickAction.ROTATE)
+        val inTopStart = ViewerActionBarConfig(topStart = ViewerQuickAction.ROTATE)
+
+        assertEquals(listOf(ViewerQuickAction.SHARE, ViewerQuickAction.ROTATE, ViewerQuickAction.TRASH), inBottom.sanitized().actions)
+        assertEquals(ViewerQuickAction.ROTATE, inTopEnd.sanitized().topEnd)
+        assertEquals(ViewerQuickAction.ROTATE, inTopStart.sanitized().topStart)
+
+        listOf(inBottom, inTopEnd, inTopStart).forEach { config ->
+            val sanitized = config.sanitized()
+            val encoded = Json.encodeToString(ViewerActionBarConfig.serializer(), sanitized)
+            assertEquals(sanitized, Json.decodeFromString(ViewerActionBarConfig.serializer(), encoded))
+        }
+    }
+
+    @Test
     fun sanitizedPreservesOrderAndDropsDuplicates() {
         val config = ViewerActionBarConfig(
             actions = listOf(

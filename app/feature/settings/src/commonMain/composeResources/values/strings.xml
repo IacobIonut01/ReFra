@@ -544,7 +544,7 @@
     <string name="hdr_video_playback_summary">Play Dolby Vision, HDR10 and HLG videos in HDR on a compatible display</string>
     <string name="long_press_action_cutout">Cut out subject</string>
     <string name="long_press_action_cutout_unavailable">Download the Subject Cutout model from AI models to use this</string>
-    <string name="long_press_action_description">Choose what a long-press on an image does in the viewer. Rotate turns the image 90° for viewing; you can save the rotation from the button that appears. Cut out subject starts an on-device subject cut-out. None does nothing. When long-press cuts out a subject, a Rotate button is shown on screen instead. You can always cut out a subject from the built-in editor's Cutout tool.</string>
+    <string name="long_press_action_description">Choose what a long-press on an image does in the viewer. Rotate turns the image 90° for viewing; you can save the rotation from the button that appears. Cut out subject starts an on-device subject cut-out. None does nothing. To rotate with a button, add Rotate to the viewer action bar. You can always cut out a subject from the built-in editor's Cutout tool.</string>
     <string name="long_press_action_none">None</string>
     <string name="long_press_action_rotate">Rotate</string>
     <string name="long_press_action_title">Long-press action</string>

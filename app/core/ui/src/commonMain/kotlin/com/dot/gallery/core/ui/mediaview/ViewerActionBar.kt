@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.RestoreFromTrash
+import androidx.compose.material.icons.outlined.ScreenRotationAlt
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
@@ -29,6 +30,7 @@ import com.dot.gallery.core.ui.generated.resources.action_desc_favorite_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_open_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_rename_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_restore_item
+import com.dot.gallery.core.ui.generated.resources.action_desc_rotate_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_share_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_trash_item
 import com.dot.gallery.core.ui.generated.resources.action_desc_visual_search_item
@@ -40,6 +42,7 @@ import com.dot.gallery.core.ui.generated.resources.favorite
 import com.dot.gallery.core.ui.generated.resources.open_with
 import com.dot.gallery.core.ui.generated.resources.rename
 import com.dot.gallery.core.ui.generated.resources.restore
+import com.dot.gallery.core.ui.generated.resources.rotate
 import com.dot.gallery.core.ui.generated.resources.share
 import com.dot.gallery.core.ui.generated.resources.trash
 import com.dot.gallery.core.ui.generated.resources.visual_search
@@ -96,6 +99,10 @@ enum class ViewerQuickAction(
         labelRes = Res.string.edit,
         descriptionRes = Res.string.action_desc_edit_item,
     ),
+    ROTATE(
+        labelRes = Res.string.rotate,
+        descriptionRes = Res.string.action_desc_rotate_item,
+    ),
     TRASH(
         labelRes = Res.string.trash,
         descriptionRes = Res.string.action_desc_trash_item,
@@ -113,6 +120,7 @@ enum class ViewerQuickAction(
             DOWNLOAD -> Icons.Outlined.Download
             RENAME -> Icons.Outlined.DriveFileRenameOutline
             EDIT -> Icons.Outlined.Edit
+            ROTATE -> Icons.Outlined.ScreenRotationAlt
             TRASH -> Icons.Outlined.DeleteOutline
         }
 }
