@@ -102,6 +102,23 @@ class StaticMapURLTest {
     }
 
     @Test
+    fun apiKeyWithReservedAndNonAsciiCharactersIsPercentEncoded() {
+        val url = StaticMapURL.tileUrl(
+            tileX = 1,
+            tileY = 2,
+            appearance = MapAppearance.LIGHT,
+            effectiveAppIsDark = false,
+            zoom = 3,
+            apiKey = "k+y/a=b&c d?\u00e9",
+        )
+        assertEquals(
+            "https://basemaps.cartocdn.com/rastertiles/voyager/3/1/2@2x.png" +
+                "?key=k%2By%2Fa%3Db%26c%20d%3F%C3%A9",
+            url,
+        )
+    }
+
+    @Test
     fun zoomIsClamped() {
         val url = StaticMapURL(0.0, 0.0, zoom = 100, apiKey = apiKey)
         assertEquals("20", url.substringAfter("voyager/").substringBefore('/'))

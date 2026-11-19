@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
     alias(libs.plugins.kotlinSerialization)
     kotlin("plugin.parcelize")
+    alias(libs.plugins.androidLint)
 }
 
 kotlin {
@@ -17,6 +18,9 @@ kotlin {
         minSdk = 29
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
+        }
+        lint {
+            baseline = file("lint-baseline.xml")
         }
     }
 

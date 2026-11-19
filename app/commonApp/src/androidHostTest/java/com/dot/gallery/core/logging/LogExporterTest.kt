@@ -25,6 +25,13 @@ class LogExporterTest {
     }
 
     @Test
+    fun `issue url percent-encodes reserved and non-ascii characters`() {
+        val url = LogExporter.issueUrl("a+b & \u00fc", "line1\nline2")
+        assertTrue(url.contains("title=a%2Bb%20%26%20%C3%BC"))
+        assertTrue(url.endsWith("body=line1%0Aline2"))
+    }
+
+    @Test
     fun `issue url stays under the cap for huge bodies`() {
         val body = "x".repeat(50_000)
         val url = LogExporter.issueUrl("t", body)

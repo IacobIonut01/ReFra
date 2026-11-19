@@ -190,8 +190,27 @@ jobs:
           name: maps-${{ matrix.arch }}
           path: app/androidApp/build/outputs/apk-renamed/**/*.apk
 
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Fix permissions
+        run: chmod +x ./gradlew
+      - name: Tune Gradle for CI
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
+      - name: Lint core:ui
+        run: ./gradlew --build-cache :app:core:ui:lintAndroidMain
+
   release:
-    needs: [prepare, build_offline, build_withml, build_maps]
+    needs: [prepare, build_offline, build_withml, build_maps, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

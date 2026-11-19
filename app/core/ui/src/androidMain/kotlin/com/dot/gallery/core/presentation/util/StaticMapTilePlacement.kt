@@ -6,8 +6,6 @@
 package com.dot.gallery.core.presentation.util
 
 import com.dot.gallery.core.location.MapAppearance
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos

@@ -7,6 +7,7 @@ package com.dot.gallery.core.util
 
 import android.os.Build
 import android.os.Environment
+import androidx.annotation.ChecksSdkIntAtLeast
 
 
 /**
@@ -18,6 +19,7 @@ object SdkCompat {
      * Whether the device supports MediaStore trash (IS_TRASHED, createTrashRequest).
      * Available on Android 11 (API 30) and above.
      */
+    @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
     val supportsTrash: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
@@ -25,6 +27,7 @@ object SdkCompat {
      * Whether the device supports MediaStore favorites (IS_FAVORITE, createFavoriteRequest).
      * Available on Android 11 (API 30) and above.
      */
+    @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
     val supportsFavorites: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
@@ -33,6 +36,7 @@ object SdkCompat {
      * (createDeleteRequest, createTrashRequest, createFavoriteRequest, createWriteRequest).
      * Available on Android 11 (API 30) and above.
      */
+    @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
     val supportsMediaStoreRequests: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
@@ -40,6 +44,7 @@ object SdkCompat {
      * Whether the device supports blur effects (Haze uses RenderEffect via GraphicsLayer).
      * Available on Android 12 (API 31) and above.
      */
+    @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
     val supportsBlur: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -48,6 +53,7 @@ object SdkCompat {
      * Available on Android 13 (API 33) and above, so the app should not show its own
      * "Copied to clipboard" toast to avoid duplicate notifications.
      */
+    @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
     val showsClipboardConfirmation: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 

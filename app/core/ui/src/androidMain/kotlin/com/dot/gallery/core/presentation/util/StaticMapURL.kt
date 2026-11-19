@@ -64,7 +64,7 @@ object StaticMapURL {
         val keyQuery = if (apiKey.isBlank()) {
             ""
         } else {
-            val encodedKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8).replace("+", "%20")
+            val encodedKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8.name()).replace("+", "%20")
             "?key=$encodedKey"
         }
         return "$base/$safeZoom/$wrappedX/$safeY@2x.png$keyQuery"

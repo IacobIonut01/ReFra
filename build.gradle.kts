@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
     alias(libs.plugins.androidKmpLibrary) apply false
+    alias(libs.plugins.androidLint) apply false
     alias(libs.plugins.kspAndroid) apply false
     alias(libs.plugins.roomPlugin) apply false
     alias(libs.plugins.androidTest) apply false

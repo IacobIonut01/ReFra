@@ -208,5 +208,5 @@ object LogExporter {
      * a space inside `application/x-www-form-urlencoded` contexts.
      */
     internal fun urlEncode(value: String): String =
-        java.net.URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")
+        java.net.URLEncoder.encode(value, Charsets.UTF_8.name()).replace("+", "%20")
 }

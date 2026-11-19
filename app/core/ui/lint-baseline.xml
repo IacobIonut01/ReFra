@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.5.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.5.0)" variant="all" version="9.5.0">
+
+    <issue
+        id="MissingPermission"
+        message="Missing permissions required by ConnectivityManager.registerNetworkCallback: android.permission.ACCESS_NETWORK_STATE"
+        errorLine1="            connectivityManager.registerNetworkCallback(networkRequest, callback)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/androidMain/kotlin/com/dot/gallery/core/presentation/util/NetworkExt.kt"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="AnnotateVersionCheck"
+        message="This method should be annotated with `@ChecksSdkIntAtLeast(api=Build.VERSION_CODES.TIRAMISU)`"
+        errorLine1="actual val supportsLoadingShimmer: Boolean"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/androidMain/kotlin/com/dot/gallery/core/ui/util/PlatformFeatures.android.kt"
+            line="10"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="AnnotateVersionCheck"
+        message="This method should be annotated with `@ChecksSdkIntAtLeast(api=Build.VERSION_CODES.S)`"
+        errorLine1="actual val supportsBlur: Boolean"
+        errorLine2="           ~~~~~~~~~~~~">
+        <location
+            file="src/androidMain/kotlin/com/dot/gallery/core/ui/util/PlatformFeatures.android.kt"
+            line="13"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="TextConcatSpace"
+        message="Missing space between &quot;3Z&quot; on the previous line and &quot;M15.5&quot; here? Resulting string is &quot;3ZM15.5&quot;."
+        errorLine1="                    &quot;M15.5 3h3A2.5 2.5 0 0 1 21 5.5v3a2.5 2.5 0 0 1-2.5 2.5h-3A2.5 2.5 0 0 1 13 8.5v-3A2.5 2.5 0 0 1 15.5 3Z&quot; +"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/ui/core/icons/Library.kt"
+            line="23"
+            column="22"/>
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/ui/core/icons/Library.kt"
+            line="22"
+            column="18"
+            message="Previous text here"/>
+    </issue>
+
+    <issue
+        id="TextConcatSpace"
+        message="Missing space between &quot;3Z&quot; on the previous line and &quot;M15.5&quot; here? Resulting string is &quot;3ZM15.5&quot;."
+        errorLine1="                    &quot;M15.5 13h3a2.5 2.5 0 0 1 2.5 2.5v3a2.5 2.5 0 0 1-2.5 2.5h-3a2.5 2.5 0 0 1-2.5-2.5v-3a2.5 2.5 0 0 1 2.5-2.5Z&quot;"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/ui/core/icons/Library.kt"
+            line="24"
+            column="22"/>
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/ui/core/icons/Library.kt"
+            line="23"
+            column="22"
+            message="Previous text here"/>
+    </issue>
+
+    <issue
+        id="ModifierFactoryExtensionFunction"
+        message="Modifier factory functions should be extensions on Modifier"
+        errorLine1="fun galleryFloatingSurface(shape: Shape = CircleShape): Modifier {"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/core/presentation/components/GalleryNavigationBar.kt"
+            line="77"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Optional Modifier parameter should have a default value of `Modifier`"
+        errorLine1="    modifier: Modifier = Modifier.fillMaxWidth(),"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/core/presentation/components/AppTextField.kt"
+            line="48"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/core/presentation/components/DragHandle.kt"
+            line="16"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be named modifier"
+        errorLine1="    pillModifier: Modifier,"
+        errorLine2="    ~~~~~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/core/presentation/components/GalleryNavigationRail.kt"
+            line="222"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/core/ui/components/SettingsItems.kt"
+            line="111"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be named modifier"
+        errorLine1="    draggableModifier: Modifier,"
+        errorLine2="    ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/commonMain/kotlin/com/dot/gallery/scrollbar/VerticalScrollbarLayout.kt"
+            line="45"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX function `createBitmap` instead?"
+        errorLine1="        val out = Bitmap.createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/androidMain/kotlin/com/dot/gallery/core/ui/util/ImageObscure.kt"
+            line="47"
+            column="19"/>
+    </issue>
+
+</issues>
