@@ -189,9 +189,6 @@ fun SetupNote(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** The expressive hero shape of each setup step, from the Material 3 shape library. */
-enum class SetupHeroShape { Permissions, Looks, Cloud, AiModels, Done }
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SetupHeroShape.toShape(): Shape = when (this) {

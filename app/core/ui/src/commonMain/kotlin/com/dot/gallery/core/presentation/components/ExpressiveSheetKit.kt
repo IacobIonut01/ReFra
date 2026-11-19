@@ -269,16 +269,6 @@ fun SheetSummaryTile(
     }
 }
 
-/** What a [SheetOptionRow] shows at its end. */
-sealed interface SheetRowTrailing {
-    data object None : SheetRowTrailing
-    data object Chevron : SheetRowTrailing
-    data class Radio(val selected: Boolean) : SheetRowTrailing
-    data class Switch(val checked: Boolean) : SheetRowTrailing
-    data class Checkbox(val checked: Boolean) : SheetRowTrailing
-    class Custom(val content: @Composable () -> Unit) : SheetRowTrailing
-}
-
 /**
  * One row of a grouped list inside a sheet: icon, title, optional summary, grouped corners from
  * [position] and a radio, switch, checkbox, chevron or custom trailing element.
@@ -422,8 +412,6 @@ fun SheetActionTile(
         }
     }
 }
-
-enum class SheetButtonStyle { Filled, Tonal, Text, Error }
 
 /** 48 dp pill button in the redesigned sheet styles, with an optional leading icon. */
 @Composable

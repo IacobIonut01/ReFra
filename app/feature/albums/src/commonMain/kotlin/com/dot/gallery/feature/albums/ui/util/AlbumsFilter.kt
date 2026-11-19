@@ -7,8 +7,6 @@ package com.dot.gallery.feature.albums.ui.util
 
 import androidx.compose.runtime.saveable.Saver
 
-enum class AlbumsFilterKind { ALL, DEVICE, SECTION, COLLECTIONS, CLOUD, MEDIA_TYPES }
-
 /** One chip above the album grid; [sectionId] is set only for [AlbumsFilterKind.SECTION]. */
 data class AlbumsFilter(val kind: AlbumsFilterKind, val sectionId: Long? = null) {
     companion object {

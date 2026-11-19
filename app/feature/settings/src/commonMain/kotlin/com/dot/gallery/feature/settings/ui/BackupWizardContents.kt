@@ -328,13 +328,6 @@ fun ExportSaveStep(
 // Restore: 1 Choose file → 2 Review
 // =================================================================================================
 
-/** What step 1 of the restore wizard is waiting on. */
-sealed interface ImportChooseState {
-    data object NoFile : ImportChooseState
-    data object Reading : ImportChooseState
-    data class NeedsPassword(val wrongPassword: Boolean) : ImportChooseState
-}
-
 /** Step 1 · Choose file: pick the archive, wait while it's read, enter its password. */
 @Composable
 fun ImportChooseStep(

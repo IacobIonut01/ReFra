@@ -34,33 +34,3 @@ data class BackupPreviewHeader(
         const val MAGIC_SIZE = 6
     }
 }
-
-@Serializable
-data class PreviewVault(
-    val uuid: String,
-    val name: String = "",
-    val mediaCount: Int = 0
-)
-
-/** What kind of archive a picked file is. */
-enum class BackupFormat {
-    /** Legacy schema v1/v2 plaintext ZIP. */
-    LEGACY_ZIP,
-    /** Legacy schema v1/v2 whole-archive encrypted stream. */
-    LEGACY_ENCRYPTED,
-    /** Schema v3 archive with a plaintext preview header. */
-    SECTIONED
-}
-
-/**
- * Result of probing a picked archive. [encrypted] is the only signal the UI may use to decide
- * whether to ask for a password; it is derived from the archive bytes, never from the file name
- * or from which sections are present.
- */
-data class BackupProbe(
-    val format: BackupFormat,
-    val encrypted: Boolean,
-    val preview: BackupPreviewHeader? = null
-) {
-    val needsPassword: Boolean get() = encrypted
-}

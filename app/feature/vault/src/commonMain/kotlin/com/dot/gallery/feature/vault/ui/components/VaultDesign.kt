@@ -407,8 +407,6 @@ fun VaultSectionLabel(title: String, modifier: Modifier = Modifier) {
     )
 }
 
-enum class VaultButtonStyle { Filled, Tonal, Text, Error }
-
 /** 48 dp pill button in the vault styles. */
 @Composable
 fun VaultButton(

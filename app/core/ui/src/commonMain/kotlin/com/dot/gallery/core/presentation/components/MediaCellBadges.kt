@@ -5,7 +5,6 @@
 
 package com.dot.gallery.core.presentation.components
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import com.dot.gallery.data.entity.MediaMetadata
 import com.dot.gallery.domain.settings.FAV_ICON_BOTTOM_START
@@ -19,19 +18,6 @@ enum class CellCorner(val alignment: Alignment) {
     BottomStart(Alignment.BottomStart),
     BottomEnd(Alignment.BottomEnd),
 }
-
-/**
- * Where each badge of a grid cell sits. A null corner means the badge isn't shown.
- *
- * @param status The metadata (motion, night, panorama) and cloud indicators, which share a corner.
- */
-@Immutable
-data class CellBadgeLayout(
-    val favorite: CellCorner?,
-    val video: CellCorner?,
-    val stack: CellCorner?,
-    val status: CellCorner?,
-)
 
 /** The corner the favourite icon setting asks for, or null when the icon is turned off. */
 fun favoriteCorner(position: String): CellCorner? = when (position) {

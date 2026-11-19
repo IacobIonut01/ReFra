@@ -41,9 +41,6 @@ fun IgnoredAlbum.displayTitle(unknown: String): String =
 
 fun IgnoredAlbum.coversAlbum(albumId: Long): Boolean = albumId in ruleAlbumIds
 
-/** What saving the setup sheet writes. [remove] is deleted before [save] is upserted. */
-data class IgnoredRuleWrite(val save: IgnoredAlbum, val remove: IgnoredAlbum? = null)
-
 /**
  * Builds the rule the setup sheet describes. Editing keeps the rule's id, except for a legacy
  * single-album rule whose album changes: that one is replaced by a row with a fresh id.

@@ -7,18 +7,6 @@ package com.dot.gallery.core.backup
 
 import kotlinx.serialization.Serializable
 
-enum class BackupJobKind { EXPORT, RESTORE }
-
-enum class BackupJobStatus { RUNNING, COMPLETED, PARTIAL, FAILED, CANCELLED }
-
-@Serializable
-data class BackupJobProgress(
-    val section: BackupSection? = null,
-    val current: Int = 0,
-    val total: Int = 0,
-    val phase: String = ""
-)
-
 /**
  * Durable, process-death-safe description of an export/restore run. It deliberately stores only
  * primitives (no Android URIs or passwords); the password lives in a Keystore-wrapped secret file.

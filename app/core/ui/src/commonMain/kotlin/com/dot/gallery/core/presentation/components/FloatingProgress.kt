@@ -48,10 +48,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 const val FloatingProgressPillTag = "Gallery.FloatingProgressPill"
 
@@ -73,32 +69,6 @@ data class FloatingProgressTask(
     /** Determinate fraction, or null while the total is unknown. */
     val fraction: Float?
         get() = if (total > 0) (completed.toFloat() / total).coerceIn(0f, 1f) else null
-}
-
-/**
- * App-wide list of floating progress tasks. Producers [post] and [dismiss] by id; the newest
- * task is the one [FloatingProgressHost] shows.
- */
-class FloatingProgressRegistry {
-    private val _tasks = MutableStateFlow<List<FloatingProgressTask>>(emptyList())
-    val tasks: StateFlow<List<FloatingProgressTask>> = _tasks.asStateFlow()
-
-    /** Adds [task], or replaces the task with the same id in place. */
-    fun post(task: FloatingProgressTask) {
-        _tasks.update { current ->
-            val index = current.indexOfFirst { it.id == task.id }
-            if (index < 0) current + task
-            else current.toMutableList().also { it[index] = task }
-        }
-    }
-
-    fun update(id: String, transform: (FloatingProgressTask) -> FloatingProgressTask) {
-        _tasks.update { current -> current.map { if (it.id == id) transform(it) else it } }
-    }
-
-    fun dismiss(id: String) {
-        _tasks.update { current -> current.filterNot { it.id == id } }
-    }
 }
 
 val LocalFloatingProgressRegistry = staticCompositionLocalOf<FloatingProgressRegistry?> { null }

@@ -15,7 +15,6 @@ import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
-
 /**
  * scroll-aware two-stage thumbnail scheduling.
  *
@@ -57,28 +56,6 @@ enum class MotionThumbnailBridge {
 
 fun motionThumbnailBridge(isHeavyCodec: Boolean): MotionThumbnailBridge =
     if (isHeavyCodec) MotionThumbnailBridge.CACHED_ONLY else MotionThumbnailBridge.DECODE
-class RefinedThumbnailLoadTracker(private val capacity: Int) {
-    // Insertion-ordered map; a hit re-inserts at the tail so keys.first() is always the LRU entry.
-    private val loadedKeys = LinkedHashMap<RefinedThumbnailKey, Unit>()
-
-    init {
-        require(capacity > 0)
-    }
-
-    fun hasLoaded(key: RefinedThumbnailKey): Boolean {
-        if (key.model == null && key.signature.isEmpty()) return false
-        return loadedKeys.remove(key)?.let { loadedKeys[key] = Unit; true } ?: false
-    }
-
-    fun markLoaded(key: RefinedThumbnailKey) {
-        if (key.model == null && key.signature.isEmpty()) return
-        loadedKeys.remove(key)
-        loadedKeys[key] = Unit
-        while (loadedKeys.size > capacity) {
-            loadedKeys.remove(loadedKeys.keys.first())
-        }
-    }
-}
 
 /**
  * Derive a debounced motion flag from a scroll container's `isScrollInProgress`.

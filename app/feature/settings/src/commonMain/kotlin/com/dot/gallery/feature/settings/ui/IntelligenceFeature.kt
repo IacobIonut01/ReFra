@@ -38,30 +38,6 @@ fun approxBytesOf(group: ModelGroup): Long = when (group) {
     ModelGroup.FACE_RECOGNITION -> 130L * 1_048_576L
 }
 
-/** The combined state of a feature's model groups, from the user's point of view. */
-enum class FeatureStatus {
-    /** At least one group is missing and can be downloaded or installed. */
-    NOT_INSTALLED,
-    DOWNLOADING,
-    /** Bundled models are being copied into place. */
-    PREPARING,
-    READY,
-    /** Missing models that this build cannot download, or a tier without published models. */
-    UNAVAILABLE,
-}
-
-data class FeatureSummary(
-    val status: FeatureStatus,
-    /** Download progress of the groups still downloading, 0..1. */
-    val progress: Float = 0f,
-    /** Bytes the missing groups will download. */
-    val missingBytes: Long = 0L,
-    /** Bytes the installed groups take on disk. */
-    val installedBytes: Long = 0L,
-    /** Groups that still need to be downloaded or installed. */
-    val missingGroups: List<ModelGroup> = emptyList(),
-)
-
 /**
  * Folds the per-group states of [groups] into one feature status. Downloads win over preparation,
  * which wins over missing groups; a feature is ready only when every group is.

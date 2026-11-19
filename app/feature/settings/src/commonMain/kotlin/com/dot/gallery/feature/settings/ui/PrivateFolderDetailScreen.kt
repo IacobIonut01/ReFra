@@ -162,8 +162,6 @@ fun PrivateFolderDetailScreen(
     }
 }
 
-enum class PrivateFolderPage { Main, HowItWorks }
-
 @Composable
 private fun PrivateFolderMain(
     currentUri: String,

@@ -5,47 +5,6 @@
 
 package com.dot.gallery.core.presentation.components
 
-/** What the configurable Timeline shortcut opens. [storedValue] is what the setting keeps. */
-enum class HomeShortcut(val storedValue: String) {
-    FAVORITES("favorites"),
-    TRASH("trash"),
-    VAULT("vault"),
-    CAMERA("camera"),
-    NONE("none");
-
-    companion object {
-        /**
-         * The chosen shortcut. Before the slot existed there was only an on/off Favorites
-         * button, so an unset slot follows that switch: off means [NONE].
-         */
-        fun resolve(stored: String, legacyShowFavorites: Boolean): HomeShortcut =
-            entries.firstOrNull { it.storedValue == stored }
-                ?: if (legacyShowFavorites) FAVORITES else NONE
-    }
-}
-
-/**
- * Which [HomeShortcut]s this platform can open. [NONE] is always available; [camera] needs an
- * installed app that opens the still camera.
- */
-data class HomeShortcutSupport(
-    val favorites: Boolean = true,
-    val trash: Boolean = true,
-    val vault: Boolean = true,
-    val camera: Boolean = true,
-) {
-    fun supports(shortcut: HomeShortcut) = when (shortcut) {
-        HomeShortcut.FAVORITES -> favorites
-        HomeShortcut.TRASH -> trash
-        HomeShortcut.VAULT -> vault
-        HomeShortcut.CAMERA -> camera
-        HomeShortcut.NONE -> true
-    }
-
-    /** The slot's choices offered in settings, in order. */
-    val choices: List<HomeShortcut> get() = HomeShortcut.entries.filter(::supports)
-}
-
 /**
  * Which home shortcuts are shown. [shortcut] is the configurable slot, or null when it is
  * hidden. While a selection is active Select stays in place and turns into its Close button

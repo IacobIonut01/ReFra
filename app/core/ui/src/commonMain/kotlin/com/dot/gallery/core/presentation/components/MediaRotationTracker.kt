@@ -5,22 +5,9 @@
 
 package com.dot.gallery.core.presentation.components
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.staticCompositionLocalOf
-
-@Immutable
-data class PendingMediaRotation(val degrees: Int, val phase: Phase) {
-    enum class Phase { Queued, Processing, Done, Failed }
-}
-
-/**
- * [revision] counts completed rotations this session and joins the thumbnail signature, so a
- * rewritten file is re-decoded even when its timestamp and size did not change.
- */
-@Immutable
-data class MediaRotationEntry(val revision: Int = 0, val pending: PendingMediaRotation? = null)
 
 /**
  * Per-media rotation state that grid cells animate from. Cells read their own entry through a

@@ -10,11 +10,6 @@ import com.dot.gallery.domain.model.IgnoredAlbum
 import com.dot.gallery.domain.model.matchesAlbum
 import com.dot.gallery.feature.ignored.ui.coversAlbum
 
-/** How a rule picks its albums: an explicit selection, or a path pattern. */
-enum class IgnoreMethod { ALBUMS, PATTERN }
-
-enum class PatternError { INVALID, IN_USE }
-
 data class IgnoredSetupUiState(
     val currentStep: SetupStep = SetupStep.CHOOSE,
     /** The rule being edited, or null while creating one. */

@@ -77,13 +77,6 @@ data class BackupHubState(
     val runningLabel: String? = null
 )
 
-data class BackupHubActions(
-    val onExport: () -> Unit,
-    val onImport: () -> Unit,
-    val onCleanNow: () -> Unit,
-    val onAutoCleanChange: (Boolean) -> Unit
-)
-
 private const val CleanNowTag = "backup-clean-now"
 
 /**

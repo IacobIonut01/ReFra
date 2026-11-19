@@ -16,15 +16,6 @@ data class MetadataViewState(
     val fieldCount: Int get() = directories.sumOf { it.tags.size }
 }
 
-data class MetadataFileInfo(
-    val name: String? = null,
-    val sizeBytes: Long? = null,
-    val width: Int? = null,
-    val height: Int? = null,
-    /** Anything [com.dot.gallery.core.presentation.components.LocalMediaImageRenderer] can load. */
-    val thumbnailModel: Any? = null,
-)
-
 /**
  * The directories with only the tags matching [query] (case-insensitive, on the tag name, its
  * value or the directory name); directories left empty are dropped. A blank query keeps all.
