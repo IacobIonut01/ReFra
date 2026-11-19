@@ -464,6 +464,13 @@ fun NavigationComp(
 
                 val distributor = LocalMediaDistributor.current
                 val albumsStateForGroups by distributor.albumsFlow.collectAsStateWithLifecycle()
+                val allSections by albumsViewModel.sectionsFlow.collectAsStateWithLifecycle()
+                val sectionOptions = remember(allSections, albumsStateForGroups.albumSections) {
+                    moveToSectionOptions(
+                        allSections,
+                        albumsStateForGroups.albumSections.associate { it.section.id to it.albums.size }
+                    )
+                }
 
                 AlbumGroupSheet(
                     sheetState = groupSheetState,
@@ -533,7 +540,7 @@ fun NavigationComp(
 
                 MoveToSectionSheet(
                     sheetState = moveToSectionSheetState,
-                    sections = albumsStateForGroups.albumSections,
+                    sections = sectionOptions,
                     currentSectionId = pendingMoveCurrentSectionId,
                     onMoveToSection = { sectionId ->
                         pendingMoveAlbum?.let { album ->

@@ -14,7 +14,6 @@ import com.dot.gallery.domain.model.AlbumGroupWithAlbums
 import com.dot.gallery.domain.model.AlbumMergeResolver
 import com.dot.gallery.domain.model.AlbumSection
 import com.dot.gallery.domain.model.AlbumSectionMember
-import com.dot.gallery.domain.model.AlbumSectionWithAlbums
 import com.dot.gallery.domain.util.AlbumClassifier
 import com.dot.gallery.domain.model.AlbumState
 import com.dot.gallery.domain.model.AlbumThumbnail
@@ -120,7 +119,6 @@ import com.dot.gallery.data.entity.MediaCaptureTimeEntity
 import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.util.volume
-import com.dot.gallery.domain.model.sectionType
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.data.entity.applyTo
@@ -1049,20 +1047,7 @@ class MediaDistributorImpl @Inject constructor(
                 .filterNot { it.relativePath.startsWith("cloud/") }
 
             val albumSections = if (areSectionsEnabled && sections.isNotEmpty()) {
-                val manualOverrides = sectionMembers.associate { it.albumId to it.sectionId }
-                val sectionIdByType = sections.associate { it.sectionType to it.id }
-                val classified = AlbumClassifier.classifyAlbums(
-                    unpinnedUngrouped, manualOverrides, sectionIdByType
-                )
-                sections
-                    .filter { it.isVisible }
-                    .map { section ->
-                        AlbumSectionWithAlbums(
-                            section = section,
-                            albums = classified[section.id] ?: emptyList()
-                        )
-                    }
-                    .filter { it.albums.isNotEmpty() }
+                AlbumClassifier.sectionsWithAlbums(unpinnedUngrouped, sections, sectionMembers)
             } else emptyList()
 
             AlbumState(

@@ -5,7 +5,11 @@
 package com.dot.gallery.domain.util
 
 import com.dot.gallery.domain.model.Album
+import com.dot.gallery.domain.model.AlbumSection
+import com.dot.gallery.domain.model.AlbumSectionMember
 import com.dot.gallery.domain.model.AlbumSectionType
+import com.dot.gallery.domain.model.AlbumSectionWithAlbums
+import com.dot.gallery.domain.model.sectionType
 
 object AlbumClassifier {
 
@@ -81,5 +85,25 @@ object AlbumClassifier {
         }
 
         return result
+    }
+
+    /** The sections the Albums page shows: visible and non-empty, in [sections] order. */
+    fun sectionsWithAlbums(
+        albums: List<Album>,
+        sections: List<AlbumSection>,
+        members: List<AlbumSectionMember>,
+    ): List<AlbumSectionWithAlbums> {
+        val manualOverrides = members.associate { it.albumId to it.sectionId }
+        val sectionIdByType = sections.associate { it.sectionType to it.id }
+        val classified = classifyAlbums(albums, manualOverrides, sectionIdByType)
+        return sections
+            .filter { it.isVisible }
+            .map { section ->
+                AlbumSectionWithAlbums(
+                    section = section,
+                    albums = classified[section.id] ?: emptyList()
+                )
+            }
+            .filter { it.albums.isNotEmpty() }
     }
 }

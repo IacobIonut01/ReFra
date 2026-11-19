@@ -16,7 +16,7 @@ import com.dot.gallery.core.ui.generated.resources.move_to_section
 import com.dot.gallery.core.ui.generated.resources.section_auto
 import com.dot.gallery.core.ui.generated.resources.section_auto_summary
 import com.dot.gallery.core.ui.util.AppBottomSheetState
-import com.dot.gallery.domain.model.AlbumSectionWithAlbums
+import com.dot.gallery.domain.model.AlbumSection
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -25,7 +25,7 @@ import com.dot.gallery.core.ui.generated.resources.section_album_count
 @Composable
 fun MoveToSectionSheet(
     sheetState: AppBottomSheetState,
-    sections: List<AlbumSectionWithAlbums>,
+    sections: List<MoveToSectionOption>,
     currentSectionId: Long?,
     onMoveToSection: (Long) -> Unit,
     onResetOverride: () -> Unit
@@ -34,7 +34,7 @@ fun MoveToSectionSheet(
     val title = stringResource(Res.string.move_to_section)
     ExpressiveSheet(sheetState = sheetState, paneTitle = title) {
         MoveToSectionSheetContent(
-            sections = sections.map { MoveToSectionOption(it.section.id, it.section.label, it.albums.size) },
+            sections = sections,
             currentSectionId = currentSectionId,
             onAutomatic = {
                 scope.launch {
@@ -54,6 +54,17 @@ fun MoveToSectionSheet(
 
 /** One section offered by [MoveToSectionSheetContent]. */
 data class MoveToSectionOption(val id: Long, val label: String, val albumCount: Int)
+
+/**
+ * Every enabled section as a [MoveToSectionOption] in the given order; empty sections
+ * are included with a count of 0.
+ */
+fun moveToSectionOptions(
+    sections: List<AlbumSection>,
+    albumCountBySection: Map<Long, Int>,
+): List<MoveToSectionOption> =
+    sections.filter { it.isVisible }
+        .map { MoveToSectionOption(it.id, it.label, albumCountBySection[it.id] ?: 0) }
 
 /** Stateless body of [MoveToSectionSheet]: Automatic first, then every section as a radio row. */
 @Composable
