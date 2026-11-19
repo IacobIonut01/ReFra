@@ -1420,9 +1420,9 @@
     <string name="help_tip_action_visual_search_p1_title">Search what you see</string>
     <string name="help_tip_action_visual_search_p1_desc">Send the viewed image — or the current video frame — to an external provider such as Google Lens, the way Lens sharing works in other galleries. Any installed app that accepts image sharing can be the provider, and well-known ones like Lens, Google, Bing, Yandex and Pinterest are preferred automatically. The image leaves the device through the provider you choose.</string>
     <string name="help_tip_action_visual_search_p2_title">Make it yours</string>
-    <string name="help_tip_action_visual_search_p2_desc">Media viewer settings control where the button sits (top bar or quick actions bar), which provider receives the image, whether it works on vault items via a temporary decrypted copy, and whether formats a provider may not decode — RAW, TIFF, JXL and more — are converted to JPEG, PNG or WebP first.</string>
+    <string name="help_tip_action_visual_search_p2_desc">Its place in the viewer is chosen in Settings &gt; Media viewer &gt; Viewer action bar along with the other actions. Media viewer settings control which provider receives the image, whether it works on vault items via a temporary decrypted copy, and whether formats a provider may not decode — RAW, TIFF, JXL and more — are converted to JPEG, PNG or WebP first.</string>
     <string name="help_tip_action_visual_search_p2_s1">Open Settings &gt; Media viewer &gt; Visual search</string>
-    <string name="help_tip_action_visual_search_p2_s2">Pick the button position and search provider</string>
+    <string name="help_tip_action_visual_search_p2_s2">Pick the search provider</string>
     <string name="help_tip_action_visual_search_p2_s3">Choose the vault and conversion behaviour</string>
     <string name="help_tip_action_visual_search_p2_s4">Tap the button in the viewer to search</string>
 

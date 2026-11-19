@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.setFollowTheme
+import com.dot.gallery.core.ui.mediaview.ViewerActionPlacement
 import com.dot.gallery.core.ui.mediaview.ViewerQuickAction
 import com.dot.gallery.core.ui.mediaview.VisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.icon
@@ -81,16 +82,24 @@ fun <T : Media> MediaViewQuickBottomBar(
     // The whole trashed-state action cluster (restore + delete-forever buttons and their
     // dialogs) is app-side: it needs the media handler, distributor and activity results.
     trashedActions: @Composable (media: T, followTheme: Boolean) -> Unit = { _, _ -> },
+    // Which chrome this instance feeds. BOTTOM is the quick-actions pill and reports the
+    // computed follow-theme to the event handler; the TOP_* placements render the single
+    // configured slot action inside the app bar and borrow its follow-theme instead.
+    placement: ViewerActionPlacement = ViewerActionPlacement.BOTTOM,
+    // Cast slot: the app-side CastButton, rendered when CAST is the configured action.
+    castButton: (@Composable (followTheme: Boolean) -> Unit)? = null,
+    followThemeOverride: Boolean? = null,
 ) {
     val visualPolicy = LocalMediaViewerVisualPolicy.current
     val isVideo by rememberedDerivedState(currentMedia) {
         currentMedia?.isVideo ?: false
     }
     val isDarkTheme = isDarkTheme()
-    val followTheme = remember(visualPolicy, isVideo, isDarkTheme, autoContrast, isImageDark) {
+    val computedFollowTheme = remember(visualPolicy, isVideo, isDarkTheme, autoContrast, isImageDark) {
         if (autoContrast) !isImageDark
         else !visualPolicy.usesDarkBackground(isDarkTheme) && !isVideo
     }
+    val followTheme = followThemeOverride ?: computedFollowTheme
     val contentColor by animateColorAsState(
         targetValue = when {
             autoContrast -> if (isImageDark) Color.White else Color.Black
@@ -102,12 +111,18 @@ fun <T : Media> MediaViewQuickBottomBar(
         label = "BottomBarContentColor"
     )
     val eventHandler = LocalEventHandler.current
-    LaunchedEffect(followTheme) {
-        eventHandler.setFollowTheme(followTheme)
+    // Only the bottom pill owns the reported follow-theme; top-bar slots borrow the
+    // app bar's value through followThemeOverride and must not fight over it.
+    if (placement == ViewerActionPlacement.BOTTOM) {
+        LaunchedEffect(followTheme) {
+            eventHandler.setFollowTheme(followTheme)
+        }
     }
     // User-arranged quick actions; each one is still gated by the item's capabilities.
     val actionBarConfig by rememberViewerActionBarConfig()
-    val quickActions = remember(actionBarConfig) { actionBarConfig.sanitized().actions }
+    val quickActions = remember(actionBarConfig, placement) {
+        actionBarConfig.sanitized().actionsFor(placement)
+    }
     val trashEnabled by rememberPreference(SettingsKeys.trashEnabled)
     CompositionLocalProvider(LocalContentColor provides contentColor) {
     if (currentMedia != null) {
@@ -123,8 +138,13 @@ fun <T : Media> MediaViewQuickBottomBar(
             vaultDeleteAvailable = currentVault != null && deleteMedia != null,
         )
         if (currentMedia.isTrashed) {
-            if (capabilities.trash) {
-                trashedActions(currentMedia, followTheme)
+            if (placement == ViewerActionPlacement.BOTTOM) {
+                if (capabilities.trash) {
+                    trashedActions(currentMedia, followTheme)
+                }
+            } else if (ViewerQuickAction.CAST in quickActions) {
+                // Top slots never show the trashed cluster — cast stays available.
+                castButton?.invoke(followTheme)
             }
         } else {
             quickActions.forEach { action ->
@@ -151,6 +171,7 @@ fun <T : Media> MediaViewQuickBottomBar(
                                 onItemClick = onVisualSearch,
                             )
                         }
+                        ViewerQuickAction.CAST -> castButton?.invoke(followTheme)
                         ViewerQuickAction.COPY_TO_CLIPBOARD -> if (capabilities.copyToClipboard) {
                             CopyToClipboardButton(
                                 media = currentMedia,

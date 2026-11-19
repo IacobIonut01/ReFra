@@ -17,8 +17,8 @@ data class MediaViewerPreviews(
     val fullBrightness: @Composable (Boolean) -> Unit = { FullBrightnessPreview(it) },
     val dateHeader: @Composable (Boolean) -> Unit = {},
     val smoothing: @Composable (Boolean) -> Unit = {},
-    /** `(enabled, icon, position)`. */
-    val visualSearch: @Composable (Boolean, ImageVector, String) -> Unit = { _, _, _ -> },
+    /** `(enabled, icon)`. */
+    val visualSearch: @Composable (Boolean, ImageVector) -> Unit = { _, _ -> },
     /** Icon slot for a visual-search provider row/summary — real launcher icon when set. */
     val providerIcon: (@Composable (packageName: String) -> Unit)? = null,
 )

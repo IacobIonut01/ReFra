@@ -41,6 +41,12 @@
         "section": "media-view"
       },
       {
+        "scene": "settings-viewer-actions",
+        "title": "Viewer action bar",
+        "caption": "The two top-bar slots beside Back and Info, and the quick-actions pill under media.",
+        "section": "media-view"
+      },
+      {
         "scene": "long-press-action",
         "title": "Long-press action",
         "caption": "Pick what a long-press on an image does in the viewer.",
@@ -1397,7 +1403,7 @@
         "scene": "visual-search-options",
         "state": "default",
         "title": "Visual search settings",
-        "caption": "The visual search detail screen: provider, button position, vault, and format options.",
+        "caption": "The visual search detail screen: provider, vault items, and format options.",
         "section": "turn-it-on"
       }
     ],

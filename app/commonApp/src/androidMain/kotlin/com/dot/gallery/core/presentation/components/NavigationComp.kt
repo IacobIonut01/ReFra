@@ -80,6 +80,7 @@ import com.dot.gallery.feature.albums.ui.EditGroupContent
 import com.dot.gallery.app.presentation.albums.AlbumsScreen
 import com.dot.gallery.app.presentation.albumtimeline.AlbumTimelineScreen
 import com.dot.gallery.app.presentation.albumtimeline.albumViewerStateOwner
+import com.dot.gallery.app.presentation.cast.isCastAvailable
 import com.dot.gallery.app.presentation.classifier.CategoriesSettingsScreen
 import com.dot.gallery.app.presentation.classifier.CategoryEditorScreen
 import com.dot.gallery.app.presentation.classifier.CategoriesScreen
@@ -1405,7 +1406,10 @@ fun NavigationComp(
                 SettingsSelectionActionsContent()
             }
             composable(Screen.SettingsViewerActionsScreen()) {
-                SettingsViewerActionsContent(supportsFavorites = SdkCompat.supportsFavorites)
+                SettingsViewerActionsContent(
+                    supportsFavorites = SdkCompat.supportsFavorites,
+                    supportsCast = isCastAvailable(context),
+                )
             }
             composable(Screen.SlideshowSettingsScreen()) {
                 SlideshowSettingsScreen()

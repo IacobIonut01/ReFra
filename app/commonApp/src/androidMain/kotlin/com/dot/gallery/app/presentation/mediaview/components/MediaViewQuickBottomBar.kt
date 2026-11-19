@@ -25,6 +25,7 @@ import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.PendingRemovalScope
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.ui.mediaview.ViewerActionPlacement
 import com.dot.gallery.core.ui.mediaview.VisualSearchTarget
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.Media
@@ -92,7 +93,11 @@ fun <T : Media> MediaViewQuickBottomBar(
     visualSearchTarget: VisualSearchTarget? = null,
     visualSearchTitle: String = "",
     onVisualSearch: (T) -> Unit = {},
-    onTrashConfirmed: () -> Unit = {}
+    onTrashConfirmed: () -> Unit = {},
+    // Top-bar slot instances borrow the app bar's follow-theme and may render CAST.
+    placement: ViewerActionPlacement = ViewerActionPlacement.BOTTOM,
+    castButton: (@Composable (followTheme: Boolean) -> Unit)? = null,
+    followThemeOverride: Boolean? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -176,6 +181,9 @@ fun <T : Media> MediaViewQuickBottomBar(
         visualSearchTarget = visualSearchTarget,
         visualSearchTitle = visualSearchTitle,
         onVisualSearch = onVisualSearch,
+        placement = placement,
+        castButton = castButton,
+        followThemeOverride = followThemeOverride,
         isFavorite = isFavorite,
         onToggleFavorite = { media, target ->
             scope.launch {

@@ -282,12 +282,12 @@ import com.dot.gallery.core.Settings.Misc.rememberVisualSearchAllowVault
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertFormat
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchConvertMode
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchEnabled
-import com.dot.gallery.core.Settings.Misc.rememberVisualSearchPosition
 import com.dot.gallery.core.Settings.Misc.rememberVisualSearchProvider
 import com.dot.gallery.feature.viewer.MediaViewViewModel
 import com.dot.gallery.feature.viewer.MediaViewViewModel.MediaViewEvent
 import com.dot.gallery.app.presentation.util.ViewScreenConstants.BOTTOM_BAR_HEIGHT
 import com.dot.gallery.app.presentation.util.ViewScreenConstants.ImageOnly
+import com.dot.gallery.core.ui.mediaview.ViewerActionPlacement
 import com.dot.gallery.core.ui.mediaview.VisualSearchTarget
 import com.dot.gallery.core.presentation.components.util.swipe
 import com.dot.gallery.core.ViewerExitVisual
@@ -323,7 +323,6 @@ import com.dot.gallery.feature.search.SearchViewModel
 import com.dot.gallery.feature.viewer.slideshowDwellMillis
 import com.dot.gallery.core.ui.mediaview.resolveVisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.needsVisualSearchConvert
-import com.dot.gallery.feature.viewer.VisualSearchButton
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.domain.model.definedTimestamp
 import com.dot.gallery.domain.date.getMediaAppBarDate
@@ -918,7 +917,7 @@ fun <T : Media> MediaViewScreen(
     // Optional host seams — docs captures inject a local cast surface and swap the
     // quick-actions/details rows; null keeps the production wiring untouched.
     castController: MediaViewerCastController? = null,
-    quickActionsContent: (@Composable (T?, Boolean, Boolean, Boolean) -> Unit)? = null,
+    quickActionsContent: (@Composable (T?, Boolean, Boolean, Boolean, ViewerActionPlacement) -> Unit)? = null,
     detailsContent: (@Composable (T?) -> Unit)? = null,
     initialInfoExpanded: Boolean = false,
 ) {
@@ -1372,7 +1371,6 @@ fun <T : Media> MediaViewScreen(
         // ACTION_SEND image/* is installed or when the media can't produce an image.
         var visualSearchEnabled by rememberVisualSearchEnabled()
         var visualSearchProviderPref by rememberVisualSearchProvider()
-        val visualSearchPosition by rememberVisualSearchPosition()
         var visualSearchAllowVault by rememberVisualSearchAllowVault()
         var visualSearchConvertMode by rememberVisualSearchConvertMode()
         var visualSearchConvertFormat by rememberVisualSearchConvertFormat()
@@ -2945,6 +2943,85 @@ fun <T : Media> MediaViewScreen(
                 }
 
                 val allowShowingDate by rememberShowMediaViewDateHeader()
+                // Cast slot shared by the top-bar action slots and the bottom pill —
+                // null when the build strips the network permission cast needs.
+                val castSlot: (@Composable (followTheme: Boolean) -> Unit)? =
+                    if (fcastVm.isCastAvailable()) {
+                        { followTheme ->
+                            CastButton(
+                                isConnected = fcastState.connectedDevice != null,
+                                isConnecting = fcastState.isConnecting,
+                                followTheme = followTheme,
+                                onClick = {
+                                    if (fcastState.connectedDevice != null) {
+                                        showCastPicker = true
+                                    } else if (!fcastVm.hasAllPermissions()) {
+                                        showCastPermissions = true
+                                    } else {
+                                        fcastVm.startDiscovery()
+                                        showCastPicker = true
+                                    }
+                                }
+                            )
+                        }
+                    } else null
+                // Leaving the viewer after a trash/restore/delete confirmation is shared by
+                // every quick-action bar instance (bottom pill and both top slots).
+                val onTrashConfirmed: () -> Unit = {
+                    val removedMedia = currentMedia
+                    val trashedId = removedMedia?.id
+                    if (trashedId != null) {
+                        val newPending = pendingTrashIds + trashedId
+                        pendingTrashIds = newPending
+                        // If all items are now filtered out, navigate up
+                        val state = mediaState.value
+                        val allItems =
+                            state.pagerMedia.ifEmpty { state.media }
+                        val remaining =
+                            allItems.count { it.id !in newPending }
+                        if (shouldDismissViewerAfterRemoval(remaining)) {
+                            windowInsetsController.toggleSystemBars(show = true)
+                            dismissViewer()
+                        } else {
+                            // The fly-away reveal is skipped entirely
+                            // when media animations are disabled.
+                            exitingMedia =
+                                removedMedia.takeIf { sharedElementsEnabled }
+                        }
+                    }
+                }
+                // One quick-action bar instance per chrome placement; the configured slot
+                // action decides what actually renders inside it.
+                val viewerQuickActionBar: @Composable (ViewerActionPlacement, Boolean) -> Unit =
+                    { placement, followTheme ->
+                        if (quickActionsContent != null) {
+                            quickActionsContent(
+                                currentMedia,
+                                viewerInteractive && showViewerChrome,
+                                isTopDark,
+                                autoContrast,
+                                placement,
+                            )
+                        } else MediaViewQuickBottomBar(
+                            currentMedia = currentMedia,
+                            showDeleteButton = !isReadOnly,
+                            // Only interactive while the top bar is actually visible —
+                            // same condition the app bar's showUI resolves to.
+                            enabled = viewerInteractive && showViewerChrome,
+                            deleteMedia = deleteMedia,
+                            restoreMedia = restoreMedia,
+                            currentVault = currentVault,
+                            isImageDark = isTopDark,
+                            autoContrast = autoContrast,
+                            visualSearchTarget = if (visualSearchAvailable) visualSearchTarget else null,
+                            visualSearchTitle = visualSearchTitle,
+                            onVisualSearch = onVisualSearch,
+                            onTrashConfirmed = onTrashConfirmed,
+                            placement = placement,
+                            castButton = castSlot,
+                            followThemeOverride = followTheme,
+                        )
+                    }
                 // Keep the top app bar above the BottomSheet so its back/info buttons stay tappable
                 // when the info panel is expanded (the sheet is drawn after the app bar and would
                 // otherwise intercept taps in the overlapping top region). Empty app bar areas have no
@@ -3029,23 +3106,8 @@ fun <T : Media> MediaViewScreen(
                         onLock = {
                             isLocked = !isLocked
                         },
-                        visualSearchButton = visualSearchTarget?.takeIf {
-                            visualSearchAvailable &&
-                                    visualSearchPosition == Settings.Misc.VISUAL_SEARCH_POSITION_TOP
-                        }?.let { target ->
-                            { followTheme: Boolean ->
-                                currentMedia?.let { media ->
-                                    VisualSearchButton(
-                                        media = media,
-                                        enabled = true,
-                                        followTheme = followTheme,
-                                        icon = target.icon,
-                                        tintIcon = target.tintIcon,
-                                        title = visualSearchTitle,
-                                        onItemClick = onVisualSearch,
-                                    )
-                                }
-                            }
+                        topStartAction = { followTheme ->
+                            viewerQuickActionBar(ViewerActionPlacement.TOP_START, followTheme)
                         },
                         visualSearchProgress = visualSearchPreparing?.progress,
                         visualSearchStageLabel = visualSearchStageLabel,
@@ -3070,25 +3132,9 @@ fun <T : Media> MediaViewScreen(
                                 )
                             }
                         } else null,
-                        castButton = if (fcastVm.isCastAvailable()) {
-                            { followTheme ->
-                                CastButton(
-                                    isConnected = fcastState.connectedDevice != null,
-                                    isConnecting = fcastState.isConnecting,
-                                    followTheme = followTheme,
-                                    onClick = {
-                                        if (fcastState.connectedDevice != null) {
-                                            showCastPicker = true
-                                        } else if (!fcastVm.hasAllPermissions()) {
-                                            showCastPermissions = true
-                                        } else {
-                                            fcastVm.startDiscovery()
-                                            showCastPicker = true
-                                        }
-                                    }
-                                )
-                            }
-                        } else null,
+                        topEndAction = { followTheme ->
+                            viewerQuickActionBar(ViewerActionPlacement.TOP_END, followTheme)
+                        },
                         castBanner = if (fcastVm.isCastAvailable() && fcastState.connectedDevice != null) {
                             {
                                 CastStatusBanner(
@@ -3370,6 +3416,7 @@ fun <T : Media> MediaViewScreen(
                                                         sheetState.currentDetent == imageOnlyDetent,
                                                 isBottomDark,
                                                 autoContrast,
+                                                ViewerActionPlacement.BOTTOM,
                                             )
                                         } else MediaViewQuickBottomBar(
                                             currentMedia = currentMedia,
@@ -3385,35 +3432,11 @@ fun <T : Media> MediaViewScreen(
                                             currentVault = currentVault,
                                             isImageDark = isBottomDark,
                                             autoContrast = autoContrast,
-                                            visualSearchTarget = if (
-                                                visualSearchAvailable &&
-                                                visualSearchPosition == Settings.Misc.VISUAL_SEARCH_POSITION_BOTTOM
-                                            ) visualSearchTarget else null,
+                                            visualSearchTarget = if (visualSearchAvailable) visualSearchTarget else null,
                                             visualSearchTitle = visualSearchTitle,
                                             onVisualSearch = onVisualSearch,
-                                            onTrashConfirmed = {
-                                                val removedMedia = currentMedia
-                                                val trashedId = removedMedia?.id
-                                                if (trashedId != null) {
-                                                    val newPending = pendingTrashIds + trashedId
-                                                    pendingTrashIds = newPending
-                                                    // If all items are now filtered out, navigate up
-                                                    val state = mediaState.value
-                                                    val allItems =
-                                                        state.pagerMedia.ifEmpty { state.media }
-                                                    val remaining =
-                                                        allItems.count { it.id !in newPending }
-                                                    if (shouldDismissViewerAfterRemoval(remaining)) {
-                                                        windowInsetsController.toggleSystemBars(show = true)
-                                                        dismissViewer()
-                                                    } else {
-                                                        // The fly-away reveal is skipped entirely
-                                                        // when media animations are disabled.
-                                                        exitingMedia =
-                                                            removedMedia.takeIf { sharedElementsEnabled }
-                                                    }
-                                                }
-                                            }
+                                            onTrashConfirmed = onTrashConfirmed,
+                                            castButton = castSlot,
                                         )
                                     }
                                 }

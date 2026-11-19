@@ -107,8 +107,9 @@ fun MediaViewAppBar(
     onLock: () -> Unit,
     isImageDark: Boolean = false,
     autoContrast: Boolean = false,
-    // Optional second action rendered inside the back button's pill (visual search).
-    visualSearchButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
+    // Configurable quick-action slots: TOP_START renders inside the back button's pill,
+    // TOP_END inside the trailing pill before Info. Each receives the bar's follow-theme.
+    topStartAction: @Composable ((followTheme: Boolean) -> Unit)? = null,
     // While non-null the visual-search prepare is in flight — shows a labeled progress chip
     // under the bar whose X (or tap) cancels the job.
     visualSearchProgress: Int? = null,
@@ -116,7 +117,7 @@ fun MediaViewAppBar(
     onCancelVisualSearch: () -> Unit = {},
     // "Scan for codes" when code scanning runs only on request; first in the trailing group.
     scanButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
-    castButton: @Composable ((followTheme: Boolean) -> Unit)? = null,
+    topEndAction: @Composable ((followTheme: Boolean) -> Unit)? = null,
     castBanner: @Composable (() -> Unit)? = null
 ) {
     val visualPolicy = LocalMediaViewerVisualPolicy.current
@@ -216,7 +217,7 @@ fun MediaViewAppBar(
                             modifier = Modifier.height(48.dp)
                         )
                     }
-                    visualSearchButton?.invoke(followTheme)
+                    topStartAction?.invoke(followTheme)
                 }
 
                 this@Column.AnimatedVisibility(
@@ -266,7 +267,7 @@ fun MediaViewAppBar(
                     segmentSize = 48.dp,
                 ) {
                     scanButton?.invoke(followTheme)
-                    castButton?.invoke(followTheme)
+                    topEndAction?.invoke(followTheme)
 
                     this@Column.AnimatedVisibility(
                         visible = showInfo,

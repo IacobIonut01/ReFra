@@ -169,6 +169,12 @@ object PortableBackupSettings {
     private val json = Json { ignoreUnknownKeys = true }
     private val stringListSerializer = ListSerializer(String.serializer())
 
+    /**
+     * Keys that still decode so an old backup restores them and the app's own
+     * migrations can consume the value, but that are never written back out.
+     */
+    private val importOnlyNames = setOf("visual_search_position")
+
     private val allowedTypes: Map<String, PortableSettingType> = buildMap {
         booleanNames.forEach { put(it, PortableSettingType.BOOLEAN) }
         intNames.forEach { put(it, PortableSettingType.INT) }
@@ -178,7 +184,7 @@ object PortableBackupSettings {
 
     fun typeFor(name: String): PortableSettingType? = allowedTypes[name]
 
-    fun encode(name: String, value: Any): SettingValue? = when (typeFor(name)) {
+    fun encode(name: String, value: Any): SettingValue? = when (typeFor(name).takeUnless { name in importOnlyNames }) {
         PortableSettingType.BOOLEAN -> (value as? Boolean)?.let { SettingValue("b", it.toString()) }
         PortableSettingType.INT -> (value as? Int)?.let { SettingValue("i", it.toString()) }
         PortableSettingType.LONG -> (value as? Long)?.let { SettingValue("l", it.toString()) }

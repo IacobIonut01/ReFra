@@ -60,8 +60,10 @@
     <string name="open_with">Open with</string>
     <string name="rename">Rename</string>
     <string name="visual_search">Visual search</string>
+    <string name="cast">Cast</string>
     <string name="action_desc_share_item">Share the current item with other apps</string>
     <string name="action_desc_visual_search_item">Search the web for the current item</string>
+    <string name="action_desc_cast_item">Show the current item on a nearby screen</string>
     <string name="action_desc_copy_item">Copy the current item to the clipboard</string>
     <string name="action_desc_favorite_item">Toggle favorite status for the current item</string>
     <string name="action_desc_open_item">Open the current item in another app</string>

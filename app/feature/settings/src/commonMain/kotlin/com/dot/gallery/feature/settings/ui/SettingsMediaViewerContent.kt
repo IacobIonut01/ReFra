@@ -86,8 +86,6 @@ import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_NEVER
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_JPEG
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_PNG
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_WEBP
-import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_BOTTOM
-import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
 import com.dot.gallery.ui.core.Icons as GalleryIcons
 import com.dot.gallery.ui.core.icons.VisualSearch
@@ -148,12 +146,6 @@ import com.dot.gallery.feature.settings.generated.resources.visual_search_format
 import com.dot.gallery.feature.settings.generated.resources.visual_search_format_png_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_format_webp_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_none_installed
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_bottom
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_bottom_summary
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_header
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_summary
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_top
-import com.dot.gallery.feature.settings.generated.resources.visual_search_position_top_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_provider_auto
 import com.dot.gallery.feature.settings.generated.resources.visual_search_provider_auto_summary
 import com.dot.gallery.feature.settings.generated.resources.visual_search_provider_header
@@ -201,7 +193,6 @@ fun SettingsMediaViewerContent(
     var darkMediaViewer by rememberPreference(SettingsKeys.darkMediaViewer)
     var visualSearchEnabled by rememberPreference(SettingsKeys.visualSearchEnabled)
     var visualSearchProvider by rememberPreference(SettingsKeys.visualSearchProvider)
-    var visualSearchPosition by rememberPreference(SettingsKeys.visualSearchPosition)
     var visualSearchAllowVault by rememberPreference(SettingsKeys.visualSearchAllowVault)
     var visualSearchConvertMode by rememberPreference(SettingsKeys.visualSearchConvertMode)
     var visualSearchConvertFormat by rememberPreference(SettingsKeys.visualSearchConvertFormat)
@@ -311,7 +302,6 @@ fun SettingsMediaViewerContent(
                             state.visualSearchTargets,
                             visualSearchProvider
                         )?.icon ?: GalleryIcons.VisualSearch,
-                        visualSearchPosition,
                     )
                 },
                 customContent = {
@@ -320,8 +310,6 @@ fun SettingsMediaViewerContent(
                         providerIcon = previews.providerIcon,
                         provider = visualSearchProvider,
                         onProviderChange = { visualSearchProvider = it },
-                        position = visualSearchPosition,
-                        onPositionChange = { visualSearchPosition = it },
                         allowVault = visualSearchAllowVault,
                         onAllowVaultChange = { visualSearchAllowVault = it },
                         convertMode = visualSearchConvertMode,
@@ -683,8 +671,6 @@ fun VisualSearchSettingsContent(
     providerIcon: (@Composable (packageName: String) -> Unit)?,
     provider: String,
     onProviderChange: (String) -> Unit,
-    position: String,
-    onPositionChange: (String) -> Unit,
     allowVault: Boolean,
     onAllowVaultChange: (Boolean) -> Unit,
     convertMode: String,
@@ -696,42 +682,6 @@ fun VisualSearchSettingsContent(
     val resolvedProvider = resolveVisualSearchTarget(targets, provider)
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        SettingsItem(
-            item = SettingsEntity.Header(
-                title = stringResource(Res.string.visual_search_position_header)
-            )
-        )
-        VisualSearchSectionExplanation(Res.string.visual_search_position_summary)
-        listOf(
-            Triple(
-                VISUAL_SEARCH_POSITION_TOP,
-                Res.string.visual_search_position_top,
-                Res.string.visual_search_position_top_summary,
-            ),
-            Triple(
-                VISUAL_SEARCH_POSITION_BOTTOM,
-                Res.string.visual_search_position_bottom,
-                Res.string.visual_search_position_bottom_summary,
-            ),
-        ).forEachIndexed { index, (value, labelRes, summaryRes) ->
-            SettingsItem(
-                item = SettingsEntity.Preference(
-                    title = stringResource(labelRes),
-                    summary = stringResource(summaryRes),
-                    onClick = { onPositionChange(value) },
-                    screenPosition = if (index == 0) Position.Top else Position.Bottom,
-                ),
-                customTrailingContent = {
-                    RadioButton(
-                        selected = position == value,
-                        onClick = { onPositionChange(value) },
-                    )
-                },
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
         SettingsItem(
             item = SettingsEntity.Header(
                 title = stringResource(Res.string.visual_search_provider_header)

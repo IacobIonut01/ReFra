@@ -90,6 +90,20 @@ data class CastSessionState(
 )
 
 /**
+ * True when the merged manifest still declares INTERNET — the permission the whole
+ * cast stack needs. Flavors that strip network access (e.g. NoML/offline) remove it,
+ * so UI surfaces use this to hide every cast affordance.
+ */
+fun isCastAvailable(context: Context): Boolean {
+    val requestedPerms = try {
+        context.packageManager
+            .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+            .requestedPermissions
+    } catch (_: Exception) { null }
+    return requestedPerms?.contains(Manifest.permission.INTERNET) == true
+}
+
+/**
  * Singleton service managing FCast device discovery, TCP connection, and media casting.
  */
 @Singleton
@@ -119,14 +133,7 @@ class FCastSession @Inject constructor(
      * permissions are declared in the manifest). When permissions are stripped
      * at build time the feature cannot work, so the UI should be hidden.
      */
-    fun isCastAvailable(): Boolean {
-        val requestedPerms = try {
-            context.packageManager
-                .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
-                .requestedPermissions
-        } catch (_: Exception) { null }
-        return requestedPerms?.contains(Manifest.permission.INTERNET) == true
-    }
+    fun isCastAvailable(): Boolean = isCastAvailable(context)
 
     private fun hasPermission(permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

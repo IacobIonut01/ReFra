@@ -25,7 +25,6 @@ import com.dot.gallery.core.ui.mediaview.icon
 import com.dot.gallery.core.ui.mediaview.tintIcon
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_CONVERT_ASK
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_FORMAT_JPEG
-import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import com.dot.gallery.domain.settings.VISUAL_SEARCH_PROVIDER_AUTO
 import com.dot.gallery.feature.settings.ui.VisualSearchSettingsContent
 
@@ -47,7 +46,6 @@ private val DOCS_LENS_TARGET = VisualSearchTarget(
 fun DocsVisualSearchOptionsScene(state: String?) {
     var enabled by rememberSaveable { mutableStateOf(state != "off") }
     var provider by rememberSaveable { mutableStateOf(VISUAL_SEARCH_PROVIDER_AUTO) }
-    var position by rememberSaveable { mutableStateOf(VISUAL_SEARCH_POSITION_TOP) }
     var allowVault by rememberSaveable { mutableStateOf(true) }
     var convertMode by rememberSaveable { mutableStateOf(VISUAL_SEARCH_CONVERT_ASK) }
     var convertFormat by rememberSaveable { mutableStateOf(VISUAL_SEARCH_FORMAT_JPEG) }
@@ -84,8 +82,6 @@ fun DocsVisualSearchOptionsScene(state: String?) {
                 },
                 provider = provider,
                 onProviderChange = { provider = it },
-                position = position,
-                onPositionChange = { position = it },
                 allowVault = allowVault,
                 onAllowVaultChange = { allowVault = it },
                 convertMode = convertMode,

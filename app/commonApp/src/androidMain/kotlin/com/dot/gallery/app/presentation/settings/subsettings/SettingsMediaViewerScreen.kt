@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composeunstyled.LocalTextStyle
 import com.dot.gallery.core.LocalEventHandler
-import com.dot.gallery.core.Settings
 import com.dot.gallery.core.navigate
 import com.dot.gallery.core.util.HdrCapabilities
 import com.dot.gallery.core.util.SdkCompat
@@ -118,8 +117,8 @@ fun SettingsMediaViewerScreen() {
         MediaViewerPreviews(
             dateHeader = { DateHeaderPreview(it) },
             smoothing = { SmoothingPreview(disableSmoothing = it) },
-            visualSearch = { enabled, icon, position ->
-                VisualSearchPreview(enabled = enabled, icon = icon, position = position)
+            visualSearch = { enabled, icon ->
+                VisualSearchPreview(enabled = enabled, icon = icon)
             },
             providerIcon = { packageName -> VisualSearchProviderIcon(packageName) },
         )
@@ -369,11 +368,11 @@ private fun lerpArgb(start: Int, end: Int, fraction: Float): Int {
 }
 
 /**
- * Mock of the viewer chrome showing where the visual-search button lands: the top-left stadium
- * next to Back when [position] is top, or inside the bottom quick-actions pill when bottom.
+ * Mock of the viewer chrome showing the visual-search button in its top-bar slot
+ * next to Back — placement is configured in the viewer action bar editor now.
  */
 @Composable
-private fun VisualSearchPreview(enabled: Boolean, icon: ImageVector, position: String) {
+private fun VisualSearchPreview(enabled: Boolean, icon: ImageVector) {
     val iconTint = MaterialTheme.colorScheme.onSurface
     val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
 
@@ -397,7 +396,7 @@ private fun VisualSearchPreview(enabled: Boolean, icon: ImageVector, position: S
                 .fillMaxSize()
                 .background(color = Color.Black.copy(alpha = 0.1f))
         )
-        if (enabled && position == Settings.Misc.VISUAL_SEARCH_POSITION_TOP) {
+        if (enabled) {
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -443,11 +442,6 @@ private fun VisualSearchPreview(enabled: Boolean, icon: ImageVector, position: S
             ) {
                 Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.Share, null, Modifier.size(18.dp), tint = iconTint)
-                }
-                if (enabled && position == Settings.Misc.VISUAL_SEARCH_POSITION_BOTTOM) {
-                    Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(icon, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                    }
                 }
                 Box(Modifier.size(32.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.ContentCopy, null, Modifier.size(18.dp), tint = iconTint)

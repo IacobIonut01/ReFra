@@ -36,6 +36,7 @@ import com.dot.gallery.app.presentation.cast.CastSessionState
 import com.dot.gallery.app.presentation.cast.FCastDevice
 import com.dot.gallery.app.presentation.cast.PlaybackState
 import com.dot.gallery.app.presentation.cast.RemotePlaybackState
+import com.dot.gallery.app.presentation.cast.components.CastButton
 import com.dot.gallery.app.presentation.cast.components.FCastDevicePickerDialog
 import com.dot.gallery.app.presentation.mediaview.MediaViewScreen
 import com.dot.gallery.app.presentation.storycards.StoryViewerScreen
@@ -354,7 +355,8 @@ private fun DocsMediaViewer(
             sharedTransitionScope = sts,
             animatedContentScope = acs,
             castController = castController,
-            quickActionsContent = { m, enabled, isBottomDark, autoContrast ->
+            quickActionsContent = { m, enabled, isBottomDark, autoContrast, placement ->
+                val castState by castController.state.collectAsStateWithLifecycle()
                 MediaViewQuickBottomBar(
                     currentMedia = m,
                     enabled = enabled,
@@ -369,6 +371,15 @@ private fun DocsMediaViewer(
                         distributor.setFavoriteOverride(mm.id, fav)
                     },
                     trashSupported = true,
+                    placement = placement,
+                    castButton = { followTheme ->
+                        CastButton(
+                            isConnected = castState.connectedDevice != null,
+                            isConnecting = castState.isConnecting,
+                            followTheme = followTheme,
+                            onClick = {},
+                        )
+                    },
                 )
             },
             detailsContent = { m ->

@@ -132,6 +132,7 @@ import com.dot.gallery.feature.settings.ui.SettingsMediaViewerContent
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerState
 import com.dot.gallery.feature.settings.ui.SettingsNavigationActions
 import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
+import com.dot.gallery.feature.settings.ui.SettingsViewerActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsContent
 import com.dot.gallery.feature.settings.ui.TopBarSettingsDetail
@@ -589,6 +590,17 @@ val sceneRegistry: List<DocsScene> = listOf(
             ),
             actions = SettingsMediaViewerActions(),
         )
+    },
+    DocsScene(
+        id = "settings-viewer-actions",
+        title = "Viewer action bar",
+        pathTrace = listOf("Settings", "Media viewer", "Viewer action bar"),
+        states = listOf("default", "scrolled"),
+        swipedStates = listOf("scrolled"),
+    ) {
+        // Docs captures run the network-enabled build, so Cast is offered the
+        // same way NavigationComp passes isCastAvailable(context) = true.
+        SettingsViewerActionsContent(supportsFavorites = true, supportsCast = true)
     },
     DocsScene(
         id = "settings-editors",

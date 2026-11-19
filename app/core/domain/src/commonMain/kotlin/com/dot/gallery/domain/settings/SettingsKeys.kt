@@ -328,7 +328,12 @@ const val METADATA_ISOLATION_PER_FILE = "per_file"
 /** Visual-search provider sentinel — mirrors `Settings.Misc.VISUAL_SEARCH_PROVIDER_AUTO`. */
 const val VISUAL_SEARCH_PROVIDER_AUTO = ""
 
-/** Visual-search position values — mirror `Settings.Misc.VISUAL_SEARCH_POSITION_*`. */
+/**
+ * Legacy visual-search position values. The separate position setting is retired —
+ * the viewer action bar config owns placement now — but the stored key is still read
+ * once by `rememberViewerActionBarConfig` to fold a saved "bottom" choice into the
+ * action-bar migration.
+ */
 const val VISUAL_SEARCH_POSITION_TOP = "top"
 const val VISUAL_SEARCH_POSITION_BOTTOM = "bottom"
 

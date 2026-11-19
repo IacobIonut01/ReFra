@@ -12,6 +12,8 @@ import com.dot.gallery.core.ui.settings.LocalSettingsStore
 import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.domain.settings.PrefKey
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_BOTTOM
+import com.dot.gallery.domain.settings.VISUAL_SEARCH_POSITION_TOP
 import kotlinx.coroutines.flow.first
 
 /** Persisted `viewer_action_bar_config` — JSON-encoded [ViewerActionBarConfig]. */
@@ -34,12 +36,21 @@ fun rememberViewerActionBarConfig(): MutableState<ViewerActionBarConfig> {
         "rememberViewerActionBarConfig requires LocalSettingsStore — provide a SettingsStore at the composition root"
     }
     LaunchedEffect(store) {
-        if (store.observe(viewerActionBarFavoriteMigratedKey).first()) return@LaunchedEffect
-        // The retired "Favorite button in viewer" switch mapped onto the FAVORITE action:
-        // users who had it off get it removed from their saved bar once.
-        val legacyHidden = !store.observe(SettingsKeys.showFavoriteButton).first()
-        store.put(viewerActionBarFavoriteMigratedKey, true)
-        if (legacyHidden) config.value = config.value.withoutFavorite()
+        if (!store.observe(viewerActionBarFavoriteMigratedKey).first()) {
+            // The retired "Favorite button in viewer" switch mapped onto the FAVORITE action:
+            // users who had it off get it removed from their saved bar once.
+            val legacyHidden = !store.observe(SettingsKeys.showFavoriteButton).first()
+            store.put(viewerActionBarFavoriteMigratedKey, true)
+            if (legacyHidden) config.value = config.value.withoutFavorite()
+        }
+        // The retired visual-search position setting folds into the action-bar config:
+        // "bottom" moves the action into the quick-actions list. Rewriting the stored
+        // position to TOP marks it consumed — a backup restore that writes "bottom"
+        // again simply re-applies the migration.
+        if (store.observe(SettingsKeys.visualSearchPosition).first() == VISUAL_SEARCH_POSITION_BOTTOM) {
+            config.value = config.value.withVisualSearchInBottomBar()
+            store.put(SettingsKeys.visualSearchPosition, VISUAL_SEARCH_POSITION_TOP)
+        }
     }
     return config
 }

@@ -106,6 +106,26 @@ class BackupModelsTest {
     }
 
     @Test
+    fun retiredVisualSearchPositionStillDecodesButIsNeverExported() {
+        // Old backups still restore the key so the viewer action-bar migration can
+        // consume a saved "bottom" choice; new backups must not write it back out.
+        assertEquals(
+            PortableSettingType.STRING,
+            PortableBackupSettings.typeFor("visual_search_position")
+        )
+        val decoded = PortableBackupSettings.decode(
+            "visual_search_position",
+            SettingValue("s", "bottom")
+        )
+        assertEquals(PortableSettingType.STRING, decoded?.type)
+        assertEquals("bottom", decoded?.value)
+        assertEquals(
+            null,
+            PortableBackupSettings.encode("visual_search_position", "bottom")
+        )
+    }
+
+    @Test
     fun resolutionBadgeChoicesArePortable() {
         assertEquals(
             PortableSettingType.BOOLEAN,

@@ -1263,13 +1263,6 @@ object Settings {
         fun rememberVisualSearchProvider() =
             rememberPreference(SettingsKeys.visualSearchProvider)
 
-        const val VISUAL_SEARCH_POSITION_TOP = "top"
-        const val VISUAL_SEARCH_POSITION_BOTTOM = "bottom"
-
-        @Composable
-        fun rememberVisualSearchPosition() =
-            rememberPreference(SettingsKeys.visualSearchPosition)
-
         @Composable
         fun rememberVisualSearchAllowVault() =
             rememberPreference(SettingsKeys.visualSearchAllowVault)

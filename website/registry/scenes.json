@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-15T10:40:35.038Z",
-  "capturedAtMs": 1794653721359,
+  "generatedAt": "2026-11-17T14:15:07.506Z",
+  "capturedAtMs": 1794924635863,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
   ],
-  "sceneCount": 113,
+  "sceneCount": 114,
   "scenes": {
     "album-transfer": {
       "id": "album-transfer",
@@ -13936,6 +13936,92 @@
               "src": "captures/settings-top-bar/light/phone-selecting.webp",
               "type": "image",
               "file": "settings-top-bar/light/phone-selecting.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        }
+      }
+    },
+    "settings-viewer-actions": {
+      "id": "settings-viewer-actions",
+      "title": "Viewer action bar",
+      "path": [
+        "Settings",
+        "Media viewer",
+        "Viewer action bar"
+      ],
+      "states": [
+        "default",
+        "scrolled"
+      ],
+      "presentation": "screen",
+      "widthDp": 412,
+      "heightDp": 915,
+      "live": false,
+      "fidelity": "capture",
+      "assets": {
+        "phone": {
+          "default": {
+            "src": "captures/settings-viewer-actions/light/phone-default.webp",
+            "type": "image",
+            "file": "settings-viewer-actions/light/phone-default.webp",
+            "width": 1079,
+            "height": 2396,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "scrolled": {
+            "src": "captures/settings-viewer-actions/light/phone-scrolled.webp",
+            "type": "image",
+            "file": "settings-viewer-actions/light/phone-scrolled.webp",
+            "width": 1079,
+            "height": 2396,
+            "widthDp": 412,
+            "heightDp": 915
+          }
+        }
+      },
+      "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/settings-viewer-actions/dark/phone-default.webp",
+              "type": "image",
+              "file": "settings-viewer-actions/dark/phone-default.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-viewer-actions/dark/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-viewer-actions/dark/phone-scrolled.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
+        "light": {
+          "phone": {
+            "default": {
+              "src": "captures/settings-viewer-actions/light/phone-default.webp",
+              "type": "image",
+              "file": "settings-viewer-actions/light/phone-default.webp",
+              "width": 1079,
+              "height": 2396,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "scrolled": {
+              "src": "captures/settings-viewer-actions/light/phone-scrolled.webp",
+              "type": "image",
+              "file": "settings-viewer-actions/light/phone-scrolled.webp",
               "width": 1079,
               "height": 2396,
               "widthDp": 412,
