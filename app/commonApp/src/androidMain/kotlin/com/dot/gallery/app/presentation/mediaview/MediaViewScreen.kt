@@ -84,6 +84,7 @@ import com.dot.gallery.feature.viewer.insight.CodeScanButton
 import com.dot.gallery.feature.viewer.insight.CodeScanNothingFoundToast
 import com.dot.gallery.feature.viewer.insight.InsightTrigger
 import com.dot.gallery.feature.viewer.insight.LocalInsightController
+import com.dot.gallery.feature.viewer.insight.fadeOutWithSheet
 import com.dot.gallery.feature.viewer.insight.insightKey
 import com.dot.gallery.feature.viewer.insight.insightSupported
 import com.dot.gallery.feature.viewer.insight.rememberCodeScanOnTap
@@ -3503,6 +3504,9 @@ fun <T : Media> MediaViewScreen(
                         onRequest = ocrOnRequest,
                         chromeVisible = showViewerChrome,
                         isVault = textMedia?.isEncrypted == true,
+                        sheetProgress = { sheetState.measuredProgress(imageOnlyDetent, expandedDetent) },
+                        sheetTravel = bottomBarHeightDefault,
+                        sheetCollapsed = sheetState.currentDetent == imageOnlyDetent,
                         onSearch = { text ->
                             // Search opens with the selected words already searched.
                             searchViewModel.setQuery(text.replace('\n', ' ').trim(), apply = true)
@@ -3521,7 +3525,12 @@ fun <T : Media> MediaViewScreen(
                             onClick = { scope.launch { textFirstRunSheet.show() } },
                             modifier = Modifier.align(Alignment.BottomStart)
                                 .windowInsetsPadding(WindowInsets.navigationBars)
-                                .padding(start = 16.dp, bottom = 92.dp),
+                                .padding(start = 16.dp, bottom = 92.dp)
+                                .fadeOutWithSheet(
+                                    { sheetState.measuredProgress(imageOnlyDetent, expandedDetent) },
+                                    bottomBarHeightDefault,
+                                ),
+                            enabled = sheetState.currentDetent == imageOnlyDetent,
                         )
                     }
                 }

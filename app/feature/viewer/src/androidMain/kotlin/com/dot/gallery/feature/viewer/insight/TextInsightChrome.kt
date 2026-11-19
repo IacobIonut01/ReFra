@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.insight.InsightKey
 import com.dot.gallery.core.insight.TextInsight
@@ -48,6 +49,9 @@ fun TextInsightChrome(
     chromeVisible: Boolean,
     isVault: Boolean,
     onSearch: (String) -> Unit,
+    sheetProgress: () -> Float = { 0f },
+    sheetTravel: Dp = 0.dp,
+    sheetCollapsed: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -80,11 +84,12 @@ fun TextInsightChrome(
         } else if (chromeVisible && media != null && key != null) {
             val chipModifier = Modifier.align(Alignment.BottomStart).windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(start = 16.dp, bottom = 92.dp)
+                .fadeOutWithSheet(sheetProgress, sheetTravel)
             when {
-                insight != null -> TextChip(TextChipMode.FOUND, insight.lines.size, onClick = { holder.start(insight) }, modifier = chipModifier)
+                insight != null -> TextChip(TextChipMode.FOUND, insight.lines.size, onClick = { holder.start(insight) }, modifier = chipModifier, enabled = sheetCollapsed)
                 onRequest && state.manualScanRunning && state.key == key ->
-                    TextChip(TextChipMode.READING, 0, onClick = controller::cancel, modifier = chipModifier)
-                onRequest -> TextChip(TextChipMode.READ, 0, onClick = { controller.request(key, media, InsightTrigger.MANUAL) }, modifier = chipModifier)
+                    TextChip(TextChipMode.READING, 0, onClick = controller::cancel, modifier = chipModifier, enabled = sheetCollapsed)
+                onRequest -> TextChip(TextChipMode.READ, 0, onClick = { controller.request(key, media, InsightTrigger.MANUAL) }, modifier = chipModifier, enabled = sheetCollapsed)
             }
         }
     }

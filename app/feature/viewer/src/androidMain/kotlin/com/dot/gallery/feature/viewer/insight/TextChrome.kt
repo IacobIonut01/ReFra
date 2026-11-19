@@ -74,6 +74,7 @@ fun TextChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     kindOverride: String? = null,
+    enabled: Boolean = true,
 ) {
     val colors = MaterialTheme.colorScheme
     val container = colors.primaryContainer
@@ -97,7 +98,7 @@ fun TextChip(
                 style = HazeMaterials.thin(containerColor = container),
                 glassContainerColor = container,
             )
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description }
             .padding(start = 6.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
