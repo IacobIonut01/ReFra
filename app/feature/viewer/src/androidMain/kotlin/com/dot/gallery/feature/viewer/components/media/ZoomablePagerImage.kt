@@ -347,6 +347,19 @@ fun viewerMarksAnimated(
 fun viewerUsesHeifTiles(isHeif: Boolean, isAvif: Boolean, isAnimated: Boolean): Boolean =
     (isHeif || isAvif) && !isAnimated
 
+/**
+ * Whether found codes in a photo may be drawn and tapped open. Codes are interactive only
+ * while the viewer chrome is visible: with the chrome hidden a tap anywhere — on a code
+ * included — must just bring the chrome back, so the hit-test and the overlay both drop out.
+ * A running or pending cutout session also suspends them.
+ */
+fun codesInteractive(
+    hasCodes: Boolean,
+    chromeVisible: Boolean,
+    cutoutActive: Boolean,
+    cutoutProcessing: Boolean,
+): Boolean = hasCodes && chromeVisible && !cutoutActive && !cutoutProcessing
+
 @Stable
 @Composable
 fun <T : Media> ZoomablePagerImage(
@@ -370,6 +383,9 @@ fun <T : Media> ZoomablePagerImage(
     onCutoutController: (CutoutController?) -> Unit = {},
     isSelected: Boolean = true,
     uiVisible: Boolean = true,
+    // Viewer chrome (bars and sheets) is showing and interactive; found codes are only
+    // drawn and tappable while it is — a hidden-chrome tap must reach onItemClick instead.
+    chromeVisible: Boolean = true,
     // When false (e.g. during a slideshow) both the long-press cut-out gesture and the
     // background subject-suggestion detection are disabled.
     cutoutEnabled: Boolean = true,
@@ -990,7 +1006,12 @@ fun <T : Media> ZoomablePagerImage(
             insightSnapshot.insights.filterIsInstance<CodeInsight>()
         }
     }
-    val showCodes = codes.isNotEmpty() && !cutoutState.isActive && !cutoutState.isProcessing
+    val showCodes = codesInteractive(
+        hasCodes = codes.isNotEmpty(),
+        chromeVisible = chromeVisible,
+        cutoutActive = cutoutState.isActive,
+        cutoutProcessing = cutoutState.isProcessing,
+    )
     val codeSheetState = rememberAppBottomSheetState()
     var codeSelection by remember(media.id) { mutableStateOf<Int?>(null) }
     val openCode: (Int?) -> Unit = { index ->
@@ -1254,7 +1275,7 @@ fun <T : Media> ZoomablePagerImage(
             CodeOverlay(
                 insights = codes,
                 zoomable = zoomState.zoomable,
-                showChip = uiVisible,
+                showChip = true,
                 animationsEnabled = animationsEnabled,
                 // The Text chip sits above the quick bar, so code chips keep clear of it too.
                 bottomReserve = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +

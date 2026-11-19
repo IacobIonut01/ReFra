@@ -2518,6 +2518,7 @@ fun <T : Media> MediaViewScreen(
                                     containerModifier = Modifier,
                                     media = media,
                                     uiEnabled = showUI,
+                                    chromeVisible = showViewerChrome && viewerInteractive,
                                     playWhenReady = canPlay,
                                     slideshowActive = slideshowActive,
                                     cutoutEnabled = currentCapabilities?.cutout == true,

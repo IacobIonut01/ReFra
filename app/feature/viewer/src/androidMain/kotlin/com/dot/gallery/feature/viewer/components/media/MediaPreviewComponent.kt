@@ -48,6 +48,9 @@ fun <T : Media> MediaPreviewComponent(
     modifier: Modifier = Modifier,
     containerModifier: Modifier = Modifier,
     uiEnabled: Boolean,
+    // Viewer chrome is showing and interactive; found codes are only drawn and tappable
+    // while it is (see ZoomablePagerImage).
+    chromeVisible: Boolean = true,
     playWhenReady: State<Boolean>,
     onItemClick: () -> Unit,
     onImageTap: (Offset) -> Unit = { onItemClick() },
@@ -173,6 +176,7 @@ fun <T : Media> MediaPreviewComponent(
                         onCutoutController = onCutoutController,
                         isSelected = isSelected,
                         uiVisible = uiEnabled,
+                        chromeVisible = chromeVisible,
                         cutoutEnabled = cutoutEnabled && !slideshowActive
                     )
                 }
