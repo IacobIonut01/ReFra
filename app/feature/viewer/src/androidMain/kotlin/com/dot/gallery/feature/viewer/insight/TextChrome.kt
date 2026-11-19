@@ -121,27 +121,57 @@ fun TextChip(
     }
 }
 
-/** The header that replaces the top bar while selecting: Close and the selected-line count. */
+/**
+ * The controls above the selection bar: Close with the selected-line count, and Select all, which is
+ * disabled once every line is selected.
+ */
 @Composable
-fun TextSelectionHeader(count: Int, onClose: () -> Unit, modifier: Modifier = Modifier) {
+fun TextSelectionControls(
+    count: Int,
+    allSelected: Boolean,
+    onClose: () -> Unit,
+    onSelectAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = MaterialTheme.colorScheme
     Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(colors.surfaceContainer.copy(alpha = 0.65f))
-            .hazeEffectScaled(state = LocalHazeState.current, style = HazeMaterials.thin(containerColor = colors.surfaceContainer))
-            .padding(end = 20.dp),
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onClose),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.Close, stringResource(Res.string.text_close_selection), tint = colors.onSurface) }
-        Text(
-            if (count == 1) stringResource(Res.string.text_selected_one) else stringResource(Res.string.text_selected_count, count),
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.onSurface,
-        )
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(colors.surfaceContainer.copy(alpha = 0.65f))
+                .hazeEffectScaled(state = LocalHazeState.current, style = HazeMaterials.thin(containerColor = colors.surfaceContainer))
+                .padding(end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onClose),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Outlined.Close, stringResource(Res.string.text_close_selection), tint = colors.onSurface) }
+            Text(
+                if (count == 1) stringResource(Res.string.text_selected_one) else stringResource(Res.string.text_selected_count, count),
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.onSurface,
+            )
+        }
+        val selectAllContent = if (allSelected) colors.onSurface.copy(alpha = 0.38f) else colors.onSurface
+        Row(
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(colors.surfaceContainer.copy(alpha = 0.65f))
+                .hazeEffectScaled(state = LocalHazeState.current, style = HazeMaterials.thin(containerColor = colors.surfaceContainer))
+                .clickable(enabled = !allSelected, role = Role.Button, onClick = onSelectAll)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(Icons.Outlined.SelectAll, null, tint = selectAllContent)
+            Text(stringResource(Res.string.text_select_all), style = MaterialTheme.typography.titleSmall, color = selectAllContent)
+        }
     }
 }
 
@@ -151,7 +181,6 @@ fun TextSelectionBar(
     showSearch: Boolean,
     onCopy: () -> Unit,
     onShare: () -> Unit,
-    onSelectAll: () -> Unit,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -166,7 +195,6 @@ fun TextSelectionBar(
     ) {
         BarAction(Icons.Outlined.ContentCopy, stringResource(Res.string.text_copy), null, primary = true, onClick = onCopy)
         BarAction(Icons.Outlined.Share, stringResource(Res.string.text_share), null, onClick = onShare)
-        BarAction(Icons.Outlined.SelectAll, stringResource(Res.string.text_select_all), null, onClick = onSelectAll)
         if (showSearch) {
             BarAction(Icons.Outlined.Search, stringResource(Res.string.text_search), stringResource(Res.string.text_search_in_refra), onClick = onSearch)
         }

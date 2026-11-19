@@ -11,12 +11,13 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -68,19 +69,24 @@ fun TextInsightChrome(
         val selection = holder.selection
         val selected = holder.insight
         if (selection != null && selected != null) {
-            TextSelectionHeader(
-                count = selection.count,
-                onClose = holder::close,
-                modifier = Modifier.align(Alignment.TopStart).windowInsetsPadding(WindowInsets.statusBars).padding(16.dp),
-            )
-            TextSelectionBar(
-                showSearch = !isVault,
-                onCopy = { copyText(context, holder.selectedText, copied) },
-                onShare = { shareText(context, holder.selectedText) },
-                onSelectAll = { holder.update(TextSelection.all(selected.lines.size)) },
-                onSearch = { onSearch(holder.selectedText); holder.close() },
+            Column(
                 modifier = Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = 24.dp),
-            )
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                TextSelectionControls(
+                    count = selection.count,
+                    allSelected = selection.count == selected.lines.size,
+                    onClose = holder::close,
+                    onSelectAll = { holder.update(TextSelection.all(selected.lines.size)) },
+                )
+                TextSelectionBar(
+                    showSearch = !isVault,
+                    onCopy = { copyText(context, holder.selectedText, copied) },
+                    onShare = { shareText(context, holder.selectedText) },
+                    onSearch = { onSearch(holder.selectedText); holder.close() },
+                )
+            }
         } else if (chromeVisible && media != null && key != null) {
             val chipModifier = Modifier.align(Alignment.BottomStart).windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(start = 16.dp, bottom = 92.dp)

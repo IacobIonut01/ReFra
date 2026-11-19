@@ -107,6 +107,7 @@ import com.dot.gallery.feature.viewer.insight.CodeChip
 import com.dot.gallery.feature.viewer.insight.TextChip
 import com.dot.gallery.feature.viewer.insight.TextChipMode
 import com.dot.gallery.feature.viewer.insight.TextSelectionBar
+import com.dot.gallery.feature.viewer.insight.TextSelectionControls
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.help_preview_code_kind
 import org.jetbrains.compose.resources.stringResource
@@ -589,7 +590,8 @@ private fun CodeScanPreviewMini(modifier: Modifier = Modifier) {
 
 /**
  * A poster whose lines light up, then the production [TextChip] and, in the second step, the
- * selection with the production [TextSelectionBar]. Sample state only; no model is loaded.
+ * selection with the production [TextSelectionControls] above [TextSelectionBar]. Sample state only;
+ * no model is loaded.
  */
 @Composable
 private fun TextRecognitionPreviewMini(modifier: Modifier = Modifier) {
@@ -620,7 +622,10 @@ private fun TextRecognitionPreviewMini(modifier: Modifier = Modifier) {
         }
         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp).graphicsLayer { alpha = progress }) {
             if (selecting) {
-                TextSelectionBar(showSearch = true, onCopy = {}, onShare = {}, onSelectAll = {}, onSearch = {})
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextSelectionControls(count = lines.size, allSelected = true, onClose = {}, onSelectAll = {})
+                    TextSelectionBar(showSearch = true, onCopy = {}, onShare = {}, onSearch = {})
+                }
             } else {
                 TextChip(mode = TextChipMode.FOUND, lineCount = lines.size, onClick = {})
             }
