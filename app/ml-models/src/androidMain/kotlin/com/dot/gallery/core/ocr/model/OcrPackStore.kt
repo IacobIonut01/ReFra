@@ -107,7 +107,7 @@ class OcrPackStore(context: Context) : OcrModelSource {
             // A pipe cannot be mapped: read it into memory, bounded by the catalog size.
             printWarn(TAG, "Mapping a linked model failed; reading it instead", mapOf("model" to model.id, "error" to e.toString()))
             descriptor.close()
-            val bytes = resolver.openInputStream(Uri.parse(link.uri))!!.use { it.readNBytes(model.onnx.sizeBytes.toInt()) }
+            val bytes = resolver.openInputStream(Uri.parse(link.uri))!!.use { it.readAtMost(model.onnx.sizeBytes.toInt()) }
             val direct = java.nio.ByteBuffer.allocateDirect(bytes.size).put(bytes).also { it.flip() }
             OcrModelHandle.Buffer(direct) {}
         }
