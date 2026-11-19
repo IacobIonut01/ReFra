@@ -3351,6 +3351,7 @@ fun <T : Media> MediaViewScreen(
                                 // to 1, which chops the quick-action capsule. Modulate the alpha
                                 // instead so the sampling layer is never flattened mid-transition.
                                 compositingStrategy = CompositingStrategy.ModulateAlpha
+                                passTouchesThrough(!showViewerChrome && bottomSheetAlpha == 0f)
                             }
                             .then(
                                 if (viewerInteractive) Modifier
