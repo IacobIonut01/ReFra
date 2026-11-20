@@ -26,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +49,8 @@ import com.dot.gallery.core.presentation.util.Screen
 import com.dot.gallery.core.presentation.util.effectiveCartoBasemapKey
 import com.dot.gallery.core.presentation.util.rememberBottomBarInset
 import com.dot.gallery.core.ui.generated.resources.customize_library
+import com.dot.gallery.core.ui.settings.rememberPreference
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.feature.albums.ui.util.AlbumArrangeRequest
 import com.dot.gallery.feature.albums.ui.util.LocalAlbumArrangeRequest
@@ -58,7 +61,9 @@ import com.dot.gallery.feature.library.ui.LibraryHeader
 import com.dot.gallery.feature.library.ui.LibraryHeaderLayout
 import com.dot.gallery.feature.library.ui.LibraryRoutes
 import com.dot.gallery.feature.library.ui.LibraryState
+import com.dot.gallery.feature.library.ui.pendingShortcuts
 import com.dot.gallery.feature.library.ui.rememberLibrarySections
+import com.dot.gallery.feature.library.ui.reservedShortcuts
 import com.dot.gallery.feature.vault.domain.model.GateMode
 import com.dot.gallery.feature.vault.utils.VaultPasswordManager
 import com.dot.gallery.injection.injectViewModel
@@ -161,7 +166,10 @@ fun LibraryScreen(
             )
         )
     }
-    val sections = rememberLibrarySections(state)
+    var remembered by rememberPreference(SettingsKeys.libraryShownShortcuts)
+    val noClassification by rememberPreference(SettingsKeys.noClassification)
+    val reserved = reservedShortcuts(remembered, pendingShortcuts(state, noClassification))
+    val sections = rememberLibrarySections(state, reserved)
     val layoutDirection = LocalLayoutDirection.current
     val arrangeRequest = remember { AlbumArrangeRequest() }
 
@@ -182,6 +190,8 @@ fun LibraryScreen(
                 routes = routes,
                 layout = layout,
                 mapContent = mapContent,
+                rememberedShortcuts = remembered,
+                onRememberedShortcutsChange = { remembered = it },
                 modifier = modifier,
             )
         }

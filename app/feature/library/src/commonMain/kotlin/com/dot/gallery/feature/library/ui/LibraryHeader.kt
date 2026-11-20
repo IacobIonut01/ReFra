@@ -8,8 +8,10 @@ package com.dot.gallery.feature.library.ui
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -34,17 +36,22 @@ private fun rememberShortcutDefaults(): (LibraryShortcut) -> LibraryShortcutPref
 }
 
 @Composable
-fun rememberLibrarySections(state: LibraryState): LibrarySections {
+fun rememberLibrarySections(
+    state: LibraryState,
+    reserved: Set<LibraryShortcut> = emptySet(),
+): LibrarySections {
     val noClassification by rememberPreference(SettingsKeys.noClassification)
     val layout by rememberPreference(libraryShortcutsLayoutKey)
     val defaults = rememberShortcutDefaults()
     val explore = libraryExploreData(state, noClassification)
     fun shown(shortcut: LibraryShortcut) =
         (layout.firstOrNull { it.id == shortcut.id } ?: defaults(shortcut)).visible
+    fun present(shortcut: LibraryShortcut, hasData: Boolean) =
+        (hasData || shortcut in reserved) && shown(shortcut)
     return LibrarySections(
-        locations = explore.locations && shown(LibraryShortcut.LOCATIONS),
-        people = explore.people && shown(LibraryShortcut.PEOPLE),
-        categories = explore.categories && shown(LibraryShortcut.CATEGORIES),
+        locations = present(LibraryShortcut.LOCATIONS, explore.locations),
+        people = present(LibraryShortcut.PEOPLE, explore.people),
+        categories = present(LibraryShortcut.CATEGORIES, explore.categories),
     )
 }
 
@@ -60,6 +67,8 @@ fun LibraryHeader(
     layout: LibraryHeaderLayout,
     modifier: Modifier = Modifier,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)? = null,
+    rememberedShortcuts: Set<String>? = null,
+    onRememberedShortcutsChange: (Set<String>) -> Unit = {},
 ) {
     LibraryShortcuts(
         modifier = modifier.fillMaxWidth(),
@@ -69,6 +78,8 @@ fun LibraryHeader(
         layout = layout,
         mapContent = mapContent,
         onNavigate = actions.onNavigate,
+        rememberedShortcuts = rememberedShortcuts,
+        onRememberedShortcutsChange = onRememberedShortcutsChange,
     )
 }
 
@@ -81,10 +92,14 @@ internal fun LibraryShortcuts(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
     mapContent: (@Composable BoxScope.(latitude: Double, longitude: Double) -> Unit)? = null,
+    rememberedShortcuts: Set<String>? = null,
+    onRememberedShortcutsChange: (Set<String>) -> Unit = {},
 ) {
     val noClassification by rememberPreference(SettingsKeys.noClassification)
     // A new pick each time the Library opens, kept while it stays open.
     val shuffleSeed = remember { Random.nextInt() }
+    val pending = pendingShortcuts(state, noClassification)
+    val reserved = rememberedShortcuts?.let { reservedShortcuts(it, pending) }.orEmpty()
     val runtime = rememberLibraryRuntimeShortcuts(
         indicatorState = state.snapshot.indicators,
         cloudState = state.snapshot.cloud,
@@ -95,12 +110,24 @@ internal fun LibraryShortcuts(
         vaultCount = state.vaultCount,
         explore = libraryExploreData(state, noClassification),
         shuffleSeed = shuffleSeed,
+        reserved = reserved,
     )
     var shortcutsLayout by rememberPreference(libraryShortcutsLayoutKey)
     val showAllShortcuts by rememberPreference(SettingsKeys.showAllLibraryShortcuts)
     val defaults = rememberShortcutDefaults()
     val working = remember(runtime, shortcutsLayout, defaults) {
         mergeShortcutPrefs(shortcutsLayout, runtime, defaults).map { it.pref }
+    }
+    if (rememberedShortcuts != null) {
+        val next = nextRememberedShortcuts(
+            rememberedShortcuts,
+            runtime.filterValues { !it.loading }.keys,
+            pending,
+        )
+        val onRememberedChange by rememberUpdatedState(onRememberedShortcutsChange)
+        LaunchedEffect(next) {
+            if (next != rememberedShortcuts) onRememberedChange(next)
+        }
     }
     EditableLibraryShortcutsGrid(
         modifier = modifier,

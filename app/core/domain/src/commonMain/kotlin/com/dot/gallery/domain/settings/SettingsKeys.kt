@@ -239,6 +239,7 @@ object SettingsKeys {
     val timelineFloatingDateLabel = PrefKey.bool("timeline_floating_date_label", default = true)
     val showLocationCategories = PrefKey.bool("library_show_location_categories", default = true)
     val hiddenSections = PrefKey.stringSet("library_hidden_sections")
+    val libraryShownShortcuts = PrefKey.stringSet("library_shown_shortcuts")
 
     // Search
     /** Mirrors `Settings.Search.HISTORY_V2` — JSON-encoded list of [SearchHistory]. */

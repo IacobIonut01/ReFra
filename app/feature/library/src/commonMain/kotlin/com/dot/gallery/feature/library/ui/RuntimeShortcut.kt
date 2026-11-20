@@ -38,6 +38,8 @@ data class RuntimeShortcut(
     val previewFaces: List<String?> = emptyList(),
     val mapLatitude: Double? = null,
     val mapLongitude: Double? = null,
+    /** Reserved slot for a data-backed tile whose live data has not arrived yet. */
+    val loading: Boolean = false,
 ) {
     /** Only shortcuts that can show oldest photos offer the latest/oldest choice. */
     val hasCoverOrder: Boolean get() = oldestPreviewMedia.isNotEmpty()

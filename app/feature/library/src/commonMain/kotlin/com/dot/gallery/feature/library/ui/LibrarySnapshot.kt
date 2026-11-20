@@ -26,6 +26,10 @@ data class LibrarySnapshot(
     val peopleCountsByAccount: Map<Long, Int> = emptyMap(),
     val sharedLinkCountsByAccount: Map<Long, Int> = emptyMap(),
     val cloud: CloudLibraryState = CloudLibraryState(),
+    /** False until the people collectors have settled; the People tile reserves its slot meanwhile. */
+    val peopleLoaded: Boolean = false,
+    /** False until every configured provider resolved; the cloud tiles reserve their slots meanwhile. */
+    val cloudLoaded: Boolean = false,
     val indicators: LibraryIndicatorState = LibraryIndicatorState(),
     val shortcutPreviews: LibraryShortcutPreviews = LibraryShortcutPreviews(),
     val viewport: LibraryViewport = LibraryViewport()

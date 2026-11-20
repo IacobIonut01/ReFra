@@ -74,6 +74,7 @@ fun rememberLibraryRuntimeShortcuts(
     vaultCount: Int? = null,
     explore: LibraryExploreData = LibraryExploreData(),
     shuffleSeed: Int = 0,
+    reserved: Set<LibraryShortcut> = emptySet(),
 ): Map<LibraryShortcut, RuntimeShortcut> {
     val privateFolderUri by rememberPreference(SettingsKeys.privateFolderUri)
     val colorScheme = MaterialTheme.colorScheme
@@ -164,31 +165,34 @@ fun rememberLibraryRuntimeShortcuts(
             available = true
         )
     }
-    if (cloudState.hasCloud) {
-        if (cloudState.hasArchive) {
-            map[LibraryShortcut.CLOUD_ARCHIVE] = RuntimeShortcut(
-                shortcut = LibraryShortcut.CLOUD_ARCHIVE,
-                title = stringResource(Res.string.cloud_archive),
-                icon = Icons.Outlined.Archive,
-                contentColor = colorScheme.secondary,
-                useIndicator = true,
-                indicatorCounter = cloudState.archivedCount,
-                route = routes.cloudArchive,
-                available = true
-            )
-        }
-        if (cloudState.hasShareLink) {
-            map[LibraryShortcut.CLOUD_SHARED_LINKS] = RuntimeShortcut(
-                shortcut = LibraryShortcut.CLOUD_SHARED_LINKS,
-                title = stringResource(Res.string.cloud_shared_links),
-                icon = Icons.Outlined.Link,
-                contentColor = colorScheme.tertiary,
-                useIndicator = true,
-                indicatorCounter = cloudState.sharedLinkCount,
-                route = routes.cloudSharedLinks,
-                available = true
-            )
-        }
+    val hasCloud = cloudState.hasCloud
+    val archive = hasCloud && cloudState.hasArchive
+    if (archive || LibraryShortcut.CLOUD_ARCHIVE in reserved) {
+        map[LibraryShortcut.CLOUD_ARCHIVE] = RuntimeShortcut(
+            shortcut = LibraryShortcut.CLOUD_ARCHIVE,
+            title = stringResource(Res.string.cloud_archive),
+            icon = Icons.Outlined.Archive,
+            contentColor = colorScheme.secondary,
+            useIndicator = true,
+            indicatorCounter = cloudState.archivedCount,
+            route = routes.cloudArchive,
+            available = true
+        ).let { if (archive) it else it.asLoadingPlaceholder() }
+    }
+    val sharedLinks = hasCloud && cloudState.hasShareLink
+    if (sharedLinks || LibraryShortcut.CLOUD_SHARED_LINKS in reserved) {
+        map[LibraryShortcut.CLOUD_SHARED_LINKS] = RuntimeShortcut(
+            shortcut = LibraryShortcut.CLOUD_SHARED_LINKS,
+            title = stringResource(Res.string.cloud_shared_links),
+            icon = Icons.Outlined.Link,
+            contentColor = colorScheme.tertiary,
+            useIndicator = true,
+            indicatorCounter = cloudState.sharedLinkCount,
+            route = routes.cloudSharedLinks,
+            available = true
+        ).let { if (sharedLinks) it else it.asLoadingPlaceholder() }
+    }
+    if (hasCloud || LibraryShortcut.CLOUD_BACKUP in reserved) {
         map[LibraryShortcut.CLOUD_BACKUP] = RuntimeShortcut(
             shortcut = LibraryShortcut.CLOUD_BACKUP,
             title = stringResource(Res.string.cloud_backup_and_sync),
@@ -198,7 +202,9 @@ fun rememberLibraryRuntimeShortcuts(
             indicatorCounter = 0,
             route = routes.cloudBackup,
             available = true
-        )
+        ).let { if (hasCloud) it else it.asLoadingPlaceholder() }
+    }
+    if (hasCloud || LibraryShortcut.CLOUD_ACCOUNTS in reserved) {
         map[LibraryShortcut.CLOUD_ACCOUNTS] = RuntimeShortcut(
             shortcut = LibraryShortcut.CLOUD_ACCOUNTS,
             title = stringResource(Res.string.cloud_accounts),
@@ -208,9 +214,9 @@ fun rememberLibraryRuntimeShortcuts(
             indicatorCounter = 0,
             route = routes.cloudAccounts,
             available = true
-        )
+        ).let { if (hasCloud) it else it.asLoadingPlaceholder() }
     }
-    if (explore.locations) {
+    if (explore.locations || LibraryShortcut.LOCATIONS in reserved) {
         map[LibraryShortcut.LOCATIONS] = RuntimeShortcut(
             shortcut = LibraryShortcut.LOCATIONS,
             title = stringResource(Res.string.locations),
@@ -224,9 +230,9 @@ fun rememberLibraryRuntimeShortcuts(
             previewStyle = ShortcutPreviewStyle.MAP,
             mapLatitude = explore.latestGeo?.latitude,
             mapLongitude = explore.latestGeo?.longitude,
-        )
+        ).let { if (explore.locations) it else it.asLoadingPlaceholder() }
     }
-    if (explore.people) {
+    if (explore.people || LibraryShortcut.PEOPLE in reserved) {
         map[LibraryShortcut.PEOPLE] = RuntimeShortcut(
             shortcut = LibraryShortcut.PEOPLE,
             title = stringResource(Res.string.cloud_people),
@@ -238,9 +244,9 @@ fun rememberLibraryRuntimeShortcuts(
             available = true,
             previewStyle = ShortcutPreviewStyle.FACES,
             previewFaces = explore.faces,
-        )
+        ).let { if (explore.people) it else it.asLoadingPlaceholder() }
     }
-    if (explore.categories) {
+    if (explore.categories || LibraryShortcut.CATEGORIES in reserved) {
         map[LibraryShortcut.CATEGORIES] = RuntimeShortcut(
             shortcut = LibraryShortcut.CATEGORIES,
             title = stringResource(Res.string.categories),
@@ -252,10 +258,24 @@ fun rememberLibraryRuntimeShortcuts(
             available = true,
             previewMedia = explore.categoryThumbnails,
             previewStyle = ShortcutPreviewStyle.SPREAD,
-        )
+        ).let { if (explore.categories) it else it.asLoadingPlaceholder() }
     }
     return map
 }
+
+/** The same tile drawn as a slot-holder while its live data is still loading. */
+private fun RuntimeShortcut.asLoadingPlaceholder() = copy(
+    loading = true,
+    previewStyle = ShortcutPreviewStyle.PLACEHOLDER,
+    indicatorCounter = 0,
+    subtitle = null,
+    previewMedia = emptyList(),
+    oldestPreviewMedia = emptyList(),
+    shufflePreviewMedia = emptyList(),
+    previewFaces = emptyList(),
+    mapLatitude = null,
+    mapLongitude = null,
+)
 
 /** Whole days until [expirySeconds], counted from [nowSeconds]; 0 once it is due today or past. */
 fun trashDaysLeft(expirySeconds: Long, nowSeconds: Long): Int =

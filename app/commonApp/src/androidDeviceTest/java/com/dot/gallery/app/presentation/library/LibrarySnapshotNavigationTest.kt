@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -147,11 +148,19 @@ class LibrarySnapshotNavigationTest {
 
     private class Rig(
         val snapshot: MutableStateFlow<LibrarySnapshot>,
+        val remembered: MutableStateFlow<Set<String>?> = MutableStateFlow(null),
         val navigated: MutableList<String> = mutableListOf(),
+        val rememberedChanges: MutableList<Set<String>> = mutableListOf(),
     )
 
-    private fun setHeader(initial: LibrarySnapshot): Rig {
-        val rig = Rig(MutableStateFlow(initial))
+    private fun setHeader(
+        initial: LibrarySnapshot,
+        rememberedShortcuts: Set<String>? = null,
+    ): Rig {
+        val rig = Rig(
+            snapshot = MutableStateFlow(initial),
+            remembered = MutableStateFlow(rememberedShortcuts),
+        )
         rule.setContent {
             GalleryTheme(ignoreUserPreference = true) {
                 CompositionLocalProvider(
@@ -163,6 +172,7 @@ class LibrarySnapshotNavigationTest {
                     LocalMediaImageRenderer provides MockedMediaImageRenderer
                 ) {
                     val snapshot by rig.snapshot.collectAsState()
+                    val remembered by rig.remembered.collectAsState()
                     LibraryHeader(
                         state = LibraryState(
                             snapshot = snapshot,
@@ -173,6 +183,11 @@ class LibrarySnapshotNavigationTest {
                         actions = LibraryActions(onNavigate = { rig.navigated += it }),
                         routes = routes,
                         layout = LibraryHeaderLayout.COMPACT,
+                        rememberedShortcuts = remembered,
+                        onRememberedShortcutsChange = { next ->
+                            rig.rememberedChanges += next
+                            rig.remembered.value = next
+                        },
                     )
                 }
             }
@@ -182,9 +197,9 @@ class LibrarySnapshotNavigationTest {
 
     private fun assertSections(locations: Boolean, people: Boolean, categories: Boolean) {
         listOf(
-            "library-locations" to locations,
-            "library-people" to people,
-            "library-categories" to categories,
+            "library-shortcut-locations" to locations,
+            "library-shortcut-people" to people,
+            "library-shortcut-categories" to categories,
         ).forEach { (tag, expected) ->
             val node = rule.onNodeWithTag(tag)
             if (expected) node.assertIsDisplayed() else node.assertDoesNotExist()
@@ -194,9 +209,9 @@ class LibrarySnapshotNavigationTest {
     @Test
     fun firstDrawDeliversCachedContentBeforeAnyLiveUpdate() {
         setHeader(populatedSnapshot())
-        rule.onNodeWithText("34").assertIsDisplayed()
-        rule.onNodeWithText("20").assertIsDisplayed()
-        rule.onNodeWithText("12").assertIsDisplayed()
+        rule.onNodeWithText("34", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("20", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("12", substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -208,9 +223,9 @@ class LibrarySnapshotNavigationTest {
     @Test
     fun sectionCardsOpenTheirFullScreens() {
         val rig = setHeader(populatedSnapshot())
-        rule.onNodeWithTag("library-locations").performClick()
-        rule.onNodeWithTag("library-people").performClick()
-        rule.onNodeWithTag("library-categories").performClick()
+        rule.onNodeWithTag("library-shortcut-locations").performClick()
+        rule.onNodeWithTag("library-shortcut-people").performClick()
+        rule.onNodeWithTag("library-shortcut-categories").performClick()
         rule.waitForIdle()
         assertEquals(listOf("locations", "people", "categories"), rig.navigated)
     }
@@ -218,7 +233,11 @@ class LibrarySnapshotNavigationTest {
     @Test
     fun sectionCardsOfferNoLongPressAction() {
         setHeader(populatedSnapshot())
-        listOf("library-locations", "library-people", "library-categories").forEach { tag ->
+        listOf(
+            "library-shortcut-locations",
+            "library-shortcut-people",
+            "library-shortcut-categories",
+        ).forEach { tag ->
             rule.onNodeWithTag(tag)
                 .assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnClick))
                 .assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnLongClick))
@@ -258,16 +277,65 @@ class LibrarySnapshotNavigationTest {
                 cloud = CloudLibraryState(hasPeople = true, people = emptyList(), hiddenPeopleCount = 2)
             )
         )
-        rule.onNodeWithTag("library-people").assertIsDisplayed()
+        rule.onNodeWithTag("library-shortcut-people").assertIsDisplayed()
     }
 
     @Test
     fun unknownCategoriesRenderNoCardWhileKnownEmptyStaysReachable() {
         val rig = setHeader(populatedSnapshot().copy(categories = null, categoryCount = 0))
-        rule.onNodeWithTag("library-categories").assertDoesNotExist()
+        rule.onNodeWithTag("library-shortcut-categories").assertDoesNotExist()
 
         rig.snapshot.value = populatedSnapshot().copy(categories = emptyList(), categoryCount = 0)
         rule.waitForIdle()
-        rule.onNodeWithTag("library-categories").assertIsDisplayed()
+        rule.onNodeWithTag("library-shortcut-categories").assertIsDisplayed()
+    }
+
+    @Test
+    fun reservedPeopleTileShowsWhilePeopleLoad() {
+        setHeader(
+            LibrarySnapshot(peopleLoaded = false),
+            rememberedShortcuts = setOf("people"),
+        )
+        rule.onNodeWithTag("library-shortcut-people").assertIsDisplayed()
+        rule.onNodeWithText("People").assertIsDisplayed()
+    }
+
+    @Test
+    fun loadedSnapshotWithoutPeopleDropsTheReservedTile() {
+        val rig = setHeader(
+            LibrarySnapshot(peopleLoaded = false),
+            rememberedShortcuts = setOf("people"),
+        )
+        rule.onNodeWithTag("library-shortcut-people").assertIsDisplayed()
+
+        rig.snapshot.value = LibrarySnapshot(
+            peopleLoaded = true,
+            cloudLoaded = true,
+            locations = emptyList(),
+            categories = emptyList(),
+        )
+        rule.waitForIdle()
+        rule.onNodeWithTag("library-shortcut-people").assertDoesNotExist()
+        assertTrue(rig.rememberedChanges.any { "people" !in it })
+    }
+
+    @Test
+    fun loadedSnapshotWithPeopleShowsTheRealTile() {
+        val rig = setHeader(
+            LibrarySnapshot(
+                peopleLoaded = true,
+                cloudLoaded = true,
+                locations = emptyList(),
+                categories = emptyList(),
+                peopleCount = 3,
+                cloud = CloudLibraryState(
+                    hasPeople = true,
+                    people = listOf(person("p1"), person("p2"), person("p3")),
+                ),
+            ),
+            rememberedShortcuts = setOf("people"),
+        )
+        rule.onNodeWithTag("library-shortcut-people").assertIsDisplayed()
+        assertTrue(rig.rememberedChanges.none { "people" !in it })
     }
 }

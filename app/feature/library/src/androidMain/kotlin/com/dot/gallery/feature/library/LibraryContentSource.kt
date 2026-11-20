@@ -76,6 +76,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.domain.model.UriMedia
@@ -83,6 +85,7 @@ import com.dot.gallery.core.util.or
 import com.dot.gallery.core.presentation.util.add
 import com.dot.gallery.cloud.core.ProviderRegistry
 import com.dot.gallery.core.ml.ModelManager
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.feature.library.location.MapGeoMediaSource
 import com.dot.gallery.feature.library.ui.LibraryCategoryPreview
 import com.dot.gallery.feature.library.ui.LibraryGeoPreview
@@ -782,6 +785,7 @@ class LibraryContentSource public constructor(
                         )
                     }
                     cur.copy(
+                        cloudLoaded = configuredCaps != null,
                         cloud = cloud.copy(
                             hasCloud = configs.isNotEmpty(),
                             isConnected = isConnected,
@@ -809,6 +813,8 @@ class LibraryContentSource public constructor(
     // Always-on people collector: combines local (on-device) and cloud people providers, so
     // on-device Person grouping surfaces in the Library even when no cloud account exists.
     private suspend fun collectPeople(gen: Int) {
+        val hiddenLoaded = AtomicBoolean(false)
+        val awaiting = AtomicReference<Set<Long>>(emptySet())
         try {
             supervisorScope {
                 // Hidden people live outside the partitions: the count keeps the People
@@ -818,7 +824,8 @@ class LibraryContentSource public constructor(
                 launch {
                     inputs.hiddenPeopleCount.collect { count ->
                         hiddenPeopleCount.value = count
-                        publishPeople(gen)
+                        hiddenLoaded.set(true)
+                        publishPeople(gen, peopleLoaded(hiddenLoaded, awaiting))
                     }
                 }
             // Re-fetch people when a name changes
@@ -831,10 +838,32 @@ class LibraryContentSource public constructor(
                 Triple(configs, states, faceDetect)
             }.collectLatest { (configs, states, faceDetect) ->
                 val accountIds = configs.map { it.id } + LOCAL_PEOPLE_CONFIG_ID
+                val nextAwaiting = buildSet {
+                    val localProvider = inputs.providerByConfigId(LOCAL_PEOPLE_CONFIG_ID)
+                        as? PeopleCapableProvider
+                    if (localProvider != null && localProvider.isAvailable &&
+                        LOCAL_PEOPLE_CONFIG_ID !in peoplePartitions.value
+                    ) {
+                        add(LOCAL_PEOPLE_CONFIG_ID)
+                    }
+                    configs.forEach { config ->
+                        val connection = states[config.id]
+                        val provider = inputs.providerByConfigId(config.id)
+                            as? PeopleCapableProvider
+                        val pending = connection == null ||
+                            connection == ConnectionState.AUTHENTICATING ||
+                            ((connection == ConnectionState.CONNECTED ||
+                                connection == ConnectionState.SYNCING) &&
+                                provider != null && provider.isAvailable &&
+                                config.id !in peoplePartitions.value)
+                        if (pending) add(config.id)
+                    }
+                }
+                awaiting.set(nextAwaiting)
                 if (gen == generation) {
                     peoplePartitions.update { it.filterKeys(accountIds::contains) }
                     peopleCounts.update { it.filterKeys(accountIds::contains) }
-                    publishPeople(gen)
+                    publishPeople(gen, peopleLoaded(hiddenLoaded, awaiting))
                 }
                 supervisorScope {
                     accountIds.forEach { accountId ->
@@ -854,7 +883,7 @@ class LibraryContentSource public constructor(
                             ) {
                                 peoplePartitions.update { it - accountId }
                                 peopleCounts.update { it - accountId }
-                                publishPeople(gen)
+                                publishPeople(gen, peopleLoaded(hiddenLoaded, awaiting))
                             }
                             return@forEach
                         }
@@ -866,24 +895,37 @@ class LibraryContentSource public constructor(
                         launch {
                             try {
                                 provider.getPeople().collect { resource ->
-                                    if (resource is Resource.Success && gen == generation) {
-                                        val list = resource.data.orEmpty().filter { p ->
-                                            if (accountId == LOCAL_PEOPLE_CONFIG_ID) {
-                                                p.providerType == ProviderType.LOCAL_PEOPLE &&
-                                                    p.serverConfigId == LOCAL_PEOPLE_CONFIG_ID
-                                            } else {
-                                                p.serverConfigId == accountId &&
-                                                    p.providerType == config?.providerType
+                                    if (gen == generation) {
+                                        awaiting.updateAndGet { it - accountId }
+                                        if (resource is Resource.Success) {
+                                            val list = resource.data.orEmpty().filter { p ->
+                                                if (accountId == LOCAL_PEOPLE_CONFIG_ID) {
+                                                    p.providerType == ProviderType.LOCAL_PEOPLE &&
+                                                        p.serverConfigId == LOCAL_PEOPLE_CONFIG_ID
+                                                } else {
+                                                    p.serverConfigId == accountId &&
+                                                        p.providerType == config?.providerType
+                                                }
                                             }
+                                            peoplePartitions.update { it + (accountId to list) }
+                                            peopleCounts.update { it + (accountId to list.size) }
                                         }
-                                        peoplePartitions.update { it + (accountId to list) }
-                                        peopleCounts.update { it + (accountId to list.size) }
-                                        publishPeople(gen)
+                                        publishPeople(gen, peopleLoaded(hiddenLoaded, awaiting))
                                     }
                                 }
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {
+                                awaiting.updateAndGet { it - accountId }
+                                printWarn(
+                                    "library.people",
+                                    "People provider failed",
+                                    ctx = mapOf(
+                                        "account" to accountId.toString(),
+                                        "error" to e.javaClass.simpleName,
+                                    ),
+                                )
+                                publishPeople(gen, peopleLoaded(hiddenLoaded, awaiting))
                             }
                         }
                     }
@@ -896,10 +938,16 @@ class LibraryContentSource public constructor(
         }
     }
 
-    private fun publishPeople(gen: Int) {
+    private fun peopleLoaded(
+        hiddenLoaded: AtomicBoolean,
+        awaiting: AtomicReference<Set<Long>>,
+    ): Boolean = hiddenLoaded.get() && awaiting.get().isEmpty()
+
+    private fun publishPeople(gen: Int, loaded: Boolean) {
         publishIfCurrent(gen) { cur ->
             val people = peoplePartitions.value.values.flatten()
             cur.copy(
+                peopleLoaded = loaded,
                 peopleCountsByAccount = peopleCounts.value,
                 peopleCount = peopleCounts.value.values.sum().coerceAtLeast(people.size),
                 cloud = cur.cloud.copy(

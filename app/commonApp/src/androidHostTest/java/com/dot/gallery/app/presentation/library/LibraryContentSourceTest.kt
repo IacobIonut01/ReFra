@@ -45,6 +45,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.dot.gallery.feature.library.CategoryMedia
@@ -991,6 +992,124 @@ class LibraryContentSourceTest {
         runCurrent()
         assertTrue(h.source.state.value.cloud.people.isEmpty())
         assertTrue(h.source.state.value.peopleCountsByAccount.isEmpty())
+        h.close()
+    }
+
+    @Test
+    fun peopleLoadedWaitsForTheLocalProviderAndHiddenCount() = runTest {
+        val localProvider = FakeProvider(ProviderType.LOCAL_PEOPLE)
+        val h = harness(
+            this,
+            providers = mapOf(LOCAL_PEOPLE_CONFIG_ID to localProvider)
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        // The local provider has not produced a partition yet, so the flag
+        // stays down even though the hidden count already arrived.
+        assertFalse(h.source.state.value.peopleLoaded)
+        localProvider.people.emit(Resource.Success(listOf(localPerson("l1"))))
+        runCurrent()
+        assertTrue(h.source.state.value.peopleLoaded)
+        h.close()
+    }
+
+    @Test
+    fun peopleLoadedSettlesWhenTheProviderFails() = runTest {
+        val failing = object : FakeProvider(ProviderType.LOCAL_PEOPLE) {
+            override fun getPeople(): Flow<Resource<List<PersonInfo>>> =
+                flow { throw IOException("provider gone") }
+        }
+        val h = harness(
+            this,
+            providers = mapOf(LOCAL_PEOPLE_CONFIG_ID to failing)
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        assertTrue(h.source.state.value.peopleLoaded)
+        h.close()
+    }
+
+    @Test
+    fun peopleLoadedWaitsForARemoteConnectionAndErrorSettles() = runTest {
+        val p11 = FakeProvider(ProviderType.IMMICH)
+        val h = harness(
+            this,
+            configs = listOf(config(11)),
+            providers = mapOf(11L to p11)
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        // No connection state for the account yet: still pending.
+        assertFalse(h.source.state.value.peopleLoaded)
+        h.connStates.value = mapOf(11L to ConnectionState.ERROR)
+        runCurrent()
+        assertTrue(h.source.state.value.peopleLoaded)
+        h.close()
+    }
+
+    @Test
+    fun peopleLoadedSettlesOnAProviderErrorEmission() = runTest {
+        val p11 = FakeProvider(ProviderType.IMMICH)
+        val h = harness(
+            this,
+            configs = listOf(config(11)),
+            providers = mapOf(11L to p11)
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        h.connStates.value = mapOf(11L to ConnectionState.CONNECTED)
+        runCurrent()
+        // CONNECTED with an available provider and no partition yet: pending.
+        assertFalse(h.source.state.value.peopleLoaded)
+        p11.people.emit(Resource.Error("offline"))
+        runCurrent()
+        assertTrue(h.source.state.value.peopleLoaded)
+        h.close()
+    }
+
+    @Test
+    fun cloudLoadedWaitsForEveryConfiguredProvider() = runTest {
+        val providers = mutableMapOf<Long, FakeProvider>(
+            11L to FakeProvider(ProviderType.IMMICH)
+        )
+        val h = harness(
+            this,
+            configs = listOf(config(11), config(22)),
+            providers = providers
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        assertFalse(h.source.state.value.cloudLoaded)
+        providers[22L] = FakeProvider(ProviderType.IMMICH)
+        h.activeConfigs.emit(listOf(config(11), config(22)))
+        runCurrent()
+        assertTrue(h.source.state.value.cloudLoaded)
+        h.close()
+    }
+
+    @Test
+    fun stampChangeDropsCachedLoadedFlagsUntilLiveSettles() = runTest {
+        val cached = LibrarySnapshot(
+            peopleLoaded = true,
+            cloudLoaded = true,
+            peopleCount = 1,
+            peopleCountsByAccount = mapOf(11L to 1),
+            cloud = CloudLibraryState(
+                hasPeople = true,
+                people = listOf(person("a", 11))
+            )
+        )
+        val h = harness(
+            this,
+            cached = cached,
+            configs = listOf(config(11)),
+            providers = emptyMap()
+        )
+        h.restoreVisibleDrawn(); runCurrent()
+        // The account has no connection state and no provider, so live data
+        // keeps both sections pending regardless of what the cache claimed.
+        assertFalse(h.source.state.value.peopleLoaded)
+        assertFalse(h.source.state.value.cloudLoaded)
+        h.source.onHidden(); runCurrent()
+        h.stampValue = StartupCacheStamp("v2", PERMISSION_MASK_FULL_MEDIA)
+        h.source.onVisible(); runCurrent()
+        assertFalse(h.source.state.value.peopleLoaded)
+        assertFalse(h.source.state.value.cloudLoaded)
         h.close()
     }
 }
