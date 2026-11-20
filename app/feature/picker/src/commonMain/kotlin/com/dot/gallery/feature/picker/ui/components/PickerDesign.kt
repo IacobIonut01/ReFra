@@ -37,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -184,7 +183,7 @@ internal fun PickerSectionTitle(
     }
 }
 
-/** Tonal tile for a protected or remote source (private folder, vault, cloud) on the Albums tab. */
+/** Tonal tile for a protected or remote source (favorites, private folder, vault, cloud) on the Albums tab. */
 @Composable
 internal fun PickerSourceTile(
     icon: ImageVector,
@@ -193,8 +192,6 @@ internal fun PickerSourceTile(
     contentColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    meta: String? = null,
-    showLock: Boolean = false,
 ) {
     Surface(
         onClick = onClick,
@@ -210,30 +207,12 @@ internal fun PickerSourceTile(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Icon(imageVector = icon, contentDescription = null)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (meta != null) {
-                    Row(
-                        modifier = Modifier.alpha(0.8f),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (showLock) {
-                            Icon(
-                                imageVector = Icons.Outlined.Lock,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                            )
-                        }
-                        Text(text = meta, style = MaterialTheme.typography.labelSmall, maxLines = 1)
-                    }
-                }
-            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

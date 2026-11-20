@@ -57,6 +57,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.EnhancedEncryption
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
@@ -129,6 +130,7 @@ import com.dot.gallery.feature.picker.generated.resources.add_media
 import com.dot.gallery.feature.picker.generated.resources.albums
 import com.dot.gallery.feature.picker.generated.resources.close
 import com.dot.gallery.feature.picker.generated.resources.cloud
+import com.dot.gallery.feature.picker.generated.resources.favorites
 import com.dot.gallery.feature.picker.generated.resources.locked
 import com.dot.gallery.feature.picker.generated.resources.locked_album_security_error
 import com.dot.gallery.feature.picker.generated.resources.photos
@@ -143,7 +145,6 @@ import com.dot.gallery.feature.picker.generated.resources.picker_preparing
 import com.dot.gallery.feature.picker.generated.resources.picker_preparing_generic
 import com.dot.gallery.feature.picker.generated.resources.picker_preparing_title
 import com.dot.gallery.feature.picker.generated.resources.picker_selected_count
-import com.dot.gallery.feature.picker.generated.resources.picker_vault_count
 import com.dot.gallery.feature.picker.generated.resources.picker_vault_intro
 import com.dot.gallery.feature.picker.generated.resources.picker_vault_intro_title
 import com.dot.gallery.feature.picker.generated.resources.picker_vault_notice
@@ -169,6 +170,7 @@ private sealed class PickerNavState {
     data class Tabs(val tabIndex: Int) : PickerNavState()
     data class AlbumDetail(val album: Album) : PickerNavState()
     data object PrivateFolder : PickerNavState()
+    data object Favorites : PickerNavState()
     data object VaultChooser : PickerNavState()
     data class VaultDetail(val vault: Vault) : PickerNavState()
     data object CloudMedia : PickerNavState()
@@ -243,6 +245,7 @@ fun PickerContent(
     PickerSecurityInfoSheet(sheetState = securitySheetState)
 
     var showPrivateFolder by remember { mutableStateOf(false) }
+    var showFavorites by remember { mutableStateOf(false) }
     var showCloud by remember { mutableStateOf(false) }
     var showVaultChooser by remember { mutableStateOf(false) }
     var selectedPickerVault by remember { mutableStateOf<Vault?>(null) }
@@ -275,6 +278,7 @@ fun PickerContent(
         showVaultChooser = false
         showCloud = false
         showPrivateFolder = false
+        showFavorites = false
         selectedAlbum = null
         selectedTabIndex = tab
     }
@@ -284,13 +288,14 @@ fun PickerContent(
         showVaultChooser -> PickerNavState.VaultChooser
         showCloud -> PickerNavState.CloudMedia
         showPrivateFolder -> PickerNavState.PrivateFolder
+        showFavorites -> PickerNavState.Favorites
         selectedAlbum != null -> PickerNavState.AlbumDetail(selectedAlbum!!)
         else -> PickerNavState.Tabs(selectedTabIndex)
     }
 
     // Resolving the flow also points the app-side ViewModel's lazy at this album —
     // the original fed it through `mediaVM.albumId` from a LaunchedEffect.
-    val albumId = selectedAlbum?.id ?: -1L
+    val albumId = if (showFavorites) PickerSources.FAVORITES_ALBUM_ID else selectedAlbum?.id ?: -1L
     val mediaFlow = remember(albumId) { state.mediaStateFor(albumId) }
 
     // Observable per-vault media flow, rebuilt (and re-subscribed) whenever the open vault changes.
@@ -350,6 +355,7 @@ fun PickerContent(
     val navigateUp: () -> Unit = {
         when (navState) {
             is PickerNavState.PrivateFolder -> showPrivateFolder = false
+            is PickerNavState.Favorites -> showFavorites = false
             is PickerNavState.CloudMedia -> showCloud = false
             is PickerNavState.VaultChooser -> showVaultChooser = false
             is PickerNavState.VaultDetail -> selectedPickerVault = null
@@ -442,6 +448,7 @@ fun PickerContent(
                                     onPrivateFolderClick = {
                                         actions.onPrivateFolder { showPrivateFolder = true }
                                     },
+                                    onFavoritesClick = { showFavorites = true },
                                     onCloudClick = { showCloud = true },
                                     onVaultSourceClick = { actions.onVaultGate { revealVaults() } },
                                     onVaultClick = { vault ->
@@ -553,6 +560,10 @@ fun PickerContent(
         showPrivateFolder = false
     }
 
+    BackHandler(showFavorites) {
+        showFavorites = false
+    }
+
     BackHandler(selectedAlbum != null) {
         selectedAlbum = null
     }
@@ -577,6 +588,7 @@ private fun PickerTopBar(
         } else title
         is PickerNavState.AlbumDetail -> navState.album.label
         is PickerNavState.PrivateFolder -> stringResource(Res.string.security_private_folder)
+        is PickerNavState.Favorites -> stringResource(Res.string.favorites)
         is PickerNavState.CloudMedia -> stringResource(Res.string.cloud)
         is PickerNavState.VaultChooser -> stringResource(Res.string.vault)
         is PickerNavState.VaultDetail -> navState.vault.name
@@ -618,6 +630,7 @@ private fun PickerNavContent(
     showPrivateFolderSource: Boolean,
     onAlbumClick: (Album) -> Unit,
     onPrivateFolderClick: () -> Unit,
+    onFavoritesClick: () -> Unit,
     onCloudClick: () -> Unit,
     onVaultSourceClick: () -> Unit,
     onVaultClick: (Vault) -> Unit,
@@ -687,6 +700,16 @@ private fun PickerNavContent(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
             )
+            is PickerNavState.Favorites -> PickerMediaContent(
+                mediaState = mediaFlow,
+                metadataState = state.metadataState,
+                allowSelection = state.allowSelection,
+                contentPadding = mediaGridPadding,
+                gridState = gridStateFor(nav),
+                emptyTitle = emptySourceTitle,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
             is PickerNavState.VaultDetail -> PickerMediaContent(
                 mediaState = vaultMediaFlow,
                 metadataState = state.metadataState,
@@ -727,12 +750,14 @@ private fun PickerNavContent(
                     contentPadding = gridPadding,
                     gridState = gridStateFor(nav),
                     onAlbumClick = onAlbumClick,
+                    showFavorites = state.favoritesAvailable,
+                    onFavoritesClick = onFavoritesClick,
                     showPrivateFolder = showPrivateFolderSource,
                     onPrivateFolderClick = onPrivateFolderClick,
+                    showVault = state.vaultState.value.vaults.isNotEmpty(),
+                    onVaultClick = onVaultSourceClick,
                     showCloud = state.cloudAvailable,
                     onCloudClick = onCloudClick,
-                    vaultCount = state.vaultState.value.vaults.size,
-                    onVaultClick = onVaultSourceClick,
                     albumImage = albumImage,
                 )
             }
@@ -859,18 +884,25 @@ private fun PickerAlbumsGrid(
     albums: List<Album>,
     contentPadding: PaddingValues,
     onAlbumClick: (Album) -> Unit,
+    showFavorites: Boolean,
+    onFavoritesClick: () -> Unit,
     showPrivateFolder: Boolean,
     onPrivateFolderClick: () -> Unit,
+    showVault: Boolean,
+    onVaultClick: () -> Unit,
     showCloud: Boolean,
     onCloudClick: () -> Unit,
-    vaultCount: Int,
-    onVaultClick: () -> Unit,
     albumImage: @Composable (album: Album, onClick: (Album) -> Unit) -> Unit,
     gridState: LazyGridState = rememberLazyGridState(),
 ) {
     // album covers (RenderImage) load the cheap MOTION tier while scrolling.
     val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })
-    val showVault = vaultCount > 0
+    val sources = PickerSources.visible(
+        favorites = showFavorites,
+        privateFolder = showPrivateFolder,
+        vault = showVault,
+        cloud = showCloud
+    )
     CompositionLocalProvider(LocalThumbnailMotion provides thumbnailMotion) {
         LazyVerticalGrid(
             state = gridState,
@@ -880,47 +912,56 @@ private fun PickerAlbumsGrid(
             verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (showPrivateFolder || showVault || showCloud) {
+            if (sources.isNotEmpty()) {
                 item(key = "sources", span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
+                    val columns = PickerSources.columns(sources.size)
+                    Column(
                         modifier = Modifier.padding(top = Spacing.Small),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+                        verticalArrangement = Arrangement.spacedBy(Spacing.Small)
                     ) {
-                        if (showPrivateFolder) {
-                            PickerSourceTile(
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Outlined.Shield,
-                                label = stringResource(Res.string.security_private_folder),
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                onClick = onPrivateFolderClick,
-                            )
-                        }
-                        if (showVault) {
-                            PickerSourceTile(
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Outlined.EnhancedEncryption,
-                                label = stringResource(Res.string.vault),
-                                meta = pluralStringResource(Res.plurals.picker_vault_count, vaultCount, vaultCount),
-                                showLock = true,
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                onClick = onVaultClick,
-                            )
-                        }
-                        if (showCloud) {
-                            PickerSourceTile(
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Outlined.Cloud,
-                                label = stringResource(Res.string.cloud),
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                onClick = onCloudClick,
-                            )
-                        }
-                        // Keep tile widths stable when a source isn't set up.
-                        repeat(listOf(showPrivateFolder, showVault, showCloud).count { !it }) {
-                            Spacer(modifier = Modifier.weight(1f))
+                        sources.chunked(columns).forEach { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Small)) {
+                                row.forEach { source ->
+                                    when (source) {
+                                        PickerSource.FAVORITES -> PickerSourceTile(
+                                            modifier = Modifier.weight(1f),
+                                            icon = Icons.Outlined.FavoriteBorder,
+                                            label = stringResource(Res.string.favorites),
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            onClick = onFavoritesClick,
+                                        )
+                                        PickerSource.PRIVATE_FOLDER -> PickerSourceTile(
+                                            modifier = Modifier.weight(1f),
+                                            icon = Icons.Outlined.Shield,
+                                            label = stringResource(Res.string.security_private_folder),
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            onClick = onPrivateFolderClick,
+                                        )
+                                        PickerSource.VAULT -> PickerSourceTile(
+                                            modifier = Modifier.weight(1f),
+                                            icon = Icons.Outlined.EnhancedEncryption,
+                                            label = stringResource(Res.string.vault),
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                            onClick = onVaultClick,
+                                        )
+                                        PickerSource.CLOUD -> PickerSourceTile(
+                                            modifier = Modifier.weight(1f),
+                                            icon = Icons.Outlined.Cloud,
+                                            label = stringResource(Res.string.cloud),
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            contentColor = MaterialTheme.colorScheme.onSurface,
+                                            onClick = onCloudClick,
+                                        )
+                                    }
+                                }
+                                // Keep tile widths stable when a source isn't set up.
+                                repeat(columns - row.size) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
                 }

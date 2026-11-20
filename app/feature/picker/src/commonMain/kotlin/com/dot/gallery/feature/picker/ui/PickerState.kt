@@ -39,6 +39,8 @@ data class PickerState(
     val vaultState: State<VaultState>,
     /** Whether at least one cloud provider is configured — shows the Cloud card. */
     val cloudAvailable: Boolean,
+    /** Whether the device supports favorites (`SdkCompat.supportsFavorites`) — shows the Favorites card. */
+    val favoritesAvailable: Boolean = false,
     /** Media grid flow for [albumId] (`-1L` = timeline). May re-point the ViewModel lazy. */
     val mediaStateFor: (albumId: Long) -> StateFlow<MediaState<Media>>,
     /** Media flow for [vault]'s encrypted contents — `null` yields the empty state. */

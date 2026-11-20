@@ -2,6 +2,7 @@
 <resources>
     <string name="photos">Photos</string>
     <string name="albums">Albums</string>
+    <string name="favorites">Favorites</string>
     <string name="preview">Preview</string>
     <string name="close">Close</string>
     <string name="security_private_folder">Private folder</string>
@@ -22,10 +23,6 @@
     <plurals name="picker_album_items">
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
-    </plurals>
-    <plurals name="picker_vault_count">
-        <item quantity="one">%1$d vault</item>
-        <item quantity="other">%1$d vaults</item>
     </plurals>
     <string name="picker_vault_intro_title">Choose a vault</string>
     <string name="picker_vault_intro">Unlock a vault to pick from it. Only the items you add are decrypted.</string>

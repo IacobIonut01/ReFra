@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.core.LocalEventHandler
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.setFollowTheme
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.domain.model.AlbumState
 import com.dot.gallery.domain.model.AllowedMedia
 import com.dot.gallery.domain.model.Media
@@ -219,6 +220,7 @@ fun PickerScreen(
             cloudMediaState = mediaVM.cloudMediaState,
             vaultState = vaultState,
             cloudAvailable = mediaVM.cloudAvailable,
+            favoritesAvailable = SdkCompat.supportsFavorites,
             mediaStateFor = { albumId ->
                 mediaVM.albumId = albumId
                 mediaVM.mediaState.value

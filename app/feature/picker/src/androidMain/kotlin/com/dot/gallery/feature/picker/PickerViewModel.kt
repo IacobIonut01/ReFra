@@ -55,6 +55,7 @@ import com.dot.gallery.domain.util.mapMediaToItem
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.AppIdentity
+import com.dot.gallery.feature.picker.ui.PickerSources
 import com.dot.gallery.domain.model.hiddenInAlbums
 import com.dot.gallery.domain.model.hiddenInTimeline
 
@@ -117,7 +118,7 @@ open class PickerViewModel @Inject constructor(
                     val lockedIds = lockedAlbums.mapTo(HashSet()) { it.id }
                     val data = (mediaResult.data ?: emptyList()).toMutableList().apply {
                         removeAll { media -> blacklisted.any { it.shouldIgnore(media) } }
-                        if (value == -1L) {
+                        if (PickerSources.hidesLockedAlbums(value)) {
                             removeAll { media -> media.albumID in lockedIds }
                         }
                     }
@@ -148,7 +149,7 @@ open class PickerViewModel @Inject constructor(
             val lockedIds = lockedAlbums.mapTo(HashSet()) { it.id }
             val data = (mediaResult.data ?: emptyList()).toMutableList().apply {
                 removeAll { media -> blacklisted.any { it.shouldIgnore(media) } }
-                if (albumId == -1L) {
+                if (PickerSources.hidesLockedAlbums(albumId)) {
                     removeAll { media -> media.albumID in lockedIds }
                 }
             }

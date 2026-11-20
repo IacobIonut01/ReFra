@@ -17,12 +17,14 @@ When another app asks Android for a photo or video (attaching to a message, uplo
 <PreviewCollection feature="media-picker" section="pick-media-for-another-app" />
 
 1. In the other app, choose the attach/open action and pick ReFra when Android offers the choice.
-2. The picker opens with **Timeline** and **Albums** tabs; browse and tap items to select them; the count shows as you go.
+2. The picker opens with **Photos** and **Albums** tabs; browse and tap items to select them; the count shows as you go.
 3. **Preview** checks the selection; **Add** (or **Add N**) sends it back to the calling app. **Close** cancels without sending anything.
 
 ## Sources and limits
 
 - Locked albums ask for their authentication before opening; private-folder, cloud, and vault content can be picked where offered.
+- On Android 11 and later, **Albums** also has a **Favorites** entry with the items you have favorited. Items from locked albums are left out.
+- The **Vault** entry does not say how many vaults you have, and it asks for the vault-list lock, if you set one, before it names any vault.
 - Cloud items download first and vault items decrypt to a temporary copy; that preparation runs after you tap **Add**, shown as **Preparing N of M…**, and reports **Some items could not be prepared** if any fail.
 - Whatever you send becomes a readable copy inside the receiving app; a vault item does not stay encrypted once another app has it, so decide that before tapping **Add**.
 
