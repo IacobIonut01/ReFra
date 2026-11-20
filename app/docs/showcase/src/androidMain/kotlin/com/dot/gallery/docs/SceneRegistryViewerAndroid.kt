@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -85,6 +86,7 @@ import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 /** Example receiver shown in the cast picker — reserved documentation IP. */
 private val DOCS_CAST_DEVICE = FCastDevice(
@@ -339,10 +341,12 @@ private fun DocsMediaViewer(
     }
     val favoriteOverrides by distributor.favoriteOverrides.collectAsStateWithLifecycle()
     val castController = remember { DocsCastController() }
+    val viewerEntryKey = rememberSaveable { UUID.randomUUID().toString() }
 
     DocsSharedScopes { sts, acs ->
         MediaViewScreen<UriMedia>(
             toggleRotate = {},
+            viewerEntryKey = viewerEntryKey,
             paddingValues = WindowInsets.systemBars.asPaddingValues(),
             isStandalone = true,
             initialUiVisible = uiVisible,
