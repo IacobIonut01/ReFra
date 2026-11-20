@@ -8,7 +8,6 @@ package com.dot.gallery.feature.vault.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -86,8 +85,7 @@ fun AddToVaultSheet(
             onDismissRequest = ::close,
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 0.dp,
-            dragHandle = { DragHandle() },
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+            dragHandle = { DragHandle() }
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),

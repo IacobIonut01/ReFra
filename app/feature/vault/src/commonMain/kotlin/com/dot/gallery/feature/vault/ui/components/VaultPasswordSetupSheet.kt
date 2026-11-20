@@ -5,17 +5,21 @@
 
 package com.dot.gallery.feature.vault.ui.components
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GridOn
 import androidx.compose.material.icons.outlined.Password
@@ -126,156 +130,162 @@ fun VaultPasswordSetupSheet(
             tonalElevation = 0.dp,
             dragHandle = { DragHandle() },
             sheetMaxWidth = Dp.Unspecified,
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+            contentWindowInsets = { WindowInsets.safeDrawing }
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
-                    .navigationBarsPadding()
-            ) {
-                if (step == SetupStep.CHOOSE_TYPE) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                // Title
-                Text(
-                    text = stringResource(
-                        when (step) {
-                            SetupStep.CHOOSE_TYPE -> Res.string.vault_choose_lock_type
-                            SetupStep.ENTER_FIRST -> when (selectedType) {
-                                VaultAuthType.PIN -> Res.string.vault_enter_pin
-                                VaultAuthType.PATTERN -> Res.string.vault_draw_pattern
-                                else -> Res.string.vault_enter_password
-                            }
-
-                            SetupStep.CONFIRM -> when (selectedType) {
-                                VaultAuthType.PIN -> Res.string.vault_confirm_pin
-                                VaultAuthType.PATTERN -> Res.string.vault_confirm_pattern
-                                else -> Res.string.vault_confirm_password
-                            }
-                        }
-                    ),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                when (step) {
-                    SetupStep.CHOOSE_TYPE -> {
-                        Text(
-                            text = stringResource(Res.string.vault_custom_password_summary),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        val options = remember(pinLabel, patternLabel, passwordLabel) {
-                            listOf(
-                                OptionItem(
-                                    icon = Icons.Outlined.Pin,
-                                    text = pinLabel,
-                                    onClick = {
-                                        feedbackManager.vibrate()
-                                        selectedType = VaultAuthType.PIN
-                                        step = SetupStep.ENTER_FIRST
-                                    }
-                                ),
-                                OptionItem(
-                                    icon = Icons.Outlined.GridOn,
-                                    text = patternLabel,
-                                    onClick = {
-                                        feedbackManager.vibrate()
-                                        selectedType = VaultAuthType.PATTERN
-                                        step = SetupStep.ENTER_FIRST
-                                    }
-                                ),
-                                OptionItem(
-                                    icon = Icons.Outlined.Password,
-                                    text = passwordLabel,
-                                    onClick = {
-                                        feedbackManager.vibrate()
-                                        selectedType = VaultAuthType.PASSWORD
-                                        step = SetupStep.ENTER_FIRST
-                                    }
-                                )
-                            ).toMutableStateList()
-                        }
-                        OptionLayout(
-                            modifier = Modifier.fillMaxWidth(),
-                            optionList = options
-                        )
+            val scrollState = remember(step, selectedType) { ScrollState(0) }
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(scrollState)
+                        .heightIn(min = maxHeight)
+                        .padding(horizontal = 32.dp, vertical = 16.dp)
+                ) {
+                    if (step == SetupStep.CHOOSE_TYPE) {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-
-                    SetupStep.ENTER_FIRST -> {
-                        AuthInput(
-                            type = selectedType ?: VaultAuthType.PASSWORD,
-                            errorMessage = errorMessage,
-                            modifier = Modifier.weight(1f),
-                            onComplete = { secret ->
-                                val minLength = when (selectedType) {
-                                    VaultAuthType.PIN -> 6
-                                    else -> 4
+                    // Title
+                    Text(
+                        text = stringResource(
+                            when (step) {
+                                SetupStep.CHOOSE_TYPE -> Res.string.vault_choose_lock_type
+                                SetupStep.ENTER_FIRST -> when (selectedType) {
+                                    VaultAuthType.PIN -> Res.string.vault_enter_pin
+                                    VaultAuthType.PATTERN -> Res.string.vault_draw_pattern
+                                    else -> Res.string.vault_enter_password
                                 }
-                                if (secret.length < minLength) {
-                                    errorMessage = when (selectedType) {
-                                        VaultAuthType.PIN -> pinTooShort
-                                        VaultAuthType.PATTERN -> patternTooShort
-                                        else -> passwordTooShort
-                                    }
-                                } else {
-                                    firstEntry = secret
-                                    errorMessage = null
-                                    step = SetupStep.CONFIRM
+
+                                SetupStep.CONFIRM -> when (selectedType) {
+                                    VaultAuthType.PIN -> Res.string.vault_confirm_pin
+                                    VaultAuthType.PATTERN -> Res.string.vault_confirm_pattern
+                                    else -> Res.string.vault_confirm_password
                                 }
                             }
-                        )
-                        SetupButton(
-                            onClick = {
-                                feedbackManager.vibrate()
-                                reset()
-                            },
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            text = stringResource(Res.string.back)
-                        )
-                    }
+                        ),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                    SetupStep.CONFIRM -> {
-                        AuthInput(
-                            type = selectedType ?: VaultAuthType.PASSWORD,
-                            errorMessage = errorMessage,
-                            modifier = Modifier.weight(1f),
-                            onComplete = { secret ->
-                                if (secret == firstEntry) {
-                                    onSecretSet(selectedType ?: VaultAuthType.PASSWORD, secret)
-                                    scope.launch { state.hide() }
+                    when (step) {
+                        SetupStep.CHOOSE_TYPE -> {
+                            Text(
+                                text = stringResource(Res.string.vault_custom_password_summary),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            val options = remember(pinLabel, patternLabel, passwordLabel) {
+                                listOf(
+                                    OptionItem(
+                                        icon = Icons.Outlined.Pin,
+                                        text = pinLabel,
+                                        onClick = {
+                                            feedbackManager.vibrate()
+                                            selectedType = VaultAuthType.PIN
+                                            step = SetupStep.ENTER_FIRST
+                                        }
+                                    ),
+                                    OptionItem(
+                                        icon = Icons.Outlined.GridOn,
+                                        text = patternLabel,
+                                        onClick = {
+                                            feedbackManager.vibrate()
+                                            selectedType = VaultAuthType.PATTERN
+                                            step = SetupStep.ENTER_FIRST
+                                        }
+                                    ),
+                                    OptionItem(
+                                        icon = Icons.Outlined.Password,
+                                        text = passwordLabel,
+                                        onClick = {
+                                            feedbackManager.vibrate()
+                                            selectedType = VaultAuthType.PASSWORD
+                                            step = SetupStep.ENTER_FIRST
+                                        }
+                                    )
+                                ).toMutableStateList()
+                            }
+                            OptionLayout(
+                                modifier = Modifier.fillMaxWidth(),
+                                optionList = options
+                            )
+                        }
+
+                        SetupStep.ENTER_FIRST -> {
+                            Spacer(Modifier.weight(1f))
+                            AuthInput(
+                                type = selectedType ?: VaultAuthType.PASSWORD,
+                                errorMessage = errorMessage,
+                                onComplete = { secret ->
+                                    val minLength = when (selectedType) {
+                                        VaultAuthType.PIN -> 6
+                                        else -> 4
+                                    }
+                                    if (secret.length < minLength) {
+                                        errorMessage = when (selectedType) {
+                                            VaultAuthType.PIN -> pinTooShort
+                                            VaultAuthType.PATTERN -> patternTooShort
+                                            else -> passwordTooShort
+                                        }
+                                    } else {
+                                        firstEntry = secret
+                                        errorMessage = null
+                                        step = SetupStep.CONFIRM
+                                    }
+                                }
+                            )
+                            Spacer(Modifier.weight(1f))
+                            SetupButton(
+                                onClick = {
+                                    feedbackManager.vibrate()
                                     reset()
-                                } else {
-                                    errorMessage = mismatch
+                                },
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                applyHorizontalPadding = false,
+                                applyBottomPadding = false,
+                                applyInsets = false,
+                                text = stringResource(Res.string.back)
+                            )
+                        }
+
+                        SetupStep.CONFIRM -> {
+                            Spacer(Modifier.weight(1f))
+                            AuthInput(
+                                type = selectedType ?: VaultAuthType.PASSWORD,
+                                errorMessage = errorMessage,
+                                onComplete = { secret ->
+                                    if (secret == firstEntry) {
+                                        onSecretSet(selectedType ?: VaultAuthType.PASSWORD, secret)
+                                        scope.launch { state.hide() }
+                                        reset()
+                                    } else {
+                                        errorMessage = mismatch
+                                    }
                                 }
-                            }
-                        )
-                        SetupButton(
-                            onClick = {
-                                feedbackManager.vibrate()
-                                step = SetupStep.ENTER_FIRST
-                                firstEntry = ""
-                                errorMessage = null
-                            },
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            applyHorizontalPadding = false,
-                            applyBottomPadding = false,
-                            applyInsets = false,
-                            text = stringResource(Res.string.back)
-                        )
+                            )
+                            Spacer(Modifier.weight(1f))
+                            SetupButton(
+                                onClick = {
+                                    feedbackManager.vibrate()
+                                    step = SetupStep.ENTER_FIRST
+                                    firstEntry = ""
+                                    errorMessage = null
+                                },
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                applyHorizontalPadding = false,
+                                applyBottomPadding = false,
+                                applyInsets = false,
+                                text = stringResource(Res.string.back)
+                            )
+                        }
                     }
                 }
             }
@@ -287,13 +297,12 @@ fun VaultPasswordSetupSheet(
 private fun AuthInput(
     type: VaultAuthType,
     errorMessage: String?,
-    modifier: Modifier = Modifier,
     onComplete: (String) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         when (type) {
             VaultAuthType.PIN -> {

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import com.dot.gallery.core.util.rememberFeedbackManager
 
 /**
@@ -69,6 +70,7 @@ fun VaultPatternLock(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
+            .testTag("vault-pattern-pad")
     ) {
         Canvas(
             modifier = Modifier
