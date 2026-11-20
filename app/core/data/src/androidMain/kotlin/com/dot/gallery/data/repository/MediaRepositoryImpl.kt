@@ -48,6 +48,7 @@ import com.dot.gallery.core.util.ext.isVerifiedMediaCopy
 import com.dot.gallery.core.util.ext.mapAsResource
 import com.dot.gallery.core.util.ext.mediaDateModified
 import com.dot.gallery.core.util.ext.mediaSize
+import com.dot.gallery.core.util.ext.MediaStoreRequery
 import com.dot.gallery.core.util.ext.restoreMediaTimestamp
 import com.dot.gallery.core.util.ext.overrideImageEncoded
 import com.dot.gallery.core.util.ext.renameMedia
@@ -1709,6 +1710,7 @@ class MediaRepositoryImpl(
             Uri.parse("content://${MediaStore.AUTHORITY}"), true, observer
         )
         trySend(Unit)
+        launch { MediaStoreRequery.requested.collect { trySend(Unit) } }
         awaitClose { contentResolver.unregisterContentObserver(observer) }
     }.conflate()
 

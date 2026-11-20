@@ -112,7 +112,9 @@ import com.dot.gallery.core.workers.scheduleDataHealthPeriodic
 import com.dot.gallery.core.startup.StartupWorkGate
 import com.dot.gallery.core.workers.TempVaultCleanupWorker
 import com.dot.gallery.core.presentation.util.StaticMapDefaults
+import com.dot.gallery.core.presentation.util.mediaStoreVersion
 import com.dot.gallery.core.presentation.util.runNetworkCallbackSetup
+import com.dot.gallery.core.util.ext.MediaStoreForegroundRefresh
 import android.content.Context
 import com.dot.gallery.injection.ComponentOwner
 import com.dot.gallery.injection.create
@@ -425,6 +427,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
         // a one-time sync/upload/download pass for sync-enabled accounts so local
         // photo changes and remote changes land immediately. Throttled + gated by
         // the setting inside the scheduler.
+        val mediaStoreRefresh = MediaStoreForegroundRefresh(readVersion = { mediaStoreVersion })
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 appScope.launch {
@@ -432,6 +435,11 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
                     runCatching { cloudSyncScheduler.syncOnAppOpen() }
                         .onFailure { if (it is CancellationException) throw it }
                 }
+                appScope.launch(Dispatchers.Main.immediate) { mediaStoreRefresh.onForeground() }
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                appScope.launch(Dispatchers.Main.immediate) { mediaStoreRefresh.onBackground() }
             }
         })
 

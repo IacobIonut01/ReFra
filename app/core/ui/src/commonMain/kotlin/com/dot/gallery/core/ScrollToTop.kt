@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -78,3 +80,22 @@ private suspend fun ScrollableState.distanceToTop(): Float {
     }
     return distance
 }
+
+/**
+ * When the first item changes while the grid is at the very top, it stays there,
+ * so media added at the start comes into view instead of landing above the screen.
+ */
+@Composable
+fun KeepAtTopOnPrepend(state: LazyGridState, firstKey: Any?) {
+    val seen = remember { FirstKeyHolder(firstKey) }
+    SideEffect {
+        if (seen.key != firstKey) {
+            seen.key = firstKey
+            if (state.firstVisibleItemIndex == 0 && state.firstVisibleItemScrollOffset == 0) {
+                state.requestScrollToItem(0)
+            }
+        }
+    }
+}
+
+private class FirstKeyHolder(var key: Any?)

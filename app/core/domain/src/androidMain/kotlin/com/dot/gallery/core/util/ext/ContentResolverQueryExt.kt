@@ -53,6 +53,7 @@ fun ContentResolver.querySteppedFlow(
     }
 
     registerContentObserver(uri, true, observer)
+    launch { MediaStoreRequery.requested.collect { observer.onChange(false) } }
 
     // The first set of values must always be generated and cannot (shouldn't) be cancelled.
     launch(Dispatchers.IO) {
@@ -111,6 +112,7 @@ fun ContentResolver.queryFlow(
     }
 
     registerContentObserver(uri, true, observer)
+    launch { MediaStoreRequery.requested.collect { observer.onChange(false) } }
 
     // The first set of values must always be generated and cannot (shouldn't) be cancelled.
     launch(Dispatchers.IO) {

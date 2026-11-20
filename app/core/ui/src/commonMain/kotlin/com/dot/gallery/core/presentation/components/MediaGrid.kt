@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.KeepAtTopOnPrepend
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.Error
@@ -258,6 +259,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     val headers by rememberedDerivedState(mediaState.value) {
         mediaState.value.headers
     }
+    KeepAtTopOnPrepend(gridState, mappedData.firstOrNull()?.key)
     TimelineScroller(
         modifier = modifier
             .padding(paddingValues)
@@ -493,6 +495,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
     val items by rememberedDerivedState(mediaState.value) {
         mediaState.value.media
     }
+    KeepAtTopOnPrepend(gridState, items.firstOrNull()?.key)
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
     LaunchedEffect(autoScrollSpeed.floatValue) {
         if (autoScrollSpeed.floatValue != 0f) {

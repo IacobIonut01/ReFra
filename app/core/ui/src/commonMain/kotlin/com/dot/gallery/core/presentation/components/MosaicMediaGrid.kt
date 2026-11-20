@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.core.KeepAtTopOnPrepend
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaSelector
 import com.dot.gallery.core.presentation.components.Error
@@ -264,6 +265,7 @@ fun <T : Media> MosaicMediaGrid(
             else mappedData.fastFilter { it is MediaItem.MediaViewItem<*> }
         buildMosaicDisplayItems(items, safeColumns)
     }
+    KeepAtTopOnPrepend(gridState, displayItems.firstOrNull()?.key)
 
     val contentState = mediaContentState(
         isLoading = mediaState.value.isLoading,
