@@ -46,6 +46,7 @@
     <string name="vault_type_pattern">Pattern</string>
     <string name="vault_type_pin">PIN</string>
     <string name="vault_unlock">Unlock vault</string>
+    <string name="vault_unlock_action">Unlock</string>
     <string name="vault_wrong_password_attempts">Incorrect password (%1$d attempts left)</string>
     <string name="vault_locked_out">Too many attempts. Try again in %1$d seconds</string>
     <string name="vault_password_set">Vault password set successfully</string>

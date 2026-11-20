@@ -47,6 +47,7 @@ import com.dot.gallery.core.ui.util.rememberActivityResult
 import com.dot.gallery.core.presentation.util.shareEncryptedMedia
 import com.dot.gallery.core.presentation.util.shareMedia
 import com.dot.gallery.feature.vault.VaultViewModel
+import com.dot.gallery.app.presentation.vault.rememberVaultSelectorGate
 import com.dot.gallery.feature.vault.ui.components.AddToVaultSheet
 import com.dot.gallery.feature.vault.ui.components.SelectVaultSheet
 import kotlinx.coroutines.Dispatchers
@@ -216,6 +217,7 @@ fun <T : Media> MediaViewSheetActions(
             val hideResult = rememberActivityResult(onResultOk = {
                 scope.launch { hideSheetState.hide() }
             })
+            val vaultSelectorGate = rememberVaultSelectorGate()
             fun startHide(vault: Vault, deleteOriginals: Boolean) {
                 Toast.makeText(context, hidingText, Toast.LENGTH_SHORT).show()
                 if (deleteOriginals) {
@@ -227,6 +229,9 @@ fun <T : Media> MediaViewSheetActions(
             SelectVaultSheet(
                 state = hideSheetState,
                 vaultState = vaults.value,
+                resolveGateAction = vaultSelectorGate.resolveGateAction,
+                verifyGateSecret = vaultSelectorGate.verifyGateSecret,
+                deviceAuth = vaultSelectorGate.deviceAuth,
                 onVaultSelected = { vault ->
                     scope.launch {
                         when (vaultEncryptBehavior) {

@@ -19,14 +19,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,11 +46,14 @@ import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.model.Vault
 import com.dot.gallery.domain.model.VaultState
 import com.dot.gallery.feature.vault.domain.model.GateMode
-import com.dot.gallery.feature.vault.domain.model.VaultAuthType
 import com.dot.gallery.feature.vault.domain.model.VaultGateAction
 import com.dot.gallery.feature.vault.domain.model.VerifyResult
+import com.dot.gallery.feature.vault.domain.util.VaultSheetGate
+import com.dot.gallery.feature.vault.domain.util.VaultSheetGateEffect
+import com.dot.gallery.feature.vault.domain.util.VaultSheetGateState
 import com.dot.gallery.ui.core.Icons
 import com.dot.gallery.ui.core.icons.Encrypted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -58,6 +64,7 @@ import com.dot.gallery.feature.vault.generated.resources.vault_create_vault
 import com.dot.gallery.feature.vault.generated.resources.vault_icon_cd
 import com.dot.gallery.feature.vault.generated.resources.vault_locked_out
 import com.dot.gallery.feature.vault.generated.resources.vault_unlock
+import com.dot.gallery.feature.vault.generated.resources.vault_unlock_action
 import com.dot.gallery.feature.vault.generated.resources.vault_wrong_password_attempts
 
 /**
@@ -103,65 +110,41 @@ fun SelectVaultSheet(
         }.toMutableStateList()
     }
 
-    var gateAuthenticated by remember { mutableStateOf(false) }
-    var gateChallenge by remember { mutableStateOf<GateMode?>(null) }
-    var gateAuthType by remember { mutableStateOf<VaultAuthType?>(null) }
+    var gate by remember { mutableStateOf(VaultSheetGateState()) }
     var gatePasswordError by remember { mutableStateOf<String?>(null) }
-    var gateDeviceAuthPending by remember { mutableStateOf(false) }
+    var gateAttempt by remember { mutableIntStateOf(0) }
 
     // Device-credential prompt result, delivered one-shot through the bridge.
     val deviceOutcome = deviceAuth?.outcome
     LaunchedEffect(deviceOutcome) {
-        when (deviceOutcome) {
-            true -> {
-                deviceAuth.consumeOutcome()
-                gateDeviceAuthPending = false
-                gateChallenge = null
-                gateAuthenticated = true
-            }
-
-            false -> {
-                deviceAuth.consumeOutcome()
-                val wasPending = gateDeviceAuthPending
-                gateDeviceAuthPending = false
-                if (wasPending) state.hide()
-            }
-
-            null -> Unit
+        if (deviceOutcome != null) {
+            deviceAuth.consumeOutcome()
+            gate = VaultSheetGate.deviceOutcome(gate, deviceOutcome)
         }
     }
 
-    LaunchedEffect(state.isVisible) {
-        gateAuthenticated = false
-        gateChallenge = null
-        gateAuthType = null
+    LaunchedEffect(state.isVisible, gateAttempt) {
         gatePasswordError = null
-        gateDeviceAuthPending = false
         if (!state.isVisible) {
+            gate = VaultSheetGateState()
             deviceAuth?.cancel()
             return@LaunchedEffect
         }
-        if (!requireGateAuth) {
-            gateAuthenticated = true
-            return@LaunchedEffect
-        }
-        val action = resolveGateAction?.invoke() ?: VaultGateAction.Deny
-        when (action) {
-            VaultGateAction.Reveal -> gateAuthenticated = true
-            VaultGateAction.ChallengeDevice -> {
-                if (deviceAuth != null && deviceAuth.isSupported) {
-                    gateChallenge = GateMode.DEVICE
-                    gateDeviceAuthPending = true
-                    deviceAuth.authenticate()
-                } else {
-                    state.hide()
-                }
+        gate = VaultSheetGate.opened(requireGateAuth)
+        if (gate.authenticated) return@LaunchedEffect
+        val step = VaultSheetGate.resolved(
+            resolveGateAction?.invoke() ?: VaultGateAction.Deny,
+            deviceAuth?.isSupported == true
+        )
+        gate = step.state
+        when (step.effect) {
+            VaultSheetGateEffect.AUTHENTICATE_DEVICE -> deviceAuth?.authenticate()
+            VaultSheetGateEffect.HIDE -> {
+                snapshotFlow { state.sheetState.currentValue }
+                    .first { it != SheetValue.Hidden }
+                state.hide()
             }
-            is VaultGateAction.ChallengeCustom -> {
-                gateChallenge = GateMode.CUSTOM
-                gateAuthType = action.authType
-            }
-            VaultGateAction.Deny -> state.hide()
+            VaultSheetGateEffect.NONE -> Unit
         }
     }
 
@@ -177,10 +160,10 @@ fun SelectVaultSheet(
             tonalElevation = 0.dp,
             dragHandle = { DragHandle() }
         ) {
-            if (!gateAuthenticated) {
-                if (gateChallenge == GateMode.CUSTOM) {
+            if (!gate.authenticated) {
+                if (gate.challenge == GateMode.CUSTOM) {
                     VaultPasswordUnlockDialog(
-                        authType = gateAuthType,
+                        authType = gate.authType,
                         onDismiss = { scope.launch { state.hide() } },
                         onSubmit = { secret ->
                             scope.launch {
@@ -188,9 +171,8 @@ fun SelectVaultSheet(
                                     ?: VerifyResult.Failed(0)
                                 when (result) {
                                     is VerifyResult.Success -> {
-                                        gateChallenge = null
                                         gatePasswordError = null
-                                        gateAuthenticated = true
+                                        gate = VaultSheetGate.secretAccepted(gate)
                                     }
                                     is VerifyResult.Failed -> {
                                         gatePasswordError = getString(
@@ -226,6 +208,10 @@ fun SelectVaultSheet(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
+                        )
+                        VaultButton(
+                            text = stringResource(Res.string.vault_unlock_action),
+                            onClick = { gateAttempt++ }
                         )
                     }
                 }

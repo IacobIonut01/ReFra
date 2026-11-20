@@ -132,6 +132,7 @@ import com.dot.gallery.cloud.ui.CloudSelectionViewModel
 import com.dot.gallery.feature.albums.ui.collections.CollectionViewModel
 import com.dot.gallery.feature.vault.privatefolder.PrivateFolderMoveViewModel
 import com.dot.gallery.feature.vault.VaultViewModel
+import com.dot.gallery.app.presentation.vault.rememberVaultSelectorGate
 import com.dot.gallery.core.Settings.Misc.rememberAllowBlur
 import com.dot.gallery.core.Settings.Misc.rememberTrashEnabled
 import com.dot.gallery.domain.util.isCloud
@@ -996,6 +997,7 @@ fun <T : Media> BoxScope.SelectionSheet(
         }
     }
 
+    val vaultSelectorGate = rememberVaultSelectorGate()
     SelectVaultSheet(
         state = vaultSheetState,
         vaultState = vaults.value,
@@ -1003,6 +1005,9 @@ fun <T : Media> BoxScope.SelectionSheet(
         // Inside a vault the gate was already passed to enter this session; the
         // sheet then only serves copy/move between vaults.
         requireGateAuth = !isInVault,
+        resolveGateAction = vaultSelectorGate.resolveGateAction,
+        verifyGateSecret = vaultSelectorGate.verifyGateSecret,
+        deviceAuth = vaultSelectorGate.deviceAuth,
         onVaultSelected = { targetVault ->
             scope.launch {
                 when (vaultSheetAction) {
