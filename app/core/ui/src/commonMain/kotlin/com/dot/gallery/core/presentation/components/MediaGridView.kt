@@ -97,6 +97,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     animatedContentScope: AnimatedContentScope,
     allowSharedElements: Boolean = true,
     onRetry: (() -> Unit)? = null,
+    showFavoriteIcon: Boolean = true,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit = {},
 ) {
     val mappedData by rememberedDerivedState(mediaState, groupMethod) {
@@ -258,6 +259,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 animatedContentScope = animatedContentScope,
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
+                showFavoriteIcon = showFavoriteIcon,
             )
             FloatingTopBarScrim(
                 barZoneHeight = searchBarPadding,
@@ -291,6 +293,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 animatedContentScope = animatedContentScope,
                 allowSharedElements = allowSharedElements,
                 onRetry = onRetry,
+                showFavoriteIcon = showFavoriteIcon,
             )
             FloatingTopBarScrim(
                 barZoneHeight = searchBarPadding,

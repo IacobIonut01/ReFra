@@ -145,7 +145,8 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
     animatedContentScope: AnimatedContentScope,
     allowSharedElements: Boolean = true,
     onRetry: (() -> Unit)? = null,
-    onMediaClick: @DisallowComposableCalls (media: T) -> Unit
+    showFavoriteIcon: Boolean = true,
+    onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
 ) {
     LaunchedEffect(gridState.isScrollInProgress) {
         snapshotFlow {
@@ -211,7 +212,8 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
             sharedTransitionScope = sharedTransitionScope,
             animatedContentScope = animatedContentScope,
             allowSharedElements = allowSharedElements,
-            metadataState = metadataState
+            metadataState = metadataState,
+            showFavoriteIcon = showFavoriteIcon,
         )
     } else {
         MediaGridContent(
@@ -226,7 +228,8 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
             sharedTransitionScope = sharedTransitionScope,
             animatedContentScope = animatedContentScope,
             allowSharedElements = allowSharedElements,
-            metadataState = metadataState
+            metadataState = metadataState,
+            showFavoriteIcon = showFavoriteIcon,
         )
     }
 
@@ -243,6 +246,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     allowSelection: Boolean,
     canScroll: Boolean,
     bigHeaders: Boolean,
+    showFavoriteIcon: Boolean = true,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
     leadingItemCount: Int,
@@ -362,8 +366,8 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
         val resolutionBadgeMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
         val cloudSyncStates by LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle()
         val cloudBackedUpIds by rememberedDerivedState(mediaState.value) { mediaState.value.cloudBackups.keys }
-        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates, cloudBackedUpIds) {
-            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, cloudBackedUpIds, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp)
+        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates, cloudBackedUpIds, showFavoriteIcon) {
+            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, cloudBackedUpIds, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp, showFavoriteIcon = showFavoriteIcon)
         }
         // publish debounced scroll-motion so cells load the cheap MOTION tier
         // during a fling and refine only once the grid settles.
@@ -477,6 +481,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
     paddingValues: PaddingValues,
     allowSelection: Boolean,
     canScroll: Boolean,
+    showFavoriteIcon: Boolean = true,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
     leadingItemCount: Int,
@@ -545,8 +550,8 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
     val resolutionBadges by rememberPreference(SettingsKeys.resolutionBadges)
     val resolutionBadgeMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
     val cloudSyncStates by LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle()
-    val cellState = remember(selectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates) {
-        MediaCellState(selectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp)
+    val cellState = remember(selectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates, showFavoriteIcon) {
+        MediaCellState(selectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp, showFavoriteIcon = showFavoriteIcon)
     }
     // publish debounced scroll-motion for the header-less media grid too.
     val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })

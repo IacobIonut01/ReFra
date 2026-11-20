@@ -19,6 +19,10 @@ enum class CellCorner(val alignment: Alignment) {
     BottomEnd(Alignment.BottomEnd),
 }
 
+/** The favourite icon's configured corner, or the disabled marker when the grid hides it. */
+fun cellFavoritePosition(position: String, showFavoriteIcon: Boolean): String =
+    if (showFavoriteIcon) position else FAV_ICON_DISABLED
+
 /** The corner the favourite icon setting asks for, or null when the icon is turned off. */
 fun favoriteCorner(position: String): CellCorner? = when (position) {
     FAV_ICON_DISABLED -> null

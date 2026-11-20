@@ -7,6 +7,7 @@ package com.dot.gallery.core
 
 import com.dot.gallery.core.presentation.components.CellBadgeLayout
 import com.dot.gallery.core.presentation.components.CellCorner
+import com.dot.gallery.core.presentation.components.cellFavoritePosition
 import com.dot.gallery.core.presentation.components.resolveCellBadgeLayout
 import com.dot.gallery.domain.settings.FAV_ICON_BOTTOM_END
 import com.dot.gallery.domain.settings.FAV_ICON_BOTTOM_START
@@ -75,6 +76,25 @@ class MediaCellBadgesTest {
         assertEquals(null, result.favorite)
         assertEquals(CellCorner.TopEnd, result.video)
         assertEquals(CellCorner.TopStart, result.stack)
+    }
+
+    @Test
+    fun gridHiddenFavouriteIconFreesItsCornerForOtherBadges() {
+        val result = resolveCellBadgeLayout(
+            cellFavoritePosition(FAV_ICON_TOP_END, showFavoriteIcon = false),
+            isFavorite = true, hasVideo = true, hasStack = true, hasStatus = true,
+            selectionActive = false,
+        )
+        assertEquals(null, result.favorite)
+        assertEquals(CellCorner.TopEnd, result.video)
+        assertEquals(CellCorner.TopStart, result.stack)
+        assertEquals(CellCorner.BottomStart, result.status)
+    }
+
+    @Test
+    fun gridShownFavouriteIconKeepsItsPosition() {
+        assertEquals(FAV_ICON_TOP_END, cellFavoritePosition(FAV_ICON_TOP_END, showFavoriteIcon = true))
+        assertEquals(FAV_ICON_DISABLED, cellFavoritePosition(FAV_ICON_TOP_END, showFavoriteIcon = false))
     }
 
     @Test

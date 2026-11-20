@@ -28,6 +28,7 @@ data class MediaCellState(
     val cloudBackedUpIds: Set<Long> = emptySet(),
     val resolutionBadges: Boolean = false,
     val resolutionBadgeMinMp: Int = SettingsKeys.resolutionBadgeMinMp.default,
+    val showFavoriteIcon: Boolean = true,
 )
 
 /** Null by default: callers that don't provide it (search, picker) fall back to per-cell collection. */

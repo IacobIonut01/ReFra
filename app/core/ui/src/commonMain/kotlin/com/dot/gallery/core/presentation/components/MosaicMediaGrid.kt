@@ -249,7 +249,8 @@ fun <T : Media> MosaicMediaGrid(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onRetry: (() -> Unit)? = null,
-    onMediaClick: @DisallowComposableCalls (media: T) -> Unit
+    showFavoriteIcon: Boolean = true,
+    onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
 ) {
     LaunchedEffect(gridState.isScrollInProgress) {
         snapshotFlow { gridState.isScrollInProgress }.collectLatest {
@@ -417,8 +418,8 @@ fun <T : Media> MosaicMediaGrid(
         val resolutionBadges by rememberPreference(SettingsKeys.resolutionBadges)
         val resolutionBadgeMinMp by rememberPreference(SettingsKeys.resolutionBadgeMinMp)
         val cloudSyncStates by LocalMediaDistributor.current.cloudSyncStates.collectAsStateWithLifecycle()
-        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates) {
-            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp)
+        val cellState = remember(isSelectionActive, selectedMedia.value, favoriteIconPosition, resolutionBadges, resolutionBadgeMinMp, cloudSyncStates, showFavoriteIcon) {
+            MediaCellState(isSelectionActive, selectedMedia.value, favoriteIconPosition, cloudSyncStates, resolutionBadges = resolutionBadges, resolutionBadgeMinMp = resolutionBadgeMinMp, showFavoriteIcon = showFavoriteIcon)
         }
         // publish debounced scroll-motion for the mosaic grid too.
         val thumbnailMotion = rememberThumbnailMotionState({ gridState.isScrollInProgress })

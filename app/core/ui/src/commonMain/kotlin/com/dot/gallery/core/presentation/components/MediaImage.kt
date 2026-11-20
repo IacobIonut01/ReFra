@@ -307,7 +307,10 @@ fun <T : Media> MediaImage(
             }
         }
 
-        val favIconPosition = cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value
+        val favIconPosition = cellFavoritePosition(
+            cellState?.favoriteIconPosition ?: rememberPreference(SettingsKeys.favoriteIconPosition).value,
+            cellState?.showFavoriteIcon ?: true,
+        )
         val resolutionBadges = cellState?.resolutionBadges ?: rememberPreference(SettingsKeys.resolutionBadges).value
         val resolutionMinMp = cellState?.resolutionBadgeMinMp ?: rememberPreference(SettingsKeys.resolutionBadgeMinMp).value
         val isBackedUp = cellState?.cloudBackedUpIds?.contains(media.id) == true

@@ -119,6 +119,7 @@ fun <T: Media> MediaScreen(
     animatedContentScope: AnimatedContentScope,
     /** Docs seam: opens the grid scrolled to this item. */
     initialFirstVisibleItemIndex: Int = 0,
+    showFavoriteIcon: Boolean = true,
 ) {
     val showSearchBar = remember(albumId, target) { albumId == -1L && target == null }
     var canScroll by rememberSaveable { mutableStateOf(true) }
@@ -259,6 +260,7 @@ fun <T: Media> MediaScreen(
                             aboveGridContent = aboveGridContent,
                             isScrolling = isScrolling,
                             emptyContent = emptyContent,
+                            showFavoriteIcon = showFavoriteIcon,
                             sharedTransitionScope = sharedTransitionScope,
                             animatedContentScope = animatedContentScope,
                             onMediaClick = onMediaClick,
@@ -310,6 +312,7 @@ fun <T: Media> MediaScreen(
                         aboveGridContent = aboveGridContent,
                         isScrolling = isScrolling,
                         emptyContent = emptyContent,
+                        showFavoriteIcon = showFavoriteIcon,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                         onMediaClick = onMediaClick,

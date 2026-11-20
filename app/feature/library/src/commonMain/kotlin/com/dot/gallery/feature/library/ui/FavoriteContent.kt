@@ -136,6 +136,7 @@ fun FavoriteContent(
         sharedTransitionScope = sharedTransitionScope,
         animatedContentScope = animatedContentScope,
         initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
+        showFavoriteIcon = false,
     )
 
     TimelineFilterSheet(
