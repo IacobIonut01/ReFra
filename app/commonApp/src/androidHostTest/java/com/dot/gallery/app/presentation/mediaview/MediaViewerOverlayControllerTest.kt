@@ -4,6 +4,7 @@ import com.dot.gallery.core.mediaViewerExitSteps
 import com.dot.gallery.core.presentation.util.Screen
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -37,6 +38,32 @@ class MediaViewerOverlayControllerTest {
 
         controller.clearRetained()
         assertNull(controller.retainedRoute)
+    }
+
+    @Test
+    fun successfulOpensGenerateDistinctEntryKeys() {
+        val controller = MediaViewerOverlayController()
+
+        assertTrue(controller.open(Screen.MediaViewScreen.idAndAlbum(id = 1L, albumId = -1L)))
+        val firstKey = controller.entryKey
+        assertTrue(firstKey.isNotEmpty())
+
+        controller.dismiss()
+        assertTrue(controller.open(Screen.MediaViewScreen.idAndAlbum(id = 2L, albumId = -1L)))
+
+        assertTrue(controller.entryKey.isNotEmpty())
+        assertNotEquals(firstKey, controller.entryKey)
+    }
+
+    @Test
+    fun rejectedOpenLeavesEntryKeyUnchanged() {
+        val controller = MediaViewerOverlayController()
+
+        assertTrue(controller.open(Screen.MediaViewScreen.idAndAlbum(id = 1L, albumId = -1L)))
+        val entryKey = controller.entryKey
+
+        assertFalse(controller.open(Screen.TimelineScreen.route))
+        assertEquals(entryKey, controller.entryKey)
     }
 
     @Test

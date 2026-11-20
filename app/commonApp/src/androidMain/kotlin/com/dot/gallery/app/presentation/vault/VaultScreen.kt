@@ -39,6 +39,7 @@ import com.dot.gallery.feature.vault.VaultViewModel
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.biometric_authentication
 import com.dot.gallery.generated.resources.verify_identity
+import java.util.UUID
 
 private const val TAG = "vault.ui"
 
@@ -237,11 +238,13 @@ fun VaultScreen(
                         onDismissRequest,
                         viewerSessionKey,
                         dismissBridge ->
+            val viewerEntryKey = remember(viewerSessionKey) { UUID.randomUUID().toString() }
             val currentVaultValue by viewModel.currentVault.collectAsStateWithLifecycle()
             val mediaState = remember(currentVaultValue) {
                 viewModel.createMediaState(currentVaultValue)
             }.collectAsStateWithLifecycle()
             MediaViewScreenRoute(
+                viewerEntryKey = viewerEntryKey,
                 toggleRotate = toggleRotate,
                 paddingValues = paddingValues,
                 mediaId = mediaId,

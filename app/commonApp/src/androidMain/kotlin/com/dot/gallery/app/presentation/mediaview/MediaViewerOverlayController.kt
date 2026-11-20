@@ -30,6 +30,7 @@ import com.dot.gallery.feature.vault.privatefolder.PrivateFolderViewModel
 import com.dot.gallery.core.Constants.Target.TARGET_FAVORITES
 import com.dot.gallery.core.Constants.Target.TARGET_TRASH
 import com.dot.gallery.domain.uri.path
+import java.util.UUID
 
 
 
@@ -50,6 +51,11 @@ class MediaViewerOverlayController : MediaViewerOverlaySignals {
     var openCount by mutableIntStateOf(0)
         private set
 
+    // Identifies one viewer entry for saveable-state scoping; refreshed on every successful
+    // open() so state saved by a previous entry is never restored into a new one.
+    var entryKey by mutableStateOf("")
+        private set
+
     override val visible: Boolean
         get() = route != null
 
@@ -59,6 +65,7 @@ class MediaViewerOverlayController : MediaViewerOverlaySignals {
         retainedRoute = route
         currentMediaId = mediaViewerRouteMediaId(route)
         openCount++
+        entryKey = UUID.randomUUID().toString()
         return true
     }
 

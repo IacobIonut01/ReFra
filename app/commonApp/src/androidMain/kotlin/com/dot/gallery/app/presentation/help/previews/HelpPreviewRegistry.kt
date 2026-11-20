@@ -388,6 +388,7 @@ private fun CategoriesPreviewMini(modifier: Modifier = Modifier) {
 private fun ViewerScreenMock() {
     PreviewScreenProvider { sharedScope, animScope ->
         MediaViewScreen(
+            viewerEntryKey = "help-preview",
             toggleRotate = {},
             paddingValues = PaddingValues(0.dp),
             isStandalone = true,

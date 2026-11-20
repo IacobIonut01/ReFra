@@ -316,6 +316,7 @@ private fun <T : Media> OverlayMediaViewer(
         onDismissRequest = controller::dismiss,
         onCurrentMediaChange = controller::updateCurrentMedia,
         viewerSessionKey = controller.openCount,
+        viewerEntryKey = controller.entryKey,
         dismissBridge = dismissBridge,
     )
 }

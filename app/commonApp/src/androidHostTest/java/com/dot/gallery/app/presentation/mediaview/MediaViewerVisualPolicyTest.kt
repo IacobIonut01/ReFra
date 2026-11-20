@@ -1,8 +1,10 @@
 package com.dot.gallery.app.presentation.mediaview
 
+import androidx.compose.runtime.saveable.SaveableStateRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.dot.gallery.ui.theme.isDarkTheme
@@ -615,5 +617,110 @@ class MediaViewerVisualPolicyTest {
     fun swipeToDismissPreferenceDefaultsToOn() {
         assertEquals("viewer_swipe_to_dismiss", SettingsKeys.viewerSwipeToDismiss.name)
         assertTrue(SettingsKeys.viewerSwipeToDismiss.default)
+    }
+
+    @Test
+    fun savedEntryFromAnotherEntryDoesNotOverrideTheNewTarget() {
+        val saved = SavedMediaViewerEntry("old-entry", mediaId = 263L, pageIndex = 3, memberId = null)
+
+        assertEquals(
+            MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            resolveMediaViewerEntrySelection(
+                entryKey = "new-entry",
+                mediaId = 266L,
+                saved = saved,
+                target = MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            ),
+        )
+    }
+
+    @Test
+    fun savedEntryFromAnotherEntryWithSameMediaDoesNotOverrideTheTarget() {
+        val saved = SavedMediaViewerEntry("old-entry", mediaId = 266L, pageIndex = 3, memberId = 7L)
+
+        assertEquals(
+            MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            resolveMediaViewerEntrySelection(
+                entryKey = "new-entry",
+                mediaId = 266L,
+                saved = saved,
+                target = MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            ),
+        )
+    }
+
+    @Test
+    fun savedEntryWithDifferentMediaDoesNotOverrideTheTarget() {
+        val saved = SavedMediaViewerEntry("entry", mediaId = 263L, pageIndex = 3, memberId = null)
+
+        assertEquals(
+            MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            resolveMediaViewerEntrySelection(
+                entryKey = "entry",
+                mediaId = 266L,
+                saved = saved,
+                target = MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            ),
+        )
+    }
+
+    @Test
+    fun savedEntryFromSameEntryAndMediaRestoresItsPage() {
+        val saved = SavedMediaViewerEntry("entry", mediaId = 266L, pageIndex = 3, memberId = 7L)
+
+        assertEquals(
+            MediaViewerInitialSelection(pageIndex = 3, memberId = 7L, found = true),
+            resolveMediaViewerEntrySelection(
+                entryKey = "entry",
+                mediaId = 266L,
+                saved = saved,
+                target = MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = false),
+            ),
+        )
+    }
+
+    @Test
+    fun missingSavedEntryFallsBackToTheTarget() {
+        assertEquals(
+            MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            resolveMediaViewerEntrySelection(
+                entryKey = "entry",
+                mediaId = 266L,
+                saved = null,
+                target = MediaViewerInitialSelection(pageIndex = 0, memberId = null, found = true),
+            ),
+        )
+    }
+
+    @Test
+    fun viewerEntryStateRestoresOnlyForTheSameEntryKey() {
+        assertFalse(canRestoreViewerEntryState(savedEntryKey = null, entryKey = "entry"))
+        assertFalse(canRestoreViewerEntryState(savedEntryKey = "old-entry", entryKey = "new-entry"))
+        assertTrue(canRestoreViewerEntryState(savedEntryKey = "entry", entryKey = "entry"))
+    }
+
+    @Test
+    fun viewerEntryRegistryDropsRestoredValuesWhenNotAllowed() {
+        val parent = SaveableStateRegistry(
+            restoredValues = mapOf("k" to listOf("stale")),
+            canBeSaved = { true },
+        )
+        val filtered = viewerEntrySaveableStateRegistry(parent, restoreAllowed = false)!!
+
+        assertNull(filtered.consumeRestored("k"))
+        assertNull(parent.consumeRestored("k"))
+    }
+
+    @Test
+    fun viewerEntryRegistryPassesThroughWhenAllowed() {
+        val parent = SaveableStateRegistry(
+            restoredValues = mapOf("k" to listOf("stale")),
+            canBeSaved = { true },
+        )
+
+        val registry = viewerEntrySaveableStateRegistry(parent, restoreAllowed = true)
+
+        assertSame(parent, registry)
+        assertEquals("stale", parent.consumeRestored("k"))
     }
 }

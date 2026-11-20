@@ -72,6 +72,7 @@ import com.dot.gallery.generated.resources.unlock_album_biometric_subtitle
 import com.dot.gallery.generated.resources.vault_locked_out
 import com.dot.gallery.generated.resources.vault_wrong_password_attempts
 import com.dot.gallery.generated.resources.verify_identity
+import java.util.UUID
 
 
 /**
@@ -343,6 +344,7 @@ fun PickerScreen(
 
             Scaffold { paddingValues ->
                 MediaViewScreenRoute(
+                    viewerEntryKey = remember(mediaId) { UUID.randomUUID().toString() },
                     toggleRotate = { activity?.toggleOrientation() },
                     paddingValues = paddingValues,
                     isStandalone = true,

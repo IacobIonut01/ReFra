@@ -856,6 +856,7 @@ fun NavigationComp(
                 }
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -904,6 +905,7 @@ fun NavigationComp(
                 }.collectAsStateWithLifecycle()
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -938,6 +940,7 @@ fun NavigationComp(
                 val mediaState =
                     remember(searchResultsState.value) { mutableStateOf(searchResultsState.value.viewerResults) }
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1158,6 +1161,7 @@ fun NavigationComp(
                     .collectAsStateWithLifecycle(MediaState())
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1203,6 +1207,7 @@ fun NavigationComp(
                     .collectAsStateWithLifecycle(MediaState())
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1289,6 +1294,7 @@ fun NavigationComp(
                 val mediaState = collectionMediaFlow.collectAsStateWithLifecycle()
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1669,6 +1675,7 @@ fun NavigationComp(
                 val mediaState = personViewModel.mediaState.collectAsStateWithLifecycle()
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,
@@ -1898,6 +1905,7 @@ fun NavigationComp(
                 val mediaState = locationsViewModel.mediaState.collectAsStateWithLifecycle()
 
                 MediaViewScreenRoute(
+                    viewerEntryKey = backStackEntry.id,
                     toggleRotate = toggleRotate,
                     paddingValues = paddingValues,
                     mediaId = mediaId,

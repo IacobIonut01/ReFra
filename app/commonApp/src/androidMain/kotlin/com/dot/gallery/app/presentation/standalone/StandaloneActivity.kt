@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
@@ -59,6 +60,7 @@ import com.dot.gallery.app.presentation.mediaview.MediaViewScreenRoute
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.feature.viewer.standalone.StandaloneViewModel
+import java.util.UUID
 
 
 internal fun shouldShowStandaloneViewerUi(
@@ -186,6 +188,7 @@ open class StandaloneActivity : AppCompatActivity() {
                             val metadataState =
                                 viewModel.metadataState.collectAsStateWithLifecycle()
                             val mediaId by viewModel.mediaId.collectAsStateWithLifecycle()
+                            val viewerEntryKey = rememberSaveable { UUID.randomUUID().toString() }
                             SharedTransitionLayout {
                                 AnimatedContent(
                                     targetState = metadataArgs,
@@ -193,6 +196,7 @@ open class StandaloneActivity : AppCompatActivity() {
                                 ) { args ->
                                     if (args == null) {
                                         MediaViewScreenRoute(
+                                            viewerEntryKey = viewerEntryKey,
                                             toggleRotate = ::toggleOrientation,
                                             paddingValues = paddingValues,
                                             isStandalone = true,

@@ -122,6 +122,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -670,6 +671,51 @@ internal fun resolveMediaViewerInitialSelection(
     }
 }
 
+/** The page a viewer entry settled on when it opened, saved so the same entry reopens there. */
+internal data class SavedMediaViewerEntry(
+    val entryKey: String,
+    val mediaId: Long,
+    val pageIndex: Int,
+    val memberId: Long?,
+) {
+    fun belongsTo(entryKey: String, mediaId: Long): Boolean =
+        this.entryKey == entryKey && this.mediaId == mediaId
+}
+
+/**
+ * The target media id decides the first page of every new viewer entry; a saved page is
+ * reused only when the same entry saved it.
+ */
+internal fun resolveMediaViewerEntrySelection(
+    entryKey: String,
+    mediaId: Long,
+    saved: SavedMediaViewerEntry?,
+    target: MediaViewerInitialSelection,
+): MediaViewerInitialSelection =
+    if (saved != null && saved.belongsTo(entryKey, mediaId)) {
+        MediaViewerInitialSelection(saved.pageIndex, saved.memberId, found = true)
+    } else {
+        target
+    }
+
+private val SavedMediaViewerEntrySaver = Saver<SavedMediaViewerEntry?, Any>(
+    save = { entry ->
+        entry?.let {
+            arrayListOf<Any?>(it.entryKey, it.mediaId, it.pageIndex, it.memberId)
+        }
+    },
+    restore = { saved ->
+        (saved as? List<*>)?.takeIf { it.size == 4 }?.let { list ->
+            SavedMediaViewerEntry(
+                entryKey = list[0] as String,
+                mediaId = list[1] as Long,
+                pageIndex = list[2] as Int,
+                memberId = list[3] as Long?,
+            )
+        }
+    },
+)
+
 internal fun isMediaViewerContentReady(
     selectionApplied: Boolean,
     isLoading: Boolean,
@@ -829,49 +875,53 @@ fun <T : Media> MediaViewScreenRoute(
     onDismissRequest: (() -> Unit)? = null,
     onCurrentMediaChange: (Long) -> Unit = {},
     viewerSessionKey: Int = 0,
+    viewerEntryKey: String,
     dismissBridge: ViewerDismissBridge? = null,
 ) {
     val viewModel = injectViewModel<MediaViewViewModel> {mediaViewViewModel}
-    MediaViewScreen(
-        toggleRotate = toggleRotate,
-        paddingValues = paddingValues,
-        isStandalone = isStandalone,
-        initialUiVisible = initialUiVisible,
-        mediaId = mediaId,
-        target = target,
-        mediaState = mediaState,
-        metadataState = metadataState,
-        albumsState = albumsState,
-        vaultState = vaultState,
-        restoreMedia = restoreMedia,
-        deleteMedia = deleteMedia,
-        currentVault = currentVault,
-        slideshow = slideshow,
-        allowBlur = allowBlur,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedContentScope = animatedContentScope,
-        onDismissRequest = onDismissRequest,
-        onCurrentMediaChange = onCurrentMediaChange,
-        viewerSessionKey = viewerSessionKey,
-        dismissBridge = dismissBridge,
-        ensureMetadataAvailable = viewModel::ensureMetadataAvailable,
-        rotateImage = viewModel::rotateImage,
-        uiEvents = viewModel.uiEvents,
-        rotationState = viewModel.rotationState,
-        visualSearchState = viewModel.visualSearchState,
-        launchVisualSearch = viewModel::launchVisualSearch,
-        cancelVisualSearch = viewModel::cancelVisualSearch,
-        metadataSanitizationState = viewModel.metadataSanitizationState,
-        probeMetadataSanitization = viewModel::probeMetadataSanitization,
-        sanitizeMetadata = viewModel::sanitizeMetadata,
-        resetMetadataSanitization = viewModel::resetMetadataSanitization,
-        motionPhotoStateFactory = { media ->
-            com.dot.gallery.feature.viewer.components.media.rememberMotionPhotoState(
-                media = media,
-                viewModel = viewModel
-            )
-        },
-    )
+    ViewerEntrySavedStateScope(viewerEntryKey) {
+        MediaViewScreen(
+            toggleRotate = toggleRotate,
+            paddingValues = paddingValues,
+            isStandalone = isStandalone,
+            initialUiVisible = initialUiVisible,
+            mediaId = mediaId,
+            target = target,
+            mediaState = mediaState,
+            metadataState = metadataState,
+            albumsState = albumsState,
+            vaultState = vaultState,
+            restoreMedia = restoreMedia,
+            deleteMedia = deleteMedia,
+            currentVault = currentVault,
+            slideshow = slideshow,
+            allowBlur = allowBlur,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope,
+            onDismissRequest = onDismissRequest,
+            onCurrentMediaChange = onCurrentMediaChange,
+            viewerSessionKey = viewerSessionKey,
+            viewerEntryKey = viewerEntryKey,
+            dismissBridge = dismissBridge,
+            ensureMetadataAvailable = viewModel::ensureMetadataAvailable,
+            rotateImage = viewModel::rotateImage,
+            uiEvents = viewModel.uiEvents,
+            rotationState = viewModel.rotationState,
+            visualSearchState = viewModel.visualSearchState,
+            launchVisualSearch = viewModel::launchVisualSearch,
+            cancelVisualSearch = viewModel::cancelVisualSearch,
+            metadataSanitizationState = viewModel.metadataSanitizationState,
+            probeMetadataSanitization = viewModel::probeMetadataSanitization,
+            sanitizeMetadata = viewModel::sanitizeMetadata,
+            resetMetadataSanitization = viewModel::resetMetadataSanitization,
+            motionPhotoStateFactory = { media ->
+                com.dot.gallery.feature.viewer.components.media.rememberMotionPhotoState(
+                    media = media,
+                    viewModel = viewModel
+                )
+            },
+        )
+    }
 }
 
 @UnstableApi
@@ -898,6 +948,7 @@ fun <T : Media> MediaViewScreen(
     onDismissRequest: (() -> Unit)? = null,
     onCurrentMediaChange: (Long) -> Unit = {},
     viewerSessionKey: Int = 0,
+    viewerEntryKey: String,
     dismissBridge: ViewerDismissBridge? = null,
     ensureMetadataAvailable: (Media?, MediaMetadataState) -> Unit = { _, _ -> },
     rotateImage: (Media, Int, Boolean) -> Unit = { _, _, _ -> },
@@ -974,7 +1025,10 @@ fun <T : Media> MediaViewScreen(
         val scope = rememberCoroutineScope()
         val windowInsetsController = rememberWindowInsetsController()
 
-        var initialPageSetup by rememberSaveable(mediaId) { mutableStateOf(false) }
+        var savedEntry by rememberSaveable(stateSaver = SavedMediaViewerEntrySaver) {
+            mutableStateOf<SavedMediaViewerEntry?>(null)
+        }
+        val initialPageSetup = savedEntry?.belongsTo(viewerEntryKey, mediaId) == true
 
         // Rotate on a format with no encoder (RAW/TIFF/PSD/…) can't overwrite in place; hold the
         // pending request so the fallback sheet can offer a copy instead.
@@ -1069,11 +1123,12 @@ fun <T : Media> MediaViewScreen(
         // the entry media leaving the source afterwards (e.g. the user just deleted it) must
         // not re-resolve to "not found" — the missing-target dismiss would pop the viewer back
         // to the timeline instead of advancing to a neighbor page.
-        var frozenEntryPage by rememberSaveable(mediaId) { mutableIntStateOf(-1) }
-        var frozenEntryMemberId by rememberSaveable(mediaId) { mutableStateOf<Long?>(null) }
-        val entrySelection = if (frozenEntryPage >= 0) {
-            MediaViewerInitialSelection(frozenEntryPage, frozenEntryMemberId, true)
-        } else initialSelection
+        val entrySelection = resolveMediaViewerEntrySelection(
+            entryKey = viewerEntryKey,
+            mediaId = mediaId,
+            saved = savedEntry,
+            target = initialSelection,
+        )
         // Use only primitive ids/sizes as saveable keys (avoid passing full media list object)
         val initialPage = entrySelection.pageIndex
         var currentPage by rememberSaveable(initialPage) { mutableIntStateOf(initialPage) }
@@ -1157,17 +1212,20 @@ fun <T : Media> MediaViewScreen(
             ensureMetadataAvailable(currentMedia, metadataState.value)
         }
 
-        LaunchedEffect(mediaId, initialPage, entrySelection.found, mediaState.value.isLoading) {
+        LaunchedEffect(viewerEntryKey, mediaId, initialPage, entrySelection.found, mediaState.value.isLoading) {
             if (!mediaState.value.isLoading && entrySelection.found && !initialPageSetup) {
-                frozenEntryPage = entrySelection.pageIndex
-                frozenEntryMemberId = entrySelection.memberId
                 if (pagerState.currentPage != initialPage) {
                     pagerState.scrollToPage(initialPage)
                 }
                 currentPage = initialPage
                 selectedMemberPage = initialPage
                 selectedMemberOverrideId = entrySelection.memberId
-                initialPageSetup = true
+                savedEntry = SavedMediaViewerEntry(
+                    entryKey = viewerEntryKey,
+                    mediaId = mediaId,
+                    pageIndex = entrySelection.pageIndex,
+                    memberId = entrySelection.memberId,
+                )
             }
         }
         LaunchedEffect(
