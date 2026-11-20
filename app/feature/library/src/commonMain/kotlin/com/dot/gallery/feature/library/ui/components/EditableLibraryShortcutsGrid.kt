@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,6 +104,7 @@ import com.dot.gallery.feature.library.generated.resources.library_shortcut_layo
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_hide
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_height
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_resize_width
+import com.dot.gallery.feature.library.generated.resources.library_shortcut_scrapbook_frames
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_select
 import com.dot.gallery.feature.library.generated.resources.library_shortcut_show
 import com.dot.gallery.feature.library.generated.resources.library_shortcuts_less
@@ -775,6 +777,23 @@ private fun CoverPicker(
                     ) {
                         Text(stringResource(label))
                     }
+                }
+            }
+            if (pref.scrapbook) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(Res.string.library_shortcut_scrapbook_frames),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = pref.scrapbookFrames,
+                        onCheckedChange = { checked ->
+                            onChange { it.copy(scrapbookFrames = checked) }
+                        },
+                        modifier = Modifier.testTag("library-shortcut-scrapbook-frames"),
+                    )
                 }
             }
         }

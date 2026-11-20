@@ -29,6 +29,8 @@ data class LibraryShortcutPref(
     val shuffle: Boolean = false,
     /** Favorites cards lay their photos out as overlapping prints instead of a grid. */
     val scrapbook: Boolean = false,
+    /** Scrapbook prints keep white frames; without them up to six photos fill the card edge to edge. */
+    val scrapbookFrames: Boolean = true,
 ) {
     val size: LibraryShortcutSize
         get() = LibraryShortcutSize.of(

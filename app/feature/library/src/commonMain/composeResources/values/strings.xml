@@ -28,6 +28,7 @@
     <string name="library_shortcut_layout">Layout</string>
     <string name="library_shortcut_layout_grid">Grid</string>
     <string name="library_shortcut_layout_scrapbook">Scrapbook</string>
+    <string name="library_shortcut_scrapbook_frames">White frames</string>
     <string name="library_albums_order">Albums order</string>
     <string name="library_albums_order_summary">Drag albums into the order you want</string>
     <string name="library_albums_order_unavailable">Needs two or more albums, with album sections off</string>

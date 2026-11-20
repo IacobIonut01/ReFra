@@ -13,6 +13,7 @@ import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.feature.library.ui.LibraryShortcut
 import com.dot.gallery.feature.library.ui.LibraryShortcutPreviews
 import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_FAVORITE_POOL
+import com.dot.gallery.feature.library.ui.MAX_SHORTCUT_PREVIEW_MEDIA
 import com.dot.gallery.feature.library.ui.RuntimeShortcut
 import com.dot.gallery.feature.library.ui.ShortcutPreviewStyle
 import com.dot.gallery.feature.library.ui.LibrarySnapshot
@@ -47,13 +48,19 @@ class LibraryShortcutPreviewsTest {
     )
 
     @Test
-    fun favouritesCoverTakesTheNewestOrOldestFourByDate() {
+    fun favouritesCoverTakesTheNewestOrOldestByDate() {
         val favorites = (1L..10L).shuffled().map { media(it) }
 
         val previews = shortcutPreviews(trash = emptyList(), favorites = favorites)
 
-        assertEquals(listOf(10L, 9L, 8L, 7L), previews.latestFavorites.map { it.id })
-        assertEquals(listOf(1L, 2L, 3L, 4L), previews.oldestFavorites.map { it.id })
+        assertEquals(
+            (10L downTo 11L - MAX_SHORTCUT_PREVIEW_MEDIA).toList(),
+            previews.latestFavorites.map { it.id }
+        )
+        assertEquals(
+            (1L..MAX_SHORTCUT_PREVIEW_MEDIA).toList(),
+            previews.oldestFavorites.map { it.id }
+        )
     }
 
     @Test
@@ -140,7 +147,9 @@ class LibraryShortcutPreviewsTest {
         assertFalse(validateLibrarySnapshot(trashedFavourite))
 
         val tooMany = valid.copy(
-            shortcutPreviews = valid.shortcutPreviews.copy(latestFavorites = (1L..5L).map { media(it) })
+            shortcutPreviews = valid.shortcutPreviews.copy(
+                latestFavorites = (1L..MAX_SHORTCUT_PREVIEW_MEDIA + 1L).map { media(it) }
+            )
         )
         assertFalse(validateLibrarySnapshot(tooMany))
 

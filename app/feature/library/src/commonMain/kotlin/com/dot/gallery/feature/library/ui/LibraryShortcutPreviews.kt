@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 
 
 /** Most photos a shortcut card shows. */
-const val MAX_SHORTCUT_PREVIEW_MEDIA = 4
+const val MAX_SHORTCUT_PREVIEW_MEDIA = 6
 
 /** Most favourites a shuffled Favorites cover picks from. */
 const val MAX_SHORTCUT_FAVORITE_POOL = 24

@@ -6,12 +6,21 @@
 package com.dot.gallery.app.presentation.library.components
 
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.core.presentation.components.LocalMediaImageRenderer
+import com.dot.gallery.core.presentation.components.MediaImageRenderer
 import com.dot.gallery.core.presentation.components.MockedMediaImageRenderer
 import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.feature.library.ui.LibraryShortcutSize
@@ -409,6 +418,116 @@ class EditableLibraryShortcutsGridTest {
         rule.onNodeWithText("People", useUnmergedTree = true).assertExists()
     }
 
+    @Test
+    fun framelessScrapbookFillsTheCardEdgeToEdge() {
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            previewMedia = (1L..6L).map(::media),
+        )
+        setGrid(
+            working = listOf(
+                LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id)
+                    .withSize(LibraryShortcutSize.CARD)
+                    .copy(scrapbook = true, scrapbookFrames = false),
+            ),
+            runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+        )
+
+        rule.onNodeWithTag("library-shortcut-scrapbook-bleed", useUnmergedTree = true)
+            .assertExists()
+        rule.onNodeWithTag("library-shortcut-scrapbook", useUnmergedTree = true)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun framelessScrapbookPrintsCoverTheWholeCard() {
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            previewMedia = (1L..6L).map(::media),
+        )
+        val sizeState = mutableStateOf(LibraryShortcutSize.CARD)
+        rule.setContent {
+            CompositionLocalProvider(
+                LocalSettingsStore provides MapSettingsStore(),
+                LocalMediaImageRenderer provides RedMediaImageRenderer,
+            ) {
+                GalleryTheme(ignoreUserPreference = true) {
+                    EditableLibraryShortcutsGrid(
+                        working = listOf(
+                            LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id)
+                                .withSize(sizeState.value)
+                                .copy(scrapbook = true, scrapbookFrames = false),
+                        ),
+                        runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+                        editMode = false,
+                        collapsible = false,
+                        onClick = {},
+                        onChange = {},
+                    )
+                }
+            }
+        }
+
+        for (size in listOf(
+            LibraryShortcutSize.CARD,
+            LibraryShortcutSize.TALL_CARD,
+            LibraryShortcutSize.WIDE_CARD,
+        )) {
+            sizeState.value = size
+            rule.waitForIdle()
+            val pixels = rule
+                .onNodeWithTag("library-shortcut-scrapbook-bleed", useUnmergedTree = true)
+                .captureToImage()
+                .toPixelMap()
+            var samples = 0
+            var red = 0
+            val xFrom = (pixels.width * 0.08f).toInt()
+            val xTo = (pixels.width * 0.92f).toInt()
+            val yFrom = (pixels.height * 0.05f).toInt()
+            val yTo = (pixels.height * 0.90f).toInt()
+            for (y in yFrom until yTo) {
+                for (x in xFrom until xTo) {
+                    val c = pixels[x, y]
+                    samples++
+                    if (c.red * 255f > c.green * 255f + 40f &&
+                        c.red * 255f > c.blue * 255f + 40f
+                    ) {
+                        red++
+                    }
+                }
+            }
+            assertTrue(
+                "$size red coverage $red/$samples",
+                red >= samples * 0.98,
+            )
+        }
+    }
+
+    @Test
+    fun theFramesSwitchFlipsTheScrapbookPref() {
+        var emitted: List<LibraryShortcutPref>? = null
+        val favorites = runtimeShortcut(LibraryShortcut.FAVORITES, "Favorites").copy(
+            previewMedia = listOf(media(1), media(2)),
+            oldestPreviewMedia = listOf(media(1)),
+        )
+        setGrid(
+            working = listOf(
+                LibraryShortcutPref(id = LibraryShortcut.FAVORITES.id)
+                    .withSize(LibraryShortcutSize.CARD)
+                    .copy(scrapbook = true),
+            ),
+            runtime = linkedMapOf(LibraryShortcut.FAVORITES to favorites),
+            editMode = true,
+            onChange = { emitted = it },
+        )
+        rule.onNodeWithTag("library-shortcut-${LibraryShortcut.FAVORITES.id}").performClick()
+
+        rule.onNodeWithTag("library-shortcut-scrapbook-frames")
+            .assertIsDisplayed()
+            .performClick()
+        rule.waitForIdle()
+
+        assertEquals(false, emitted!!.single().scrapbookFrames)
+    }
+
     private fun media(id: Long) = UriMedia(
         id = id,
         label = "photo-$id.jpg",
@@ -435,4 +554,17 @@ class EditableLibraryShortcutsGridTest {
         route = shortcut.id,
         available = true
     )
+
+    private object RedMediaImageRenderer : MediaImageRenderer {
+        @Composable
+        override fun RenderImage(
+            modifier: Modifier,
+            model: Any?,
+            contentScale: ContentScale,
+            contentDescription: String?,
+            signature: Any?,
+        ) {
+            Box(modifier.background(Color.Red))
+        }
+    }
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -97,7 +98,11 @@ internal fun ShortcutTile(
             style == ShortcutPreviewStyle.FACES && data.previewFaces.isNotEmpty() -> FacesCard(data, size, count)
             media.isEmpty() -> IconCard(data, count)
             style == ShortcutPreviewStyle.SPREAD -> SpreadCard(data, size, count, media)
-            pref.scrapbook -> ScrapbookCard(data, size, count, media)
+            pref.scrapbook -> if (pref.scrapbookFrames) {
+                ScrapbookCard(data, size, count, media)
+            } else {
+                BleedScrapbookCard(data, size, count, media)
+            }
             else -> PhotoCard(data, size, count, media)
         }
     }
@@ -339,6 +344,45 @@ private fun ScrapbookCard(data: RuntimeShortcut, size: LibraryShortcutSize, coun
                         .background(Color.White, PrintShape)
                         .padding(3.dp)
                         .clip(RoundedCornerShape(4.dp))
+                ) {
+                    PreviewImage(item, data.dimPreview, Modifier.fillMaxSize())
+                }
+            }
+        }
+        ScrimLabel(data, size, count)
+    }
+}
+
+private val BleedPrintShape = RoundedCornerShape(4.dp)
+
+/**
+ * The frameless scrapbook: prints laid edge to edge by [bleedPrints] so the
+ * photos fill the card, the latest on top, with no white borders between them.
+ */
+@Composable
+private fun BleedScrapbookCard(data: RuntimeShortcut, size: LibraryShortcutSize, count: Int?, media: List<UriMedia>) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("library-shortcut-scrapbook-bleed")
+            .background(data.contentColor.copy(alpha = 0.12f))
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val shown = media.take(bleedPrintLimit(size))
+            val prints = bleedPrints(shown.size, maxWidth / maxHeight)
+            shown.withIndex().reversed().forEach { (index, item) ->
+                val print = prints[index]
+                Box(
+                    modifier = Modifier
+                        .offset(
+                            x = maxWidth * (print.centerX - print.width / 2),
+                            y = maxHeight * (print.centerY - print.height / 2),
+                        )
+                        .wrapContentSize(Alignment.TopStart, unbounded = true)
+                        .size(maxWidth * print.width, maxHeight * print.height)
+                        .graphicsLayer { rotationZ = print.rotation }
+                        .shadow(4.dp, BleedPrintShape)
+                        .clip(BleedPrintShape)
                 ) {
                     PreviewImage(item, data.dimPreview, Modifier.fillMaxSize())
                 }
