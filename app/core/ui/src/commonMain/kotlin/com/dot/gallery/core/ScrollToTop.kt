@@ -5,6 +5,9 @@
 
 package com.dot.gallery.core
 
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
@@ -51,12 +54,27 @@ fun ScrollToTopHandler(route: String, onScrollToTop: suspend () -> Unit) {
 
 /**
  * Scrolls to the very top. Jumps instantly when far away (a long smooth scroll
- * through hundreds of items feels sluggish) and animates when already close.
+ * through hundreds of items feels sluggish) and animates over the measured
+ * distance when already close.
  */
 suspend fun LazyGridState.animateOrJumpToTop() {
-    if (firstVisibleItemIndex > 15) scrollToItem(0) else animateScrollToItem(0)
+    if (firstVisibleItemIndex > 15) scrollToItem(0) else animateScrollBy(-distanceToTop())
 }
 
 suspend fun LazyListState.animateOrJumpToTop() {
-    if (firstVisibleItemIndex > 15) scrollToItem(0) else animateScrollToItem(0)
+    if (firstVisibleItemIndex > 15) scrollToItem(0) else animateScrollBy(-distanceToTop())
+}
+
+private const val MEASURE_STEP_PX = 100_000f
+
+private suspend fun ScrollableState.distanceToTop(): Float {
+    var distance = 0f
+    scroll {
+        do {
+            val moved = -scrollBy(-MEASURE_STEP_PX)
+            distance += moved
+        } while (moved > 0f)
+        scrollBy(distance)
+    }
+    return distance
 }
