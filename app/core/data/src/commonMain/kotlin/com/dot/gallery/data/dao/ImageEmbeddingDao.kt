@@ -38,6 +38,19 @@ interface ImageEmbeddingDao {
     @Query("SELECT id FROM image_embeddings")
     suspend fun getIds(): List<Long>
 
+    /**
+     * Local (non-negative) embedding ids whose `media` row is gone — the rows
+     * [deleteOrphans] is about to remove, so callers can carry their vectors
+     * onto linked cloud copies first.
+     */
+    @Query(
+        """
+        SELECT id FROM image_embeddings
+        WHERE id >= 0 AND NOT EXISTS (SELECT 1 FROM media WHERE media.id = image_embeddings.id)
+        """
+    )
+    suspend fun getMissingLocalIds(): List<Long>
+
     @Query("SELECT COUNT(*) FROM image_embeddings")
     suspend fun count(): Int
 

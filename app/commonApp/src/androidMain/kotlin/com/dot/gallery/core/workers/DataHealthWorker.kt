@@ -14,6 +14,7 @@ import com.dot.gallery.core.backup.DataHealthReport
 import com.dot.gallery.core.backup.backupJson
 import com.dot.gallery.core.injection.Singleton
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.core.smart.carrySearchEmbeddingsToCloudCopies
 import com.dot.gallery.core.work.GalleryWorker
 import com.dot.gallery.core.work.GalleryWorkerAdapter
 import com.dot.gallery.core.work.WorkComponentHolder
@@ -143,6 +144,7 @@ class DataHealthWorker @Inject constructor(
             metadata += metadataDao.deleteMissingVideo()
             metadata += metadataDao.deleteMissingFlags()
 
+            carrySearchEmbeddingsToCloudCopies(database)
             embeddings += database.getImageEmbeddingDao().deleteOrphans()
 
             val captureDao = database.getMediaCaptureTimeDao()

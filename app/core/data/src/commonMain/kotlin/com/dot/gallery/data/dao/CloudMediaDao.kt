@@ -453,6 +453,26 @@ interface CloudMediaDao {
 
     @Query(
         """
+        SELECT localCopyPath AS localUri, globalMediaId AS cloudMediaId, timestamp AS cloudTimestampMillis
+        FROM cloud_media
+        WHERE localCopyPath LIKE 'content://media/%' AND trashed = 0
+        """
+    )
+    suspend fun getLocalCopyLinks(): List<CloudLocalCopyLink>
+
+    @Query(
+        """
+        SELECT r.localUri AS localUri, c.globalMediaId AS cloudMediaId, c.timestamp AS cloudTimestampMillis
+        FROM cloud_backup_revision r
+        JOIN cloud_media c ON c.serverConfigId = r.serverConfigId
+            AND c.providerType = r.providerType AND c.remoteId = r.remoteId
+        WHERE c.trashed = 0
+        """
+    )
+    suspend fun getBackupRevisionLinks(): List<CloudLocalCopyLink>
+
+    @Query(
+        """
         DELETE FROM cloud_backup_revision
         WHERE serverConfigId = :serverConfigId AND remoteId IN (:remoteIds)
         """

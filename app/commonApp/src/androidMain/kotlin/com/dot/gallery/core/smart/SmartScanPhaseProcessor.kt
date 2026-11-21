@@ -489,6 +489,7 @@ class SearchIndexPhaseProcessor @Inject constructor(
         val thumbnailSize = searchModel.indexDecodeSize
         val scanDao = database.getSmartScanDao()
         val imageEmbeddingDao = database.getImageEmbeddingDao()
+        carrySearchEmbeddingsToCloudCopies(database)
         imageEmbeddingDao.deleteOrphans()
         val now = System.currentTimeMillis()
         val states = scanDao.getFeatureStates(MediaFeature.SEARCH_EMBEDDING).associateBy { it.mediaId }

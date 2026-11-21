@@ -149,6 +149,20 @@ fun <T, K> smartSearchMediaPool(
     return sort(timelineMedia + ignoredMedia)
 }
 
+/**
+ * Album-name match for search queries. Local items match [albumLabel] exactly;
+ * cloud items also match the remote folder name inside [relativePath]
+ * ("<Provider>/<remote folder path>"), so a remote `Screenshots/` folder
+ * answers the Screenshots chip even though the item's albumLabel is the
+ * provider name. Immich items carry just "<Provider>" and never folder-match.
+ */
+fun matchesAlbumQuery(albumLabel: String, relativePath: String, isCloud: Boolean, query: String): Boolean {
+    if (albumLabel == query) return true
+    if (!isCloud) return false
+    val folder = relativePath.substringAfter('/', "").substringAfterLast('/')
+    return folder.isNotEmpty() && folder == query
+}
+
 class SearchViewModel @Inject constructor(
     mediaDistributor: MediaDistributor,
     mapGeoMediaSource: MapGeoMediaSource,
@@ -1035,11 +1049,13 @@ class SearchViewModel @Inject constructor(
                 return@launch
             }
 
-            if (allMedia.find { it.albumLabel == query } != null) {
-                // If the query matches an album label, filter by that album
-                val filteredMedia = allMedia.filter { it.albumLabel == query }
+            val albumMatches = allMedia.filter {
+                matchesAlbumQuery(it.albumLabel, it.relativePath, it.isCloud, query)
+            }
+            if (albumMatches.isNotEmpty()) {
+                // If the query matches an album label or a cloud folder, filter by that album
                 results.mergeWithHighestScore(
-                    filteredMedia.map { 1f to it }
+                    albumMatches.map { 1f to it }
                 )
                 val mediaState = mapMediaToItem(
                     data = currentlySearchable(results.map { it.second }),
