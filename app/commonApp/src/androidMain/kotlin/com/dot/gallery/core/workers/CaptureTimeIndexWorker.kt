@@ -24,6 +24,7 @@ import dev.brewkits.kmpworkmanager.background.domain.TaskTrigger
 import dev.brewkits.kmpworkmanager.background.domain.WorkerEnvironment
 import dev.brewkits.kmpworkmanager.background.domain.WorkerResult
 import com.dot.gallery.cloud.core.resolveRemote
+import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.entity.CloudMediaEntity
 import com.dot.gallery.data.entity.providerTakenTimestamp
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
@@ -78,6 +79,19 @@ internal fun remoteCaptureFetchAllowed(
     unmetered: Boolean,
     accountWifiOnly: Boolean
 ): Boolean = !effectiveOffline && (!accountWifiOnly || unmetered)
+
+/**
+ * Whether a provider-supplied capture time was itself read from the file's
+ * embedded metadata server-side (Immich `localDateTime`, Nextcloud's photo
+ * date, stored with `dateTimeOriginal`) and can be trusted without fetching
+ * the bytes.
+ * Any other provider time — e.g. a generic WebDAV `creationdate`, which is the
+ * server's file-creation/upload time — must still lose to embedded EXIF, so it
+ * is only kept as the fallback after the probe runs.
+ */
+internal fun providerCaptureTimeIsEmbedded(entity: CloudMediaEntity): Boolean =
+    entity.providerTakenTimestamp != null &&
+        (entity.providerType == ProviderType.IMMICH || !entity.dateTimeOriginal.isNullOrBlank())
 
 /** Bounded parallelism for the remote fetch+parse tier (network reads dominate). */
 private const val CLOUD_FETCH_CONCURRENCY = 4
@@ -240,9 +254,11 @@ class CaptureTimeIndexWorker @Inject constructor(
         val isImage = media.mimeType.startsWith("image/")
         if (!isImage && !isVideo) return media.fallbackCaptureTime()
 
-        // A provider-reported capture time (Immich localDateTime, WebDAV
-        // creationdate) is already embedded-derived upstream — nothing to fetch.
-        if (entity.providerTakenTimestamp != null) return media.fallbackCaptureTime()
+        // A provider time the server read from embedded metadata (Immich
+        // localDateTime, Nextcloud's photo date) is used as is; any other
+        // provider time, such as a WebDAV creationdate, only becomes the
+        // fallback after the embedded probe below runs.
+        if (providerCaptureTimeIsEmbedded(entity)) return media.fallbackCaptureTime()
 
         // A synced/uploaded local copy is free to open and needs no network, and
         // carries the same bytes as the remote — a definitive parse result here
