@@ -112,6 +112,9 @@ import com.dot.gallery.feature.help.generated.resources.visual_search_title
  */
 object HelpSearchIndex {
 
+    /** Id of the entry that opens the Settings hub itself. */
+    const val SETTINGS_ROOT_ID = "settings_root"
+
     suspend fun build(
         releases: List<ReleaseNotes>,
         settingsEntries: Map<String, List<String>> = SettingsSearchRegistry.snapshot(),
@@ -161,6 +164,15 @@ object HelpSearchIndex {
         return out
     }
 
+    /**
+     * What the Settings search offers: every setting and every help tip. The Settings entry
+     * itself, quick actions and changelog entries are left out, since they lead away from
+     * settings.
+     */
+    fun forSettingsSearch(items: List<HelpSearchItem>): List<HelpSearchItem> = items.filter {
+        (it.kind == HelpSearchKind.SETTING && it.id != SETTINGS_ROOT_ID) || it.kind == HelpSearchKind.TIP
+    }
+
     /** Just the tip entries — used by the lightweight timeline integration. */
     suspend fun buildTips(): List<HelpSearchItem> = tipItems()
 
@@ -177,7 +189,7 @@ object HelpSearchIndex {
             val category: HelpCategory
         )
         val entries = listOf(
-            Entry("settings_root", Res.string.settings_title, HelpRoute.Target.SETTINGS, HelpCategory.SETTINGS_GENERAL),
+            Entry(SETTINGS_ROOT_ID, Res.string.settings_title, HelpRoute.Target.SETTINGS, HelpCategory.SETTINGS_GENERAL),
             Entry("settings_appearance", Res.string.help_cat_settings_appearance, HelpRoute.Target.SETTINGS_APPEARANCE, HelpCategory.SETTINGS_APPEARANCE),
             Entry("settings_general", Res.string.help_cat_settings_general, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Entry("settings_timeline_albums", Res.string.help_cat_timeline_albums, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
@@ -308,12 +320,23 @@ object HelpSearchIndex {
                 kind = HelpSearchKind.SETTING,
                 id = "toggle_$title",
                 title = title,
-                subtitle = settingsSection,
+                subtitle = settingsPageTitle(t.route)?.let { getString(it) } ?: settingsSection,
                 keywords = "setting toggle option preference $title",
                 icon = t.category.icon(),
                 route = t.route,
             )
         }
+    }
+
+    /** The settings page a curated toggle lives on, so search results say where it is. */
+    private fun settingsPageTitle(route: HelpRoute): StringResource? = when (route) {
+        HelpRoute.Target.COLOR_PALETTE, HelpRoute.Target.SETTINGS_APPEARANCE -> Res.string.help_cat_settings_appearance
+        HelpRoute.Target.SETTINGS_GENERAL -> Res.string.help_cat_settings_general
+        HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS -> Res.string.help_cat_timeline_albums
+        HelpRoute.Target.SETTINGS_MEDIA_VIEWER -> Res.string.help_cat_viewer_settings
+        HelpRoute.Target.SETTINGS_SECURITY -> Res.string.help_cat_settings_security
+        HelpRoute.Target.SETTINGS_SMART_FEATURES -> Res.string.help_cat_settings_smart
+        else -> null
     }
 
     private suspend fun tipItems(): List<HelpSearchItem> =

@@ -124,6 +124,7 @@ sealed class Screen(val route: String) {
     data object SettingsGesturesScreen : Screen("settings_gestures_screen")
     /** Legacy: the Navigation page was split up; the route only redirects to General now. */
     data object SettingsNavigationScreen : Screen("settings_navigation_screen")
+    data object SettingsSearchScreen : Screen("settings_search_screen")
     data object SettingsSecurityScreen : Screen("settings_security_screen")
     data object SettingsBackupScreen : Screen("settings_backup_screen")
     data object DeveloperScreen : Screen("developer_screen")

@@ -91,6 +91,11 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
     stickyHeaderTopOffset: Dp? = null,
     groupMethod: String = GROUP_NORMAL,
     aboveGridContent: @Composable (() -> Unit)? = null,
+    /**
+     * Full-width content after the last media row, scrolling with the grid. Unlike
+     * [aboveGridContent] it never shifts item indexes, so month scrubbing stays aligned.
+     */
+    belowGridContent: @Composable (() -> Unit)? = null,
     isScrolling: MutableState<Boolean>,
     emptyContent: @Composable () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
@@ -252,6 +257,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowHeaders = allowHeaders,
                 bigHeaders = groupMethod != GROUP_NORMAL,
                 aboveGridContent = aboveGridContent,
+                belowGridContent = belowGridContent,
                 isScrolling = isScrolling,
                 emptyContent = emptyContent,
                 onMediaClick = onMediaClick,
@@ -286,6 +292,7 @@ fun <T : Media> GridPinchZoomScope.MediaGridView(
                 allowHeaders = allowHeaders,
                 bigHeaders = groupMethod != GROUP_NORMAL,
                 aboveGridContent = aboveGridContent,
+                belowGridContent = belowGridContent,
                 isScrolling = isScrolling,
                 emptyContent = emptyContent,
                 onMediaClick = onMediaClick,

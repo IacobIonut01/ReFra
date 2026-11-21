@@ -15,4 +15,6 @@ class SettingsScreenActions(
     val onRestoreBanner: () -> Unit,
     val onShowSupport: () -> Unit,
     val onDeveloperUnlocked: () -> Unit,
+    /** Opens the search across every settings page and help tip. */
+    val onSearch: () -> Unit = {},
 )

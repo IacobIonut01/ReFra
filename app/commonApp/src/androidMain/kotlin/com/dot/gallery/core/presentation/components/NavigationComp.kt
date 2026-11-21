@@ -1396,6 +1396,9 @@ fun NavigationComp(
                     }
                 }
             }
+            composable(Screen.SettingsSearchScreen()) {
+                com.dot.gallery.app.presentation.settings.SettingsSearchScreen()
+            }
             composable(Screen.SettingsSecurityScreen()) {
                 SettingsSecurityScreen()
             }

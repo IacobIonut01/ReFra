@@ -25,6 +25,7 @@ import com.dot.gallery.domain.util.MediaOrder
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.feature.help.domain.HelpSearchIndex
 import com.dot.gallery.feature.help.domain.HelpSearchItem
+import com.dot.gallery.feature.help.domain.HelpTipMatch
 import com.dot.gallery.feature.help.search.HelpFuzzyMatcher
 import com.dot.gallery.feature.library.CategoryMedia
 import com.frosch2010.fuzzywuzzy_kotlin.FuzzySearch
@@ -202,12 +203,16 @@ class SearchViewModel @Inject constructor(
         helpSearchItemsCache ?: HelpSearchIndex.buildTips().also { helpSearchItemsCache = it }
 
     /**
-     * Tips matching the current query, resolved instantly and independently of
-     * the media search pipeline ([searchJob]). Cancelling the media search never
-     * clears these, so both result kinds coexist over one query string.
+     * Tips that strongly match the current query ([HelpTipMatch]), resolved instantly and
+     * independently of the media search pipeline ([searchJob]). Cancelling the media search
+     * never clears these, so both result kinds coexist over one query string. The fuzzy
+     * ranking only orders them; a loose fuzzy hit alone no longer puts a tip in photo search.
      */
     val tipResults: StateFlow<List<HelpSearchItem>> = _query
-        .map { q -> if (q.isBlank()) emptyList() else HelpFuzzyMatcher.search(helpSearchItems(), q, limit = 8) }
+        .map { q ->
+            if (q.isBlank()) emptyList()
+            else HelpTipMatch.strongMatches(HelpFuzzyMatcher.search(helpSearchItems(), q, limit = 50), q).take(8)
+        }
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,

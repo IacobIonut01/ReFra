@@ -140,6 +140,11 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
     allowHeaders: Boolean,
     bigHeaders: Boolean = false,
     aboveGridContent: @Composable() (() -> Unit)?,
+    /**
+     * Full-width content after the last media row, scrolling with the grid. Unlike
+     * [aboveGridContent] it never shifts item indexes, so month scrubbing stays aligned.
+     */
+    belowGridContent: @Composable (() -> Unit)? = null,
     isScrolling: MutableState<Boolean>,
     emptyContent: @Composable () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
@@ -165,6 +170,18 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
                     key = "aboveGrid"
                 ) {
                     aboveGridContent.invoke()
+                }
+            }
+        }
+    }
+    val bottomContent: LazyGridScope.() -> Unit = remember(belowGridContent) {
+        {
+            if (belowGridContent != null) {
+                item(
+                    span = { GridItemSpan(maxLineSpan) },
+                    key = "belowGrid"
+                ) {
+                    belowGridContent.invoke()
                 }
             }
         }
@@ -209,6 +226,7 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
             bigHeaders = bigHeaders,
             onMediaClick = onMediaClick,
             topContent = topContent,
+            bottomContent = bottomContent,
             leadingItemCount = if (aboveGridContent != null) 1 else 0,
             sharedTransitionScope = sharedTransitionScope,
             animatedContentScope = animatedContentScope,
@@ -225,6 +243,7 @@ fun <T : Media> GridPinchZoomScope.MediaGrid(
             canScroll = canScroll,
             onMediaClick = onMediaClick,
             topContent = topContent,
+            bottomContent = bottomContent,
             leadingItemCount = if (aboveGridContent != null) 1 else 0,
             sharedTransitionScope = sharedTransitionScope,
             animatedContentScope = animatedContentScope,
@@ -250,6 +269,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
     showFavoriteIcon: Boolean = true,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
+    bottomContent: LazyGridScope.() -> Unit = {},
     leadingItemCount: Int,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -404,7 +424,6 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
         ) {
             topContent()
 
-            //bottomContent()
             items(
                 items = mappedData,
                 key = { item -> item.key },
@@ -467,7 +486,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContentWithHeaders(
                 }
             }
 
-
+            bottomContent()
         }
         }
         }
@@ -486,6 +505,7 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
     showFavoriteIcon: Boolean = true,
     onMediaClick: @DisallowComposableCalls (media: T) -> Unit,
     topContent: LazyGridScope.() -> Unit,
+    bottomContent: LazyGridScope.() -> Unit = {},
     leadingItemCount: Int,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
@@ -626,6 +646,8 @@ private fun <T : Media> GridPinchZoomScope.MediaGridContent(
                 }
             )
         }
+
+        bottomContent()
     }
     }
     }

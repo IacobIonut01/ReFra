@@ -88,6 +88,7 @@ fun SettingsScreen() {
             onDismissBanner = { bannerDismissed = true },
             onRestoreBanner = { bannerDismissed = false },
             onShowSupport = { scope.launch { supportState.show() } },
+            onSearch = { eventHandler.navigate(Screen.SettingsSearchScreen()) },
             onDeveloperUnlocked = {
                 developerMode = true
                 Toast.makeText(context, unlockedMessage, Toast.LENGTH_LONG).show()

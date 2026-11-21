@@ -199,8 +199,9 @@ fun SearchScreen(
 }
 
 /**
- * "Help" for the current query, shown above the media results. It starts as a single
- * compact row with the match count, since tips are rarely what a search is for; tapping it
+ * "Help" for the current query, shown below the media results and only for tips that strongly
+ * match it. It starts as a single compact row with the match count, since tips are rarely what
+ * a search is for; tapping it
  * expands the top matching tips and a "See all" row that opens the full Help screen. Tapping
  * a tip navigates to its detail (never mutates search state).
  */

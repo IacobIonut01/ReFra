@@ -43,6 +43,7 @@ import com.dot.gallery.feature.help.domain.HelpSearchItem
 import com.dot.gallery.feature.help.domain.HelpSearchKind
 import com.dot.gallery.feature.help.domain.displayTitle
 import com.dot.gallery.feature.help.domain.icon
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.dot.gallery.feature.help.generated.resources.Res
 import com.dot.gallery.feature.help.generated.resources.help_explore_tips
@@ -171,10 +172,20 @@ fun HelpContent(
     }
 }
 
-/** Grouped, ranked search results rendered as LazyColumn items. */
-private fun LazyListScope.helpSearchResults(
+/** The Help screen's result groups, tips first. */
+private val HelpResultOrder = listOf(
+    HelpSearchKind.TIP,
+    HelpSearchKind.SETTING,
+    HelpSearchKind.QUICK_ACTION,
+    HelpSearchKind.CHANGELOG,
+)
+
+/** Grouped, ranked search results rendered as LazyColumn items, one group per kind in [order]. */
+internal fun LazyListScope.helpSearchResults(
     results: List<HelpSearchItem>,
     query: String,
+    order: List<HelpSearchKind> = HelpResultOrder,
+    noResults: StringResource = Res.string.help_search_no_results,
     onClick: (HelpSearchItem) -> Unit
 ) {
     if (results.isEmpty()) {
@@ -186,7 +197,7 @@ private fun LazyListScope.helpSearchResults(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(Res.string.help_search_no_results, query),
+                    text = stringResource(noResults, query),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -195,13 +206,13 @@ private fun LazyListScope.helpSearchResults(
         return
     }
 
-    val order = listOf(
-        HelpSearchKind.TIP to Res.string.help_search_section_tips,
-        HelpSearchKind.SETTING to Res.string.help_search_section_settings,
-        HelpSearchKind.QUICK_ACTION to Res.string.help_search_section_actions,
-        HelpSearchKind.CHANGELOG to Res.string.help_search_section_changelog,
-    )
-    order.forEach { (kind, headerRes) ->
+    order.forEach { kind ->
+        val headerRes = when (kind) {
+            HelpSearchKind.TIP -> Res.string.help_search_section_tips
+            HelpSearchKind.SETTING -> Res.string.help_search_section_settings
+            HelpSearchKind.QUICK_ACTION -> Res.string.help_search_section_actions
+            HelpSearchKind.CHANGELOG -> Res.string.help_search_section_changelog
+        }
         val group = results.filter { it.kind == kind }
         if (group.isNotEmpty()) {
             item(key = "header_${kind.name}") {

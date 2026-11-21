@@ -172,8 +172,8 @@ fun searchPhase(results: SearchResultsState, query: String): SearchPhase = when 
  * grids (grid or mosaic) with a floating sort dock.
  *
  * App shell collects the [state] from the search ViewModel and supplies:
- * - [tipsContent] — optional "Help" results block, rendered inline in
- *   whichever scroll container is active; `null` hides it entirely.
+ * - [tipsContent] — optional "Help" results block, rendered after the suggestions, the
+ *   empty state or the media results of the active scroll container; `null` hides it.
  * - [selectionSheetContent] — the platform selection overlay (e.g. the app's
  *   `SelectionSheet`), anchored bottom-end.
  * - [lastCellIndex]/[lastMosaicCellIndex] — persisted grid cell indices
@@ -283,7 +283,6 @@ fun SearchContent(
                         actions = actions,
                         recentHistory = recentHistory,
                         suggestionProviders = suggestionProviders,
-                        tipsContent = tipsContent,
                         showPromo = !state.isModelAvailable && !promoDismissed,
                         onDismissPromo = { promoDismissed = true },
                     )
@@ -323,9 +322,6 @@ fun SearchContent(
                     }
 
                     SearchPhase.NoResults -> SearchStateColumn(state.searchIndexerState) {
-                        if (tipsContent != null) {
-                            item(key = "empty_help_tips") { tipsContent() }
-                        }
                         item(key = "empty_results") {
                             SearchNoResults(
                                 state = state,
@@ -333,19 +329,39 @@ fun SearchContent(
                                 onPickImage = { showPickerSheet = true },
                             )
                         }
+                        if (tipsContent != null) {
+                            item(key = "empty_help_tips") { tipsContent() }
+                        }
                     }
 
-                    SearchPhase.Results -> SearchResults(
-                        state = state,
-                        actions = actions,
-                        contentPadding = contentPadding,
-                        isScrolling = isScrolling,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedContentScope = animatedContentScope,
-                        tipsContent = tipsContent,
-                        lastCellIndex = lastCellIndex,
-                        lastMosaicCellIndex = lastMosaicCellIndex,
-                    )
+                    SearchPhase.Results -> if (state.searchResults.results.media.isEmpty()) {
+                        // Only text-in-photos matches: the media grid would show its empty state
+                        // and drop everything around it, so list the matches and tips instead.
+                        SearchStateColumn(state.searchIndexerState) {
+                            item(key = "text_matches") {
+                                TextInPhotosSection(
+                                    matches = state.searchResults.textMatches,
+                                    otherCount = 0,
+                                    onOpen = { actions.onOpenTextMatch(it.media.id) },
+                                )
+                            }
+                            if (tipsContent != null) {
+                                item(key = "help_tips") { tipsContent() }
+                            }
+                        }
+                    } else {
+                        SearchResults(
+                            state = state,
+                            actions = actions,
+                            contentPadding = contentPadding,
+                            isScrolling = isScrolling,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedContentScope = animatedContentScope,
+                            tipsContent = tipsContent,
+                            lastCellIndex = lastCellIndex,
+                            lastMosaicCellIndex = lastMosaicCellIndex,
+                        )
+                    }
                 }
             }
             val selector = LocalMediaSelector.current
@@ -544,7 +560,6 @@ private fun SearchHome(
     actions: SearchActions,
     recentHistory: List<SearchHistory>,
     suggestionProviders: List<SearchSuggestionProvider>,
-    tipsContent: (@Composable () -> Unit)?,
     showPromo: Boolean,
     onDismissPromo: () -> Unit,
 ) {
@@ -575,9 +590,6 @@ private fun SearchHome(
             item(key = "smart_search_promo") {
                 SmartSearchPromoCard(onTurnOn = actions.onSetUpSmartSearch, onDismiss = onDismissPromo)
             }
-        }
-        if (tipsContent != null) {
-            item(key = "help_tips") { tipsContent() }
         }
         if (visibleHistory.isNotEmpty()) {
             item(key = "recent_header") {
@@ -906,17 +918,17 @@ private fun SearchResults(
 
     val isMosaicLayout = timelineLayoutType == LAYOUT_MOSAIC && !useRelevanceOrder
 
-    // Index progress and Help results ride above the grid as a single full-width leading
-    // item so they scroll seamlessly with the media results.
+    // Index progress and text-in-photos matches ride above the grid as a single full-width
+    // leading item so they scroll seamlessly with the media results. Help tips come last,
+    // after the media, since a photo search is rarely a question about the app.
     val textMatches = searchResults.textMatches
     val aboveGridContent: (@Composable () -> Unit)? =
-        if (searchIndexerState.isIndexing || tipsContent != null || textMatches.isNotEmpty()) {
+        if (searchIndexerState.isIndexing || textMatches.isNotEmpty()) {
             {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     if (searchIndexerState.isIndexing) {
                         SearchIndexStatusCard(searchIndexerState)
                     }
-                    tipsContent?.invoke()
                     if (textMatches.isNotEmpty()) {
                         TextInPhotosSection(
                             matches = textMatches,
@@ -981,6 +993,7 @@ private fun SearchResults(
                         canScroll = !mosaicPinchState.isZooming,
                         allowHeaders = true,
                         aboveGridContent = aboveGridContent,
+                        belowGridContent = tipsContent,
                         isScrolling = isScrolling,
                         emptyContent = { EmptyMedia() },
                         sharedTransitionScope = sharedTransitionScope,
@@ -1011,6 +1024,7 @@ private fun SearchResults(
                     allowHeaders = !useRelevanceOrder,
 
                     aboveGridContent = aboveGridContent,
+                    belowGridContent = tipsContent,
                     isScrolling = isScrolling,
                     emptyContent = { EmptyMedia() },
                     sharedTransitionScope = sharedTransitionScope,

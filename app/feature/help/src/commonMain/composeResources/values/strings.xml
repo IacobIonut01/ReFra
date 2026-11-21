@@ -1147,6 +1147,9 @@
 
     <!-- HELP SEARCH -->
     <string name="help_search_hint">Search help</string>
+    <string name="settings_search_title">Search settings</string>
+    <string name="settings_search_hint">Search settings and tips</string>
+    <string name="settings_search_no_results">No settings or tips found for "%1$s"</string>
     <string name="help_search_no_results">No help found for "%1$s"</string>
     <string name="help_search_section_tips">Tips &amp; how-to</string>
     <string name="help_search_section_settings">Settings</string>

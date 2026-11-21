@@ -13,6 +13,7 @@
     <string name="settings_gestures_summary">Taps, swipes and long-press in the viewer</string>
     <string name="settings_general">General</string>
     <string name="settings_general_summary">Launch screen, search, trash and vibrations</string>
+    <string name="settings_search">Search settings</string>
     <string name="settings_security">Security &amp; privacy</string>
     <string name="settings_security_summary">Secure mode, sandboxing, encryption, private folder and vault</string>
     <string name="settings_backup">Backup &amp; restore</string>

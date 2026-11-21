@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Swipe
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.dot.gallery.core.Position
+import com.dot.gallery.core.presentation.components.GalleryPageTopBarAction
 import com.dot.gallery.core.SettingsEntity
 import com.dot.gallery.core.ui.components.BaseSettingsScreen
 import com.dot.gallery.core.ui.components.CustomCircleIcon
@@ -60,6 +62,7 @@ import com.dot.gallery.feature.settings.generated.resources.settings_gestures_su
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_root_footnote
+import com.dot.gallery.feature.settings.generated.resources.settings_search
 import com.dot.gallery.feature.settings.generated.resources.settings_section_about
 import com.dot.gallery.feature.settings.generated.resources.settings_section_intelligence
 import com.dot.gallery.feature.settings.generated.resources.settings_section_personalize
@@ -207,6 +210,13 @@ fun SettingsScreenContent(
 
     BaseSettingsScreen(
         title = stringResource(Res.string.settings_title),
+        actions = {
+            GalleryPageTopBarAction(
+                icon = Icons.Outlined.Search,
+                contentDescription = stringResource(Res.string.settings_search),
+                onClick = actions.onSearch,
+            )
+        },
         topContent = if (!state.bannerDismissed) {
             {
                 SettingsAppHeader(
