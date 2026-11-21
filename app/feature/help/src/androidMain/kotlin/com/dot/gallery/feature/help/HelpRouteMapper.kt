@@ -32,7 +32,6 @@ fun HelpRoute.toScreenRoute(): String = when (this) {
         HelpRoute.Target.SETTINGS -> Screen.SettingsScreen()
         HelpRoute.Target.SETTINGS_APPEARANCE -> Screen.SettingsAppearanceScreen()
         HelpRoute.Target.SETTINGS_GENERAL -> Screen.SettingsGeneralScreen()
-        HelpRoute.Target.SETTINGS_NAVIGATION -> Screen.SettingsNavigationScreen()
         HelpRoute.Target.SETTINGS_MEDIA_VIEWER -> Screen.SettingsMediaViewerScreen()
         HelpRoute.Target.SETTINGS_EDITORS -> Screen.SettingsEditorsScreen()
         HelpRoute.Target.SETTINGS_GESTURES -> Screen.SettingsGesturesScreen()

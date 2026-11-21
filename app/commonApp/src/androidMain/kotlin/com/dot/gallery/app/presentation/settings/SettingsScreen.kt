@@ -75,7 +75,6 @@ fun SettingsScreen() {
                         SettingsRoute.MEDIA_VIEWER -> Screen.SettingsMediaViewerScreen()
                         SettingsRoute.EDITORS -> Screen.SettingsEditorsScreen()
                         SettingsRoute.GESTURES -> Screen.SettingsGesturesScreen()
-                        SettingsRoute.NAVIGATION -> Screen.SettingsNavigationScreen()
                         SettingsRoute.GENERAL -> Screen.SettingsGeneralScreen()
                         SettingsRoute.SECURITY -> Screen.SettingsSecurityScreen()
                         SettingsRoute.BACKUP -> Screen.SettingsBackupScreen()

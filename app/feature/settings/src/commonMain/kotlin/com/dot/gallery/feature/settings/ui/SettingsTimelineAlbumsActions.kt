@@ -8,6 +8,8 @@ package com.dot.gallery.feature.settings.ui
 data class SettingsTimelineAlbumsActions(
     val onDateFormatClick: () -> Unit = {},
     val onStoryCardsClick: () -> Unit = {},
+    /** Opens the selection-actions editor (`Screen.SettingsSelectionActionsScreen`). */
+    val onOpenSelectionActions: () -> Unit = {},
     /** Rebuilds the capture-time index — WorkManager on Android. */
     val onRecheckCaptureDates: () -> Unit = {},
     // Album-section management (AlbumsViewModel ops on Android)

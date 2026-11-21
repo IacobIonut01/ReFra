@@ -53,6 +53,8 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.VerticalAlignBottom
+import androidx.compose.material.icons.outlined.VerticalSplit
 import androidx.compose.material.icons.outlined.ViewDay
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ColorScheme
@@ -143,6 +145,12 @@ import com.dot.gallery.feature.settings.generated.resources.map_appearance_light
 import com.dot.gallery.feature.settings.generated.resources.map_appearance_system
 import com.dot.gallery.feature.settings.generated.resources.map_appearance_title
 import com.dot.gallery.feature.settings.generated.resources.navigation
+import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar
+import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar_description
+import com.dot.gallery.feature.settings.generated.resources.auto_hide_navigationbar_summary
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane_description
+import com.dot.gallery.feature.settings.generated.resources.gallery_dual_pane_summary
 import com.dot.gallery.feature.settings.generated.resources.old_navbar
 import com.dot.gallery.feature.settings.generated.resources.old_navbar_description
 import com.dot.gallery.feature.settings.generated.resources.old_navbar_summary
@@ -176,6 +184,8 @@ private const val DETAIL_SYSTEM_FONT = "system_font"
 private const val DETAIL_MAP_APPEARANCE = "map_appearance"
 private const val DETAIL_APP_ICON = "app_icon"
 private const val DETAIL_OLD_NAVBAR = "old_navbar"
+private const val DETAIL_HIDE_NAV = "hide_nav"
+private const val DETAIL_DUAL_PANE = "dual_pane"
 
 /** Which circle of the Appearance theme picker is selected, in display order. */
 private enum class ThemeMode { Light, Auto, Dark }
@@ -206,6 +216,8 @@ fun ColorPaletteContent(
     var useSystemFont by rememberPreference(SettingsKeys.useSystemFont)
     var mapAppearance by rememberMapAppearance()
     var oldNavbar by rememberPreference(SettingsKeys.oldNavbar)
+    var autoHideNavBar by rememberPreference(SettingsKeys.autoHideNavBar)
+    var dualPane by rememberPreference(SettingsKeys.galleryDualPane)
     var userCartoKey by rememberPreference(SettingsKeys.cartoBasemapKey)
     var cartoKeyDraft by remember { mutableStateOf("") }
     var showCartoKeyDialog by remember { mutableStateOf(false) }
@@ -305,6 +317,26 @@ fun ColorPaletteContent(
             )
             return
         }
+        DETAIL_HIDE_NAV -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.auto_hide_navigationbar),
+                isChecked = autoHideNavBar,
+                onCheckedChange = { autoHideNavBar = it },
+                description = stringResource(Res.string.auto_hide_navigationbar_description),
+            )
+            return
+        }
+        DETAIL_DUAL_PANE -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.gallery_dual_pane),
+                isChecked = dualPane,
+                onCheckedChange = { dualPane = it },
+                description = stringResource(Res.string.gallery_dual_pane_description),
+            )
+            return
+        }
     }
 
     var selectedTab by rememberSaveable(themeColorSeed) {
@@ -396,7 +428,27 @@ fun ColorPaletteContent(
         isChecked = oldNavbar,
         onCheck = { oldNavbar = it },
         onClick = { detailKey = DETAIL_OLD_NAVBAR },
-        screenPosition = Position.Alone
+        screenPosition = Position.Top
+    )
+    val autoHideNavBarPref = rememberSwitchPreference(
+        autoHideNavBar,
+        title = stringResource(Res.string.auto_hide_navigationbar),
+        icon = Icons.Outlined.VerticalAlignBottom,
+        summary = stringResource(Res.string.auto_hide_navigationbar_summary),
+        isChecked = autoHideNavBar,
+        onCheck = { autoHideNavBar = it },
+        onClick = { detailKey = DETAIL_HIDE_NAV },
+        screenPosition = Position.Middle
+    )
+    val dualPanePref = rememberSwitchPreference(
+        dualPane,
+        title = stringResource(Res.string.gallery_dual_pane),
+        icon = Icons.Outlined.VerticalSplit,
+        summary = stringResource(Res.string.gallery_dual_pane_summary),
+        isChecked = dualPane,
+        onCheck = { dualPane = it },
+        onClick = { detailKey = DETAIL_DUAL_PANE },
+        screenPosition = Position.Bottom
     )
     val fontHeaderTitle = stringResource(Res.string.settings_font_header)
     val fontHeader = remember(fontHeaderTitle) { SettingsEntity.Header(title = fontHeaderTitle) }
@@ -574,6 +626,8 @@ fun ColorPaletteContent(
 
         SettingsItem(item = navigationHeader)
         SettingsItem(item = oldNavbarPref)
+        SettingsItem(item = autoHideNavBarPref)
+        SettingsItem(item = dualPanePref)
 
         SettingsItem(item = fontHeader)
         SettingsItem(item = useSystemFontPref)

@@ -30,7 +30,7 @@
     <string name="help_tip_basics_select_media_p1_s3">Or drag across photos for quick multi-select</string>
     <string name="help_tip_basics_select_media_p1_s4">Use the action bar to share, delete, or manage</string>
     <string name="help_tip_basics_select_media_p2_title">Batch actions</string>
-    <string name="help_tip_basics_select_media_p2_desc">Once you've selected items, a bottom action sheet slides up with all available actions: Share, Delete, Copy to album, Move to album, Hide in vault, and more. You can customize which actions appear and their order in Settings > Navigation > Customize selection actions. Tip: to select all photos in a date group, tap the date header.</string>
+    <string name="help_tip_basics_select_media_p2_desc">Once you've selected items, a bottom action sheet slides up with all available actions: Share, Delete, Copy to album, Move to album, Hide in vault, and more. You can customize which actions appear and their order in Settings > Timeline &amp; albums > Selection actions. Tip: to select all photos in a date group, tap the date header.</string>
     <string name="help_tip_basics_share_title">Share photos and videos</string>
     <string name="help_tip_basics_share_subtitle">Share media with other apps and people</string>
     <string name="help_tip_basics_share_p1_title">Share your media</string>
@@ -85,7 +85,7 @@
     <string name="help_tip_nav_launch_screen_subtitle">Choose which screen appears when you open Gallery</string>
     <string name="help_tip_nav_launch_screen_p1_title">Default launch screen</string>
     <string name="help_tip_nav_launch_screen_p1_desc">Choose which screen greets you when you open Gallery. Timeline is great if you mostly browse recent photos. Albums works well if you organize by folder. Library is ideal if you primarily use favorites or categories. There's also an Auto option that remembers the last screen you used.</string>
-    <string name="help_tip_nav_launch_screen_p1_s1">Go to Settings > Navigation</string>
+    <string name="help_tip_nav_launch_screen_p1_s1">Go to Settings > General</string>
     <string name="help_tip_nav_launch_screen_p1_s2">Tap 'Default launch screen'</string>
     <string name="help_tip_nav_launch_screen_p1_s3">Choose Auto, Timeline, Albums, or Library</string>
     <string name="help_tip_nav_auto_hide_bars_title">Auto-hide bars on scroll</string>
@@ -93,7 +93,7 @@
     <string name="help_tip_nav_auto_hide_bars_p1_title">Auto-hide bars</string>
     <string name="help_tip_nav_auto_hide_bars_p1_desc">For a more immersive browsing experience, enable auto-hide for the top bar and/or navigation bar. They'll slide away as you scroll down through your photos and reappear when you scroll back up. This is especially useful on smaller screens where every pixel counts. You can control each bar independently.</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s1">For the top bar, go to Settings > Timeline &amp; albums > Top bar and turn on 'Hide on scroll'</string>
-    <string name="help_tip_nav_auto_hide_bars_p1_s2">For the navigation bar, go to Settings > Navigation and turn on 'Hide navigation bar on scroll'</string>
+    <string name="help_tip_nav_auto_hide_bars_p1_s2">For the navigation bar, go to Settings > Appearance and turn on 'Hide navigation bar on scroll'</string>
     <string name="help_tip_nav_auto_hide_bars_p1_s3">Scroll down to see them hide, scroll up to bring them back</string>
 
     <!-- GET STARTED: PERSONALIZATION -->
@@ -751,7 +751,7 @@
     <string name="help_tip_settings_launch_screen_subtitle">Choose Auto, Timeline, Albums, or Library</string>
     <string name="help_tip_settings_launch_screen_p1_title">Launch screen</string>
     <string name="help_tip_settings_launch_screen_p1_desc">Choose which screen greets you when you open Gallery. Auto remembers the last screen you used. Timeline is great for browsing recent photos. Albums is ideal if you organize by folder. Library works well if you primarily access favorites, vault, or categories.</string>
-    <string name="help_tip_settings_launch_screen_p1_s1">Go to Settings > Navigation</string>
+    <string name="help_tip_settings_launch_screen_p1_s1">Go to Settings > General</string>
     <string name="help_tip_settings_launch_screen_p1_s2">Tap 'Default launch screen'</string>
     <string name="help_tip_settings_launch_screen_p1_s3">Choose Auto, Timeline, Albums, or Library</string>
     <string name="help_tip_settings_old_navbar_title">Classic navigation bar</string>
@@ -765,7 +765,7 @@
     <string name="help_tip_settings_selection_titles_subtitle">Display titles in the selection action sheet</string>
     <string name="help_tip_settings_selection_titles_p1_title">Selection titles</string>
     <string name="help_tip_settings_selection_titles_p1_desc">When you select photos, the bottom action sheet shows icons for available actions. Enabling titles adds text labels under each icon (Share, Delete, Copy, etc.) for clarity. Disabling titles gives a cleaner, more compact look. If you already know what each icon does, hiding titles saves space.</string>
-    <string name="help_tip_settings_selection_titles_p1_s1">Go to Settings > Navigation</string>
+    <string name="help_tip_settings_selection_titles_p1_s1">Go to Settings > Timeline &amp; albums</string>
     <string name="help_tip_settings_selection_titles_p1_s2">Toggle 'Show selection titles'</string>
     <string name="help_tip_settings_selection_titles_p1_s3">With titles: labels under each action icon</string>
     <string name="help_tip_settings_selection_titles_p1_s4">Without titles: compact icon-only view</string>
@@ -775,7 +775,7 @@
     <string name="help_tip_settings_selection_actions_p1_desc">The selection action sheet appears whenever you select photos. By default it shows Share, Delete, Copy, Move, Hide in vault, and more. You can customize which actions appear and their order to match your most common workflows.</string>
     <string name="help_tip_settings_selection_actions_p2_title">Customize</string>
     <string name="help_tip_settings_selection_actions_p2_desc">Drag actions up or down to reorder them — put your most-used actions at the top for quick access. Toggle actions on or off to show or hide them. For example, if you never use 'Copy to album', hide it to reduce clutter. In the Action Bar section you can also enable Fill action bar to give every action an equal share of the pill instead of letting the bar scroll. Your customization is saved automatically.</string>
-    <string name="help_tip_settings_selection_actions_p2_s1">Go to Settings > Navigation</string>
+    <string name="help_tip_settings_selection_actions_p2_s1">Go to Settings > Timeline &amp; albums</string>
     <string name="help_tip_settings_selection_actions_p2_s2">Tap 'Customize selection actions'</string>
     <string name="help_tip_settings_selection_actions_p2_s3">Drag actions to reorder by priority</string>
     <string name="help_tip_settings_selection_actions_p2_s4">Toggle actions on/off to show/hide, or enable Fill action bar</string>
@@ -827,7 +827,7 @@
     <string name="help_tip_selection_sheet_p1_desc">When you select one or more photos, a bottom action sheet slides up showing all available actions: Share, Delete, Copy to album, Move to album, Hide in vault, Favorite, and more. The number of selected items is displayed at the top. Tap any action to apply it to all selected items at once.</string>
     <string name="help_tip_selection_sheet_p2_title">Customize actions</string>
     <string name="help_tip_selection_sheet_p2_desc">The action sheet is fully customizable. Reorder actions to put your most-used ones first, and hide actions you never use. This makes the sheet cleaner and faster to use. Your customization is saved permanently.</string>
-    <string name="help_tip_selection_sheet_p2_s1">Go to Settings > Navigation</string>
+    <string name="help_tip_selection_sheet_p2_s1">Go to Settings > Timeline &amp; albums</string>
     <string name="help_tip_selection_sheet_p2_s2">Tap 'Customize selection actions'</string>
     <string name="help_tip_selection_sheet_p2_s3">Drag to reorder, toggle to show/hide</string>
     <string name="help_tip_selection_sheet_p2_s4">Most-used actions should be at the top</string>
@@ -900,7 +900,7 @@
     <string name="help_tip_selection_right_align_subtitle">Move action buttons to the right side for easier reach</string>
     <string name="help_tip_selection_right_align_p1_title">Right-aligned actions</string>
     <string name="help_tip_selection_right_align_p1_desc">When enabled, the top action buttons in the selection bar (Select All, Details) are pushed to the right edge of the screen while the Close button stays on the left. This makes the actions easier to reach with one hand, especially on larger phones. The buttons are placed in a scrollable row to prevent overflow.</string>
-    <string name="help_tip_selection_right_align_p1_s1">Go to Settings > Navigation > Selection actions</string>
+    <string name="help_tip_selection_right_align_p1_s1">Go to Settings > Timeline &amp; albums > Selection actions</string>
     <string name="help_tip_selection_right_align_p1_s2">Toggle 'Right-align top actions'</string>
     <string name="help_tip_selection_right_align_p1_s3">Select items to see the new layout</string>
 
@@ -1535,6 +1535,7 @@
     <string name="fancy_blur">Fancy Blur</string>
     <string name="auto_contrast">Auto Contrast (Beta)</string>
     <string name="old_navbar">Classic navigation style</string>
+    <string name="gallery_dual_pane">Gallery beside viewer</string>
     <string name="allow_vibrations">Allow vibrations</string>
     <string name="edit_backups">Edit Backups</string>
     <string name="set_default_screen">Set default screen</string>
@@ -1605,7 +1606,7 @@
     <string name="help_cat_viewer_settings">Media viewer settings</string>
     <string name="help_cat_settings_appearance">Settings: Appearance</string>
     <string name="help_cat_settings_general">Settings: General</string>
-    <string name="help_cat_settings_navigation">Settings: Navigation</string>
+    <string name="help_cat_settings_navigation">Settings: Navigation and selection</string>
     <string name="help_cat_settings_smart">Settings: Smart features</string>
     <string name="help_cat_settings_security">Settings: Security &amp; privacy</string>
     <string name="help_cat_selection_actions">Selection &amp; batch actions</string>

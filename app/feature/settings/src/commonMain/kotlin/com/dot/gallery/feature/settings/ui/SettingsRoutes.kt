@@ -12,7 +12,6 @@ enum class SettingsRoute {
     MEDIA_VIEWER,
     EDITORS,
     GESTURES,
-    NAVIGATION,
     GENERAL,
     SECURITY,
     BACKUP,

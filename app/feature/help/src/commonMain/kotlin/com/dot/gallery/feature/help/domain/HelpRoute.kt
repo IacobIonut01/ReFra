@@ -29,7 +29,6 @@ sealed interface HelpRoute {
         SETTINGS,
         SETTINGS_APPEARANCE,
         SETTINGS_GENERAL,
-        SETTINGS_NAVIGATION,
         SETTINGS_MEDIA_VIEWER,
         SETTINGS_EDITORS,
         SETTINGS_GESTURES,

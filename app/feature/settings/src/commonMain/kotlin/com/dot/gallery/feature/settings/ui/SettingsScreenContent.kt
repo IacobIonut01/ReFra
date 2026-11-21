@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Info
@@ -60,8 +59,6 @@ import com.dot.gallery.feature.settings.generated.resources.settings_gestures
 import com.dot.gallery.feature.settings.generated.resources.settings_gestures_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer_summary
-import com.dot.gallery.feature.settings.generated.resources.settings_navigation
-import com.dot.gallery.feature.settings.generated.resources.settings_navigation_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_root_footnote
 import com.dot.gallery.feature.settings.generated.resources.settings_section_about
 import com.dot.gallery.feature.settings.generated.resources.settings_section_intelligence
@@ -102,7 +99,7 @@ fun SettingsScreenContent(
             title = stringResource(Res.string.settings_timeline_albums),
             summary = stringResource(Res.string.settings_timeline_albums_summary),
             onClick = { actions.onNavigate(SettingsRoute.TIMELINE_ALBUMS) },
-            screenPosition = Position.Middle
+            screenPosition = Position.Bottom
         )
         val mediaViewerPref = rememberPreference(
             icon = Icons.Outlined.Fullscreen,
@@ -123,13 +120,6 @@ fun SettingsScreenContent(
             title = stringResource(Res.string.settings_editors),
             summary = stringResource(Res.string.settings_editors_summary),
             onClick = { actions.onNavigate(SettingsRoute.EDITORS) },
-            screenPosition = Position.Bottom
-        )
-        val navigationPref = rememberPreference(
-            icon = Icons.Outlined.Explore,
-            title = stringResource(Res.string.settings_navigation),
-            summary = stringResource(Res.string.settings_navigation_summary),
-            onClick = { actions.onNavigate(SettingsRoute.NAVIGATION) },
             screenPosition = Position.Bottom
         )
         val securityPref = rememberPreference(
@@ -188,12 +178,12 @@ fun SettingsScreenContent(
         val aboutHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_about))
         return remember(
             appearancePref, timelineAlbumsPref, mediaViewerPref, gesturesPref, editorsPref,
-            navigationPref, securityPref, generalPref, backupPref, cloudPref, smartPref, helpPref,
+            securityPref, generalPref, backupPref, cloudPref, smartPref, helpPref,
             developerPref, personalizeHeader, viewerHeader, privacyHeader, intelligenceHeader, aboutHeader,
         ) {
             mutableStateListOf<SettingsEntity>(
                 personalizeHeader,
-                appearancePref, timelineAlbumsPref, navigationPref,
+                appearancePref, timelineAlbumsPref,
                 viewerHeader,
                 mediaViewerPref, gesturesPref, editorsPref,
                 privacyHeader,

@@ -130,7 +130,6 @@ import com.dot.gallery.feature.settings.ui.SettingsGesturesState
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerActions
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerContent
 import com.dot.gallery.feature.settings.ui.SettingsMediaViewerState
-import com.dot.gallery.feature.settings.ui.SettingsNavigationActions
 import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsViewerActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsActions
@@ -139,8 +138,6 @@ import com.dot.gallery.feature.settings.ui.TopBarSettingsDetail
 import com.dot.gallery.feature.settings.ui.ThumbnailBadgesSettingsDetail
 import com.dot.gallery.core.presentation.components.HomeShortcutSupport
 import com.dot.gallery.feature.settings.ui.SettingsTimelineAlbumsState
-import com.dot.gallery.feature.settings.ui.SettingsNavigationContent
-import com.dot.gallery.feature.settings.ui.SettingsNavigationState
 
 /**
  * The scene catalogue the docs site embeds. Every entry must be renderable
@@ -496,16 +493,6 @@ val sceneRegistry: List<DocsScene> = listOf(
                 supportsTrash = true,
             ),
             actions = SettingsGeneralActions(),
-        )
-    },
-    DocsScene(
-        id = "settings-navigation",
-        title = "Navigation settings",
-        pathTrace = listOf("Settings", "Navigation"),
-    ) {
-        SettingsNavigationContent(
-            state = SettingsNavigationState(),
-            actions = SettingsNavigationActions(),
         )
     },
     DocsScene(
@@ -884,7 +871,6 @@ fun settingsRouteSceneId(route: SettingsRoute): String? = when (route) {
     SettingsRoute.MEDIA_VIEWER -> "settings-media-viewer"
     SettingsRoute.EDITORS -> "settings-editors"
     SettingsRoute.GESTURES -> "settings-gestures"
-    SettingsRoute.NAVIGATION -> "settings-navigation"
     SettingsRoute.GENERAL -> "settings-general"
     SettingsRoute.SECURITY -> "settings-security"
     SettingsRoute.BACKUP -> "settings-backup"

@@ -1616,13 +1616,13 @@ object HelpRepository {
             quickActions = listOf(QuickAction(Res.string.help_qa_open_library, Icons.Outlined.PhotoLibrary, HelpRoute.Target.LIBRARY))),
         HelpTip(id = "nav_launch_screen", title = Res.string.help_tip_nav_launch_screen_title, subtitle = Res.string.help_tip_nav_launch_screen_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Start), category = HelpCategory.GET_STARTED_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.SETTINGS_GENERAL,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_nav_launch_screen_p1_title, description = Res.string.help_tip_nav_launch_screen_p1_desc, steps = listOf(Res.string.help_tip_nav_launch_screen_p1_s1, Res.string.help_tip_nav_launch_screen_p1_s2, Res.string.help_tip_nav_launch_screen_p1_s3))
             ), sinceVersion = "4.0.0"),
         HelpTip(id = "nav_auto_hide_bars", title = Res.string.help_tip_nav_auto_hide_bars_title, subtitle = Res.string.help_tip_nav_auto_hide_bars_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.VisibilityOff), category = HelpCategory.GET_STARTED_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.COLOR_PALETTE,
             pages = listOf(
                 TutorialPage(title = Res.string.help_tip_nav_auto_hide_bars_p1_title, description = Res.string.help_tip_nav_auto_hide_bars_p1_desc, steps = listOf(Res.string.help_tip_nav_auto_hide_bars_p1_s1, Res.string.help_tip_nav_auto_hide_bars_p1_s2, Res.string.help_tip_nav_auto_hide_bars_p1_s3))
             ), sinceVersion = "4.0.0")
@@ -2437,7 +2437,7 @@ object HelpRepository {
     private val SETTINGS_NAV_TIPS = listOf(
         HelpTip(id = "settings_launch_screen", title = Res.string.help_tip_settings_launch_screen_title, subtitle = Res.string.help_tip_settings_launch_screen_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Start), category = HelpCategory.SETTINGS_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.SETTINGS_GENERAL,
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_launch_screen_p1_title, description = Res.string.help_tip_settings_launch_screen_p1_desc, steps = listOf(Res.string.help_tip_settings_launch_screen_p1_s1, Res.string.help_tip_settings_launch_screen_p1_s2, Res.string.help_tip_settings_launch_screen_p1_s3))), sinceVersion = "4.0.0"),
         HelpTip(id = "settings_old_navbar", title = Res.string.help_tip_settings_old_navbar_title, subtitle = Res.string.help_tip_settings_old_navbar_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.History), category = HelpCategory.SETTINGS_NAVIGATION,
@@ -2445,7 +2445,7 @@ object HelpRepository {
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_old_navbar_p1_title, description = Res.string.help_tip_settings_old_navbar_p1_desc, steps = listOf(Res.string.help_tip_settings_old_navbar_p1_s1, Res.string.help_tip_settings_old_navbar_p1_s2, Res.string.help_tip_settings_old_navbar_p1_s3), previewType = PreviewType.NAV_BAR_PREVIEW)), sinceVersion = "4.0.0"),
         HelpTip(id = "settings_selection_titles", title = Res.string.help_tip_settings_selection_titles_title, subtitle = Res.string.help_tip_settings_selection_titles_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Title), category = HelpCategory.SETTINGS_NAVIGATION,
-            deepLink = HelpRoute.Target.SETTINGS_NAVIGATION,
+            deepLink = HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS,
             pages = listOf(TutorialPage(title = Res.string.help_tip_settings_selection_titles_p1_title, description = Res.string.help_tip_settings_selection_titles_p1_desc, steps = listOf(Res.string.help_tip_settings_selection_titles_p1_s1, Res.string.help_tip_settings_selection_titles_p1_s2, Res.string.help_tip_settings_selection_titles_p1_s3, Res.string.help_tip_settings_selection_titles_p1_s4))), sinceVersion = "4.1.0"),
         HelpTip(id = "settings_selection_actions", title = Res.string.help_tip_settings_selection_actions_title, subtitle = Res.string.help_tip_settings_selection_actions_subtitle,
             icon = HelpIcon.ofVector(Icons.Outlined.Checklist), category = HelpCategory.SETTINGS_NAVIGATION,

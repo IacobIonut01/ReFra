@@ -16,8 +16,8 @@ import com.dot.gallery.feature.help.domain.SettingsSearchRegistry
 import com.dot.gallery.core.presentation.util.Screen
 
 /**
- * Android shell for [SettingsGeneralContent]: owns trash navigation and the
- * settings-search sink.
+ * Android shell for [SettingsGeneralContent]: owns trash navigation, the real launch-screen
+ * routes and the settings-search sink.
  */
 @Composable
 fun SettingsGeneralScreen() {
@@ -30,7 +30,11 @@ fun SettingsGeneralScreen() {
     )
 
     SettingsGeneralContent(
-        state = SettingsGeneralState(supportsTrash = SdkCompat.supportsTrash),
+        state = SettingsGeneralState(
+            supportsTrash = SdkCompat.supportsTrash,
+            timelineRoute = Screen.TimelineScreen(),
+            libraryRoute = Screen.LibraryScreen(),
+        ),
         actions = actions,
     )
 }

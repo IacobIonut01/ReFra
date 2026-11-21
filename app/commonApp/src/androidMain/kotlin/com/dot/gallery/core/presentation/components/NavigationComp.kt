@@ -106,7 +106,6 @@ import com.dot.gallery.app.presentation.settings.subsettings.SettingsGeneralScre
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsEditorsScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsGesturesScreen
 import com.dot.gallery.app.presentation.settings.subsettings.SettingsMediaViewerScreen
-import com.dot.gallery.app.presentation.settings.subsettings.SettingsNavigationScreen
 import com.dot.gallery.feature.settings.ui.SettingsSelectionActionsContent
 import com.dot.gallery.feature.settings.ui.SettingsViewerActionsContent
 import com.dot.gallery.app.presentation.settings.subsettings.SlideshowSettingsScreen
@@ -1387,8 +1386,15 @@ fun NavigationComp(
             composable(Screen.SettingsGesturesScreen()) {
                 SettingsGesturesScreen()
             }
+            // Legacy route: the Navigation page was split into General, Appearance and
+            // Timeline & albums. Restored back stacks and old links land on General, which now
+            // holds the launch screen.
             composable(Screen.SettingsNavigationScreen()) {
-                SettingsNavigationScreen()
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.SettingsGeneralScreen()) {
+                        popUpTo(Screen.SettingsNavigationScreen()) { inclusive = true }
+                    }
+                }
             }
             composable(Screen.SettingsSecurityScreen()) {
                 SettingsSecurityScreen()

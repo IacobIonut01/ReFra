@@ -62,6 +62,7 @@ fun SettingsTimelineAlbumsScreen() {
         actions = SettingsTimelineAlbumsActions(
             onDateFormatClick = { eventHandler.navigate(Screen.DateFormatScreen()) },
             onStoryCardsClick = { eventHandler.navigate(Screen.StoryCardsSettingsScreen()) },
+            onOpenSelectionActions = { eventHandler.navigate(Screen.SettingsSelectionActionsScreen()) },
             onRecheckCaptureDates = {
                 scope.launch { workScheduler().enqueueCaptureTimeIndex(force = true) }
             },

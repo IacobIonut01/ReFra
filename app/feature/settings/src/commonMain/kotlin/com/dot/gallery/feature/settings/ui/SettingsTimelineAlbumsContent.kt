@@ -35,6 +35,9 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.Workspaces
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Title
+import com.dot.gallery.core.presentation.components.rememberSelectionSheetConfig
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -228,6 +231,12 @@ import com.dot.gallery.feature.settings.generated.resources.section_type_common
 import com.dot.gallery.feature.settings.generated.resources.section_type_custom
 import com.dot.gallery.feature.settings.generated.resources.section_type_uncategorized
 import com.dot.gallery.feature.settings.generated.resources.settings_display_header
+import com.dot.gallery.feature.settings.generated.resources.selection_actions
+import com.dot.gallery.feature.settings.generated.resources.selection_actions_summary
+import com.dot.gallery.feature.settings.generated.resources.settings_selection_header
+import com.dot.gallery.feature.settings.generated.resources.show_selection_titles
+import com.dot.gallery.feature.settings.generated.resources.show_selection_titles_description
+import com.dot.gallery.feature.settings.generated.resources.show_selection_titles_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_off
 import com.dot.gallery.feature.settings.generated.resources.settings_on
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
@@ -290,6 +299,7 @@ private const val DETAIL_GROUP_METHOD = "group_method"
 private const val DETAIL_MONTH_HIGHLIGHTS = "month_highlights"
 private const val DETAIL_HEADER_PLACES = "header_places"
 private const val DETAIL_FLOATING_DATE = "floating_date"
+private const val DETAIL_SELECTION_TITLES = "selection_titles"
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -333,6 +343,7 @@ fun SettingsTimelineAlbumsContent(
     var monthRecaps by rememberPreference(SettingsKeys.timelineMonthRecaps)
     var headerPlaces by rememberPreference(SettingsKeys.timelineHeaderPlaces)
     var floatingDateLabel by rememberPreference(SettingsKeys.timelineFloatingDateLabel)
+    var showSelectionTitles by rememberPreference(SettingsKeys.selectionTitles)
 
     when (detailKey) {
         DETAIL_TIMELINE_LAYOUT -> {
@@ -604,6 +615,22 @@ fun SettingsTimelineAlbumsContent(
                 preview = { checked -> FloatingDatePreview(checked) },
             )
         }
+        DETAIL_SELECTION_TITLES -> {
+            BackHandler { detailKey = null }
+            SwitchPreferenceDetailScreen(
+                title = stringResource(Res.string.show_selection_titles),
+                isChecked = showSelectionTitles,
+                onCheckedChange = { showSelectionTitles = it },
+                description = stringResource(Res.string.show_selection_titles_description),
+                preview = { checked ->
+                    SelectionSheetPreview(
+                        config = rememberSelectionSheetConfig().value.sanitized(),
+                        showTitlesOverride = checked,
+                    )
+                },
+                useColumnLayout = true,
+            )
+        }
         else -> {
             TimelineAlbumsListContent(
                 state = state,
@@ -630,6 +657,9 @@ fun SettingsTimelineAlbumsContent(
                 onHeaderPlacesChange = { headerPlaces = it },
                 floatingDateLabel = floatingDateLabel,
                 onFloatingDateLabelChange = { floatingDateLabel = it },
+                showSelectionTitles = showSelectionTitles,
+                onSelectionTitlesChange = { showSelectionTitles = it },
+                onOpenSelectionActions = actions.onOpenSelectionActions,
                 onDetailClick = { detailKey = it },
                 onDateFormatClick = { actions.onDateFormatClick() },
                 onStoryCardsClick = actions.onStoryCardsClick,
@@ -667,6 +697,9 @@ private fun TimelineAlbumsListContent(
     onHeaderPlacesChange: (Boolean) -> Unit = {},
     floatingDateLabel: Boolean = true,
     onFloatingDateLabelChange: (Boolean) -> Unit = {},
+    showSelectionTitles: Boolean = true,
+    onSelectionTitlesChange: (Boolean) -> Unit = {},
+    onOpenSelectionActions: () -> Unit = {},
     onDetailClick: (String) -> Unit,
     onDateFormatClick: () -> Unit,
     onStoryCardsClick: () -> Unit = {},
@@ -917,13 +950,38 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Middle
         )
 
+        val selectionHeaderTitle = stringResource(Res.string.settings_selection_header)
+        val selectionHeader = remember(selectionHeaderTitle) {
+            SettingsEntity.Header(title = selectionHeaderTitle)
+        }
+
+        val showSelectionTitlesPref = rememberSwitchPreference(
+            showSelectionTitles,
+            title = stringResource(Res.string.show_selection_titles),
+            icon = Icons.Outlined.Title,
+            summary = stringResource(Res.string.show_selection_titles_summary),
+            isChecked = showSelectionTitles,
+            onCheck = onSelectionTitlesChange,
+            onClick = { onDetailClick(DETAIL_SELECTION_TITLES) },
+            screenPosition = Position.Top
+        )
+
+        val selectionActionsPref = rememberPreference(
+            title = stringResource(Res.string.selection_actions),
+            icon = Icons.Outlined.Checklist,
+            summary = stringResource(Res.string.selection_actions_summary),
+            onClick = onOpenSelectionActions,
+            screenPosition = Position.Bottom
+        )
+
         return remember(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
             dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
             albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
             displayHeader, thumbnailBadgesPref,
-            dateHeadersPref, groupMethodPref
+            dateHeadersPref, groupMethodPref,
+            selectionHeader, showSelectionTitlesPref, selectionActionsPref,
         ) {
             mutableStateListOf<SettingsEntity>().apply {
                 add(timelineHeader)
@@ -948,6 +1006,10 @@ private fun TimelineAlbumsListContent(
                 add(dateHeadersPref)
                 add(groupMethodPref)
                 add(thumbnailBadgesPref)
+
+                add(selectionHeader)
+                add(showSelectionTitlesPref)
+                add(selectionActionsPref)
             }
         }
     }

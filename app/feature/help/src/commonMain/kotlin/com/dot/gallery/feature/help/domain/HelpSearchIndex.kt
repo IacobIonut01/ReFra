@@ -38,6 +38,7 @@ import com.dot.gallery.feature.help.generated.resources.disable_smoothing_title
 import com.dot.gallery.feature.help.generated.resources.edit_backups
 import com.dot.gallery.feature.help.generated.resources.fancy_blur
 import com.dot.gallery.feature.help.generated.resources.full_brightness_view_title
+import com.dot.gallery.feature.help.generated.resources.gallery_dual_pane
 import com.dot.gallery.feature.help.generated.resources.gestures_double_tap_zoom_title
 import com.dot.gallery.feature.help.generated.resources.gestures_swipe_dismiss_title
 import com.dot.gallery.feature.help.generated.resources.group_burst_sequences_title
@@ -52,7 +53,6 @@ import com.dot.gallery.feature.help.generated.resources.help_cat_personalization
 import com.dot.gallery.feature.help.generated.resources.help_cat_selection_actions
 import com.dot.gallery.feature.help.generated.resources.help_cat_settings_appearance
 import com.dot.gallery.feature.help.generated.resources.help_cat_settings_general
-import com.dot.gallery.feature.help.generated.resources.help_cat_settings_navigation
 import com.dot.gallery.feature.help.generated.resources.help_cat_settings_security
 import com.dot.gallery.feature.help.generated.resources.help_cat_settings_smart
 import com.dot.gallery.feature.help.generated.resources.help_cat_timeline_albums
@@ -184,7 +184,6 @@ object HelpSearchIndex {
             Entry("settings_media_viewer", Res.string.help_cat_viewer_settings, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Entry("settings_editors", Res.string.settings_editors, HelpRoute.Target.SETTINGS_EDITORS, HelpCategory.VIEWER_SETTINGS),
             Entry("settings_gestures", Res.string.settings_gestures, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
-            Entry("settings_navigation", Res.string.help_cat_settings_navigation, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
             Entry("settings_smart", Res.string.help_cat_settings_smart, HelpRoute.Target.SETTINGS_SMART_FEATURES, HelpCategory.SETTINGS_SMART),
             Entry("settings_security", Res.string.help_cat_settings_security, HelpRoute.Target.SETTINGS_SECURITY, HelpCategory.SETTINGS_SECURITY),
             Entry("settings_selection_actions", Res.string.help_cat_selection_actions, HelpRoute.Target.SETTINGS_SELECTION_ACTIONS, HelpCategory.SELECTION_ACTIONS),
@@ -220,6 +219,8 @@ object HelpSearchIndex {
             Toggle(Res.string.settings_trash_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.settings_trash_confirmation_title, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.allow_vibrations, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
+            Toggle(Res.string.set_default_screen, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
+            Toggle(Res.string.auto_open_search_keyboard, HelpRoute.Target.SETTINGS_GENERAL, HelpCategory.SETTINGS_GENERAL),
             // Appearance and color
             Toggle(Res.string.change_app_name, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.change_app_logo, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
@@ -232,11 +233,8 @@ object HelpSearchIndex {
             Toggle(Res.string.use_system_font_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.map_appearance_title, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             Toggle(Res.string.old_navbar, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
-            // Navigation
-            Toggle(Res.string.set_default_screen, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
-            Toggle(Res.string.auto_open_search_keyboard, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
-            Toggle(Res.string.auto_hide_navigationbar, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
-            Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_NAVIGATION, HelpCategory.SETTINGS_NAVIGATION),
+            Toggle(Res.string.auto_hide_navigationbar, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
+            Toggle(Res.string.gallery_dual_pane, HelpRoute.Target.COLOR_PALETTE, HelpCategory.SETTINGS_APPEARANCE),
             // Media viewer
             Toggle(Res.string.full_brightness_view_title, HelpRoute.Target.SETTINGS_MEDIA_VIEWER, HelpCategory.VIEWER_SETTINGS),
             Toggle(Res.string.instant_side_taps_title, HelpRoute.Target.SETTINGS_GESTURES, HelpCategory.VIEWER_SETTINGS),
@@ -280,6 +278,7 @@ object HelpSearchIndex {
             Toggle(Res.string.date_headers_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.group_method_title, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             Toggle(Res.string.date_header, HelpRoute.Target.DATE_FORMAT, HelpCategory.TIMELINE_ALBUMS),
+            Toggle(Res.string.show_selection_titles, HelpRoute.Target.SETTINGS_TIMELINE_ALBUMS, HelpCategory.TIMELINE_ALBUMS),
             // Slideshow
             Toggle(Res.string.slideshow_interval, HelpRoute.Target.SLIDESHOW_SETTINGS, HelpCategory.SETTINGS_GENERAL),
             Toggle(Res.string.slideshow_transition, HelpRoute.Target.SLIDESHOW_SETTINGS, HelpCategory.SETTINGS_GENERAL),

@@ -2,19 +2,17 @@
 <resources>
     <string name="settings_title">Settings</string>
     <string name="settings_appearance">Appearance</string>
-    <string name="settings_appearance_summary">Theme, colors, app icon and navigation style</string>
+    <string name="settings_appearance_summary">Theme, colors, app icon and navigation bar</string>
     <string name="settings_timeline_albums">Timeline &amp; albums</string>
-    <string name="settings_timeline_albums_summary">Layout, grouping, date format and album behavior</string>
+    <string name="settings_timeline_albums_summary">Layout, grouping, albums and selection</string>
     <string name="settings_media_viewer">Media viewer</string>
     <string name="settings_media_viewer_summary">Display, video playback, slideshow, visual search and code scanning</string>
     <string name="settings_editors">Editors</string>
     <string name="settings_editors_summary">Default image and video editors, save quality</string>
     <string name="settings_gestures">Gestures</string>
     <string name="settings_gestures_summary">Taps, swipes and long-press in the viewer</string>
-    <string name="settings_navigation">Navigation</string>
-    <string name="settings_navigation_summary">Launch screen, bars and search</string>
     <string name="settings_general">General</string>
-    <string name="settings_general_summary">Trash, deletion scope and vibrations</string>
+    <string name="settings_general_summary">Launch screen, search, trash and vibrations</string>
     <string name="settings_security">Security &amp; privacy</string>
     <string name="settings_security_summary">Secure mode, sandboxing, encryption, private folder and vault</string>
     <string name="settings_backup">Backup &amp; restore</string>
@@ -229,6 +227,8 @@
     <string name="settings_trash_confirmation_requires_trash">Enable Trash to configure this confirmation</string>
     <string name="trash">Trash</string>
     <string name="other">Other</string>
+    <string name="settings_general_startup_header">Startup and search</string>
+    <string name="settings_selection_header">Selection</string>
     <string name="vault">Vault</string>
     <string name="set_default_launch_screen">Set default launch screen</string>
     <string name="launch_screen_description">Choose which screen appears when you open the app. You can pick a specific screen or let the app remember the last one you used.</string>
@@ -257,7 +257,6 @@
     <string name="show_selection_titles">Display Selection Item's Title</string>
     <string name="show_selection_titles_description">Shows the title text beneath each item in the bottom selection bar (Timeline, Albums, Library). Disable for a more compact icon-only navigation.</string>
     <string name="show_selection_titles_summary">Display in the selection sheet a title for each action</string>
-    <string name="interface_settings">Interface</string>
     <string name="selection_actions">Selection Actions</string>
     <string name="selection_actions_summary">Customize action bar items and order</string>
     <string name="timeline">Timeline</string>
