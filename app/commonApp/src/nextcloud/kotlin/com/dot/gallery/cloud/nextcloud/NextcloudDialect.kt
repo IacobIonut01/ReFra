@@ -23,7 +23,8 @@ class NextcloudDialect : OcsWebDavDialect() {
 
     override val features: Set<WebDavFeatureKey> = super.features + setOf(
         WebDavFeatureKey.FAVORITES,
-        WebDavFeatureKey.QUOTA
+        WebDavFeatureKey.QUOTA,
+        WebDavFeatureKey.PHOTO_CAPTURE_TIME
     )
 
     override suspend fun toggleFavorite(

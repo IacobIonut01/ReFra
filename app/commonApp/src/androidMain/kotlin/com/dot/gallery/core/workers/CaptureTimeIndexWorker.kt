@@ -25,6 +25,7 @@ import dev.brewkits.kmpworkmanager.background.domain.WorkerEnvironment
 import dev.brewkits.kmpworkmanager.background.domain.WorkerResult
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.data.entity.CloudMediaEntity
+import com.dot.gallery.data.entity.providerTakenTimestamp
 import com.dot.gallery.core.sandbox.IsolatedMetadataParser
 import com.dot.gallery.core.sandbox.IsolatedMetadataService
 import com.dot.gallery.core.util.MediaStoreBuckets
@@ -241,7 +242,7 @@ class CaptureTimeIndexWorker @Inject constructor(
 
         // A provider-reported capture time (Immich localDateTime, WebDAV
         // creationdate) is already embedded-derived upstream — nothing to fetch.
-        if (entity.takenTimestamp != null) return media.fallbackCaptureTime()
+        if (entity.providerTakenTimestamp != null) return media.fallbackCaptureTime()
 
         // A synced/uploaded local copy is free to open and needs no network, and
         // carries the same bytes as the remote — a definitive parse result here

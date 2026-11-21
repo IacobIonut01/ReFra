@@ -37,7 +37,8 @@ data class WebDavResource(
     val isCollection: Boolean = false,
     val fileId: String = "",
     val favorite: Boolean = false,
-    val creationDate: String = ""
+    val creationDate: String = "",
+    val photoCaptureTimeSeconds: Long? = null
 )
 
 /**
@@ -53,7 +54,8 @@ class WebDavClient(
     baseUrl: String,
     private val username: String,
     private val password: String,
-    filesEndpoint: String
+    filesEndpoint: String,
+    private val requestPhotoCaptureTime: Boolean = false
 ) {
     private val credentials = Credentials.basic(username, password)
     private val normalizedBase = baseUrl.trimEnd('/')
@@ -91,6 +93,9 @@ class WebDavClient(
 
     fun propFind(remotePath: String, depth: Int = 1): List<WebDavResource> {
         val url = buildUrl(remotePath)
+        val captureTimeProp = if (requestPhotoCaptureTime) {
+            "\n                    <nc:metadata-photos-original_date_time/>"
+        } else ""
         val propFindBody = """<?xml version="1.0" encoding="UTF-8"?>
             <d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
                 <d:prop>
@@ -102,7 +107,7 @@ class WebDavClient(
                     <d:getetag/>
                     <d:resourcetype/>
                     <oc:fileid/>
-                    <oc:favorite/>
+                    <oc:favorite/>$captureTimeProp
                 </d:prop>
             </d:propfind>""".trimIndent()
 
@@ -265,6 +270,9 @@ class WebDavClient(
                 val etag = getTextContent(responseEl, "DAV:", "getetag") ?: ""
                 val fileId = getTextContent(responseEl, "http://owncloud.org/ns", "fileid") ?: ""
                 val favorite = (getTextContent(responseEl, "http://owncloud.org/ns", "favorite") ?: "0") == "1"
+                val photoCaptureTimeSeconds = getTextContent(
+                    responseEl, "http://nextcloud.org/ns", "metadata-photos-original_date_time"
+                )?.trim()?.toLongOrNull()
 
                 val isCollection = (responseEl as? org.w3c.dom.Element)?.let { el ->
                     val propStats = el.getElementsByTagNameNS("DAV:", "propstat")
@@ -291,7 +299,8 @@ class WebDavClient(
                         etag = etag,
                         isCollection = isCollection,
                         fileId = fileId,
-                        favorite = favorite
+                        favorite = favorite,
+                        photoCaptureTimeSeconds = photoCaptureTimeSeconds
                     )
                 )
             }

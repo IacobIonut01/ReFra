@@ -61,6 +61,7 @@ import java.io.File
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 import javax.net.ssl.SSLException
 import com.dot.gallery.core.presentation.util.add
@@ -78,6 +79,48 @@ internal fun canCacheWebDavChecksum(etag: String): Boolean = etag.isNotBlank()
 
 internal fun shouldReconcileWebDavScan(page: Int, configId: Long, complete: Boolean): Boolean =
     page == 0 && configId > 0L && complete
+
+internal data class WebDavCaptureTime(val takenTimestampMillis: Long?, val dateTimeOriginal: String?)
+
+/**
+ * Resolves the best provider-side capture time for a PROPFIND resource.
+ *
+ * Nextcloud's `creationdate` is the Unix epoch for every file, which surfaced
+ * as 31 Dec 1969; its `nc:metadata-photos-original_date_time` prop (Unix
+ * seconds, Nextcloud 28+) carries the real capture time — except when it
+ * equals the file mtime, which is Nextcloud's no-EXIF fallback and must be
+ * ignored. Nextcloud parses DateTimeOriginal with no offset in PHP's timezone,
+ * pinned to UTC, so the prop is the EXIF wall clock encoded as UTC; re-reading
+ * it in the device zone matches ReFra's own EXIF handling and the info sheet.
+ * A null result lets [com.dot.gallery.data.entity.CloudMediaEntity.toUriMedia]
+ * fall back to the filename date and lets the capture-time index probe
+ * embedded EXIF.
+ */
+internal fun resolveWebDavCaptureTime(
+    creationDate: String,
+    photoCaptureTimeSeconds: Long?,
+    lastModifiedMillis: Long,
+    defaultZone: ZoneId = ZoneId.systemDefault()
+): WebDavCaptureTime {
+    if (photoCaptureTimeSeconds != null &&
+        photoCaptureTimeSeconds != 0L &&
+        photoCaptureTimeSeconds != lastModifiedMillis / 1000L
+    ) {
+        val dateTimeOriginal = java.time.Instant.ofEpochMilli(photoCaptureTimeSeconds * 1000L)
+            .atZone(java.time.ZoneOffset.UTC)
+            .format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss", java.util.Locale.ROOT)
+            )
+        return WebDavCaptureTime(
+            takenTimestampMillis = parseCaptureTimestamp(dateTimeOriginal, defaultZone = defaultZone),
+            dateTimeOriginal = dateTimeOriginal
+        )
+    }
+    parseCaptureTimestamp(creationDate)?.takeIf { it != 0L }?.let {
+        return WebDavCaptureTime(takenTimestampMillis = it, dateTimeOriginal = null)
+    }
+    return WebDavCaptureTime(takenTimestampMillis = null, dateTimeOriginal = null)
+}
 
 /**
  * Generic WebDAV-backed [RemoteMediaProvider]. All server-agnostic behavior lives
@@ -139,7 +182,10 @@ open class WebDavMediaProvider(
         val username = config.username ?: ""
         val password = config.password ?: ""
         val okHttp = buildWebDavOkHttp(60)
-        val client = WebDavClient(okHttp, baseUrl, username, password, dialect.filesEndpoint(username))
+        val client = WebDavClient(
+            okHttp, baseUrl, username, password, dialect.filesEndpoint(username),
+            requestPhotoCaptureTime = WebDavFeatureKey.PHOTO_CAPTURE_TIME in dialect.features
+        )
         session = WebDavSession(context, okHttp, baseUrl, username, password, config, client)
         printDebug("${dialect.displayName}Provider: Configured with server $baseUrl")
     }
@@ -153,7 +199,8 @@ open class WebDavMediaProvider(
                 val username = config.username ?: ""
                 val client = WebDavClient(
                     okHttp, config.serverUrl, username, config.password ?: "",
-                    dialect.filesEndpoint(username)
+                    dialect.filesEndpoint(username),
+                    requestPhotoCaptureTime = WebDavFeatureKey.PHOTO_CAPTURE_TIME in dialect.features
                 )
                 val tempSession = WebDavSession(
                     context, okHttp, config.serverUrl.trimEnd('/'), username,
@@ -841,10 +888,11 @@ open class WebDavMediaProvider(
         } catch (_: Exception) {
             System.currentTimeMillis()
         }
-        // RFC 4918 `creationdate` is ISO-8601. Most servers don't return it (SabreDAV
-        // omits it by default), but when present it's the closest provider-side
-        // capture time available; embedded EXIF resolution refines it later.
-        val creationTs = parseCaptureTimestamp(creationDate)
+        // Nextcloud returns `creationdate` as the Unix epoch for every file, so the
+        // nc:metadata-photos-original_date_time prop (Nextcloud 28+) is preferred
+        // when the dialect asks for it; a null result falls back to the filename
+        // date and lets the capture-time index probe embedded EXIF.
+        val captureTime = resolveWebDavCaptureTime(creationDate, photoCaptureTimeSeconds, ts)
         // Use the file path as the stable remoteId for all WebDAV flavors. The
         // path is what every WebDAV/OCS call expects (preview, delete, favorite,
         // download); the numeric `oc:fileid` is only reliably present on some
@@ -873,7 +921,8 @@ open class WebDavMediaProvider(
             relativePath = remotePath.substringBeforeLast('/'),
             mimeType = mimeType,
             timestamp = ts,
-            takenTimestamp = creationTs,
+            takenTimestamp = captureTime.takenTimestampMillis,
+            dateTimeOriginal = captureTime.dateTimeOriginal,
             size = contentLength,
             syncState = SyncState.REMOTE_ONLY,
             favorite = dialect.readsFavoriteFlag && favorite,

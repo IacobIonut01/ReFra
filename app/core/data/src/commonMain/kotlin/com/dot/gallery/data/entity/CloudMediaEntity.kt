@@ -106,10 +106,10 @@ data class CloudMediaEntity(
         // (MediaStore date-taken -> filename -> modified): providers that can't report a
         // capture date (WebDAV/Nextcloud/ownCloud/SMB/NFS) still get a filename-derived
         // one, which the capture-time index later refines with the real embedded value.
-        val filenameTakenTimestamp = if (takenTimestamp == null) {
+        val filenameTakenTimestamp = if (providerTakenTimestamp == null) {
             label.parseTimestampFromFilename()
         } else null
-        val resolvedTakenTimestamp = takenTimestamp ?: filenameTakenTimestamp
+        val resolvedTakenTimestamp = providerTakenTimestamp ?: filenameTakenTimestamp
         val displayDateSeconds = resolvedTakenTimestamp?.let { it / 1000L } ?: timestampSeconds
         // Path-based providers (WebDAV/Nextcloud/ownCloud/SMB/NFS) can't report a video's duration,
         // but the item is still a video. `Media.isVideo` requires a non-null duration, so for video
@@ -127,7 +127,7 @@ data class CloudMediaEntity(
             timestamp = timestampSeconds,
             takenTimestamp = resolvedTakenTimestamp,
             captureTimeOrigin = when {
-                takenTimestamp != null -> CaptureTimeOrigin.CLOUD_PROVIDER
+                providerTakenTimestamp != null -> CaptureTimeOrigin.CLOUD_PROVIDER
                 filenameTakenTimestamp != null -> CaptureTimeOrigin.FILENAME
                 else -> CaptureTimeOrigin.MODIFIED_FALLBACK
             },
@@ -144,5 +144,9 @@ data class CloudMediaEntity(
         const val CLOUD_ALBUM_ID = -500L
     }
 }
+
+/** Rows stored with 0 (pre-fix WebDAV) or a server epoch-0 must never surface as 31 Dec 1969. */
+val CloudMediaEntity.providerTakenTimestamp: Long?
+    get() = takenTimestamp?.takeIf { it != 0L }
 
 private const val EXTENDED_DATE_FORMAT = "EEE, MMM d, yyyy"

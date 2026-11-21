@@ -39,7 +39,10 @@ enum class WebDavFeatureKey {
     SHARE_LINK,
 
     /** Rich server identity/version (e.g. OCS capabilities). */
-    SERVER_INFO
+    SERVER_INFO,
+
+    /** Server-computed photo capture time (`nc:metadata-photos-original_date_time`, Nextcloud 28+). */
+    PHOTO_CAPTURE_TIME
 }
 
 /**
