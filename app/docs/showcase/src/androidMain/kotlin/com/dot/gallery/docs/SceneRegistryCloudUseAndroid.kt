@@ -358,9 +358,12 @@ fun DocsFreeSpaceScene(state: String?) {
         onCancelDeletion = {},
         // First fold ends above the Scan row; these poses exist to show the
         // scan result ("Remove N local copies") and the frequency options.
+        // "ready" opens on the cutoff section so the "Any age" option is in
+        // frame; the result card and frequency rows still fit below it.
         initialScrollIndex = when (state) {
             "automatic" -> 10
-            "scanning", "ready" -> 7
+            "ready" -> 5
+            "scanning" -> 7
             else -> 0
         },
     )

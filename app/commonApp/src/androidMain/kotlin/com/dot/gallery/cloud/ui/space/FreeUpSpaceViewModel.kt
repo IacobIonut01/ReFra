@@ -30,14 +30,20 @@ import com.dot.gallery.core.presentation.util.clear
 import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.cloud.sync.FreeUpSpaceAutoScheduler
 import com.dot.gallery.cloud.sync.FreeUpSpaceEngine
+import com.dot.gallery.cloud.sync.FREE_UP_SPACE_ANY_AGE_CUTOFF
 import com.dot.gallery.cloud.sync.FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS
 import com.dot.gallery.cloud.sync.FREE_UP_SPACE_DEFAULT_INTERVAL_DAYS
 import com.dot.gallery.cloud.sync.FREE_UP_SPACE_NEVER_CUTOFF
+import com.dot.gallery.cloud.sync.FreeUpSpaceScanOutcome
+import com.dot.gallery.cloud.sync.freeUpSpaceScanOutcome
 import com.dot.gallery.core.activeDataStore
 import com.dot.gallery.cloud.sync.freeUpSpaceDeletionBatch
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_free_space_loading
 import com.dot.gallery.generated.resources.cloud_free_space_never_summary
+import com.dot.gallery.generated.resources.cloud_free_space_none_backed_up
+import com.dot.gallery.generated.resources.cloud_free_space_none_match
+import com.dot.gallery.generated.resources.cloud_free_space_none_matched_cloud
 import com.dot.gallery.generated.resources.cloud_free_space_none_verified
 import com.dot.gallery.generated.resources.cloud_free_space_remove_failed
 import com.dot.gallery.generated.resources.cloud_free_space_removed_count
@@ -116,6 +122,9 @@ class FreeUpSpaceViewModel @Inject constructor(
     companion object {
         /** Sentinel cutoff meaning "never remove based on age". */
         const val NEVER_CUTOFF = FREE_UP_SPACE_NEVER_CUTOFF
+
+        /** Cutoff meaning "no minimum age" — every local item is a candidate. */
+        const val ANY_AGE_CUTOFF = FREE_UP_SPACE_ANY_AGE_CUTOFF
     }
 
     fun setKeepFavorites(keep: Boolean) {
@@ -221,10 +230,20 @@ class FreeUpSpaceViewModel @Inject constructor(
                     totalLocal = result.totalLocal,
                     backedUpItems = result.verified,
                     verifiedHashes = result.verifiedHashes,
-                    message = if (result.verified.isEmpty()) {
-                        context.getString(Res.string.cloud_free_space_none_verified)
-                    } else {
-                        context.getString(Res.string.cloud_free_space_verified_count, result.verified.size)
+                    message = when (
+                        freeUpSpaceScanOutcome(result.verified.size, result.totalLocal, result.backedUpLocal)
+                    ) {
+                        FreeUpSpaceScanOutcome.VERIFIED ->
+                            context.getString(
+                                Res.string.cloud_free_space_verified_count,
+                                result.verified.size
+                            )
+                        FreeUpSpaceScanOutcome.NOTHING_MATCHES ->
+                            context.getString(Res.string.cloud_free_space_none_match)
+                        FreeUpSpaceScanOutcome.NOTHING_BACKED_UP ->
+                            context.getString(Res.string.cloud_free_space_none_backed_up)
+                        FreeUpSpaceScanOutcome.NONE_VERIFIED ->
+                            context.getString(Res.string.cloud_free_space_none_matched_cloud)
                     }
                 )
             } catch (e: Exception) {

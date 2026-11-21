@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-20T17:06:06.858Z",
-  "capturedAtMs": 1795194038879,
+  "generatedAt": "2026-11-21T14:02:50.467Z",
+  "capturedAtMs": 1795269532598,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
@@ -2415,8 +2415,8 @@
             "src": "captures/cloud-free-space/light/phone-automatic.webp",
             "type": "image",
             "file": "cloud-free-space/light/phone-automatic.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2424,8 +2424,8 @@
             "src": "captures/cloud-free-space/light/phone-ready.webp",
             "type": "image",
             "file": "cloud-free-space/light/phone-ready.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2433,8 +2433,8 @@
             "src": "captures/cloud-free-space/light/phone-scanning.webp",
             "type": "image",
             "file": "cloud-free-space/light/phone-scanning.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -2442,8 +2442,8 @@
             "src": "captures/cloud-free-space/light/phone-ready.webp",
             "type": "image",
             "file": "cloud-free-space/light/phone-ready.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -2456,8 +2456,8 @@
               "src": "captures/cloud-free-space/dark/phone-automatic.webp",
               "type": "image",
               "file": "cloud-free-space/dark/phone-automatic.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2465,8 +2465,8 @@
               "src": "captures/cloud-free-space/dark/phone-ready.webp",
               "type": "image",
               "file": "cloud-free-space/dark/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2474,8 +2474,8 @@
               "src": "captures/cloud-free-space/dark/phone-scanning.webp",
               "type": "image",
               "file": "cloud-free-space/dark/phone-scanning.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2483,8 +2483,8 @@
               "src": "captures/cloud-free-space/dark/phone-ready.webp",
               "type": "image",
               "file": "cloud-free-space/dark/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -2496,8 +2496,8 @@
               "src": "captures/cloud-free-space/light/phone-automatic.webp",
               "type": "image",
               "file": "cloud-free-space/light/phone-automatic.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2505,8 +2505,8 @@
               "src": "captures/cloud-free-space/light/phone-ready.webp",
               "type": "image",
               "file": "cloud-free-space/light/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2514,8 +2514,8 @@
               "src": "captures/cloud-free-space/light/phone-scanning.webp",
               "type": "image",
               "file": "cloud-free-space/light/phone-scanning.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -2523,8 +2523,8 @@
               "src": "captures/cloud-free-space/light/phone-ready.webp",
               "type": "image",
               "file": "cloud-free-space/light/phone-ready.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }

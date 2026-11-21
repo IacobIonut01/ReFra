@@ -18,9 +18,11 @@ order: 14
 1. Open the account's settings and tap **Free Up Space**.
 2. Choose rules first:
    - **Keep favorites**: favorited items are not removed.
-   - **Remove items older than**: **Never** (the default), **30 days**, **60 days**, **90 days**, **6 months**, or **1 year**.
+   - **Remove items older than**: **Never** (the default, which turns removal off), **Any age**, **30 days**, **60 days**, **90 days**, **6 months**, or **1 year**. **Any age** offers every verified item, including photos and screenshots taken today.
 3. Tap **Scan for backed-up items**; while it runs the row shows **Scanning…**.
-4. The screen lists the verified candidates and offers **Remove N local copies**. Removing deletes those local files; the backed-up copies stay on the server.
+4. The result line says how many local copies it verified and offers **Remove N local copies**. Removing deletes those local files; the backed-up copies stay on the server.
+
+When nothing qualifies, the result line says why: no local items match the age and favorites settings, none of the matching items are in an album that is backed up, or none of the backed-up items matched its cloud copy. A photo you edited after its last backup qualifies once the next backup uploads the edited version. Edited copies saved as new files land in an album of their own, so they are only offered if that album is backed up too.
 
 <PreviewCollection feature="cloud-free-up-space" section="review" />
 
@@ -34,6 +36,7 @@ order: 14
 
 - Check the backups on the server itself before letting local copies go, and keep an independent backup of anything irreplaceable; a cloud account is a second copy, not a guarantee of eternal recovery.
 - Removed items that were favorited are skipped when **Keep favorites** is on; everything else matching the age rule is offered.
+- With **Any age** and **Run automatically** on, local copies go as soon as their backup is verified.
 
 ## Example: reclaim space after a year of photos
 

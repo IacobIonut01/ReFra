@@ -46,6 +46,7 @@ import com.dot.gallery.generated.resources.cloud_free_space_30d
 import com.dot.gallery.generated.resources.cloud_free_space_60d
 import com.dot.gallery.generated.resources.cloud_free_space_6m
 import com.dot.gallery.generated.resources.cloud_free_space_90d
+import com.dot.gallery.generated.resources.cloud_free_space_any_age
 import com.dot.gallery.generated.resources.cloud_free_space_auto
 import com.dot.gallery.generated.resources.cloud_free_space_auto_frequency
 import com.dot.gallery.generated.resources.cloud_free_space_auto_summary
@@ -76,13 +77,19 @@ fun FreeUpSpaceContent(
     initialScrollIndex: Int = 0,
 ) {
     // "Never" (sentinel -1) is listed first and is the default so nothing is ever
-    // removed until the user explicitly opts into an age range.
-    val cutoffOptions = listOf(FreeUpSpaceViewModel.NEVER_CUTOFF, 30, 60, 90, 180, 365)
+    // removed until the user explicitly opts into an age range; "Any age" (0)
+    // sits next to it and drops the minimum-age filter entirely.
+    val cutoffOptions = listOf(
+        FreeUpSpaceViewModel.NEVER_CUTOFF,
+        FreeUpSpaceViewModel.ANY_AGE_CUTOFF,
+        30, 60, 90, 180, 365
+    )
     val keepFavoritesTitle = stringResource(Res.string.cloud_free_space_keep_favorites)
     val keepFavoritesSummary = stringResource(Res.string.cloud_free_space_keep_favorites_summary)
     val cutoffHeader = stringResource(Res.string.cloud_free_space_cutoff)
     val cutoffLabels = mapOf(
         FreeUpSpaceViewModel.NEVER_CUTOFF to stringResource(Res.string.cloud_free_space_never),
+        FreeUpSpaceViewModel.ANY_AGE_CUTOFF to stringResource(Res.string.cloud_free_space_any_age),
         30 to stringResource(Res.string.cloud_free_space_30d),
         60 to stringResource(Res.string.cloud_free_space_60d),
         90 to stringResource(Res.string.cloud_free_space_90d),

@@ -43,6 +43,9 @@ internal const val FREE_UP_SPACE_DELETE_BATCH_SIZE = 2_000
 /** Sentinel cutoff meaning "never remove based on age". */
 internal const val FREE_UP_SPACE_NEVER_CUTOFF = -1
 
+/** Age cutoff imposing no minimum — every local item passes the age filter. */
+internal const val FREE_UP_SPACE_ANY_AGE_CUTOFF = 0
+
 /** Default age cutoff for a provider that never picked one — 90 days. */
 internal const val FREE_UP_SPACE_DEFAULT_CUTOFF_DAYS = 90
 
@@ -102,15 +105,45 @@ internal fun verifiedLocalRevisionMatches(
     verifiedHashes: Map<Long, String>
 ): Boolean = currentHash != null && verifiedHashes[mediaId] == currentHash
 
+/**
+ * Age gate for Free Up Space candidates. [FREE_UP_SPACE_ANY_AGE_CUTOFF] accepts
+ * everything; any other cutoff requires the item's defined timestamp (seconds)
+ * to be older than [cutoffDays] days before [nowMs].
+ */
+internal fun passesFreeUpSpaceAge(
+    definedTimestampSeconds: Long,
+    cutoffDays: Int,
+    nowMs: Long
+): Boolean = cutoffDays == FREE_UP_SPACE_ANY_AGE_CUTOFF ||
+        definedTimestampSeconds * 1000L < nowMs - cutoffDays.toLong() * 86_400_000L
+
 /** Outcome of one verification pass over the local library. */
 data class FreeUpSpaceScanResult(
     /** Local, non-cloud items that passed the age/favorite filters. */
     val totalLocal: Int,
+    /** Candidates with at least one enabled upload destination for their album. */
+    val backedUpLocal: Int,
     /** Items whose SHA-1 was verified present on every configured destination. */
     val verified: List<UriMedia>,
     /** mediaId -> the SHA-1 that was verified remotely. */
     val verifiedHashes: Map<Long, String>
 )
+
+/** Which scan outcome the result message should describe. */
+internal enum class FreeUpSpaceScanOutcome {
+    NOTHING_MATCHES, NOTHING_BACKED_UP, NONE_VERIFIED, VERIFIED
+}
+
+internal fun freeUpSpaceScanOutcome(
+    verifiedCount: Int,
+    totalLocal: Int,
+    backedUpLocal: Int
+): FreeUpSpaceScanOutcome = when {
+    verifiedCount > 0 -> FreeUpSpaceScanOutcome.VERIFIED
+    totalLocal == 0 -> FreeUpSpaceScanOutcome.NOTHING_MATCHES
+    backedUpLocal == 0 -> FreeUpSpaceScanOutcome.NOTHING_BACKED_UP
+    else -> FreeUpSpaceScanOutcome.NONE_VERIFIED
+}
 
 /**
  * The scan -> verify -> recheck pipeline behind Free Up Space, shared by the
@@ -142,14 +175,20 @@ class FreeUpSpaceEngine @Inject constructor(
         onScanned: (scannedCount: Int) -> Unit = {}
     ): FreeUpSpaceScanResult? = withContext(Dispatchers.IO) {
         val allMedia = loadCompleteMedia() ?: return@withContext null
-        val cutoffMs = System.currentTimeMillis() - (cutoffDays.toLong() * 86_400_000L)
+        val nowMs = System.currentTimeMillis()
         val candidates = allMedia
-            .filter { it.uri.scheme != "cloud" && it.definedTimestamp * 1000L < cutoffMs }
+            .filter {
+                it.uri.scheme != "cloud" &&
+                    passesFreeUpSpaceAge(it.definedTimestamp, cutoffDays, nowMs)
+            }
             .let { items ->
                 if (keepFavorites) items.filterNot { it.isFavorite }
                 else items
             }
         val preferencesByAlbum = uploadPrefDao.getEnabledList().groupBy { it.albumId }
+        val backedUpLocal = candidates.count { media ->
+            preferencesByAlbum[media.albumID].orEmpty().isNotEmpty()
+        }
         val configsById = configDao.getAll().first().associateBy { it.id }
         val hashCache = mutableMapOf<Long, String?>()
         val verifiedHashes = mutableMapOf<Long, String>()
@@ -177,6 +216,7 @@ class FreeUpSpaceEngine @Inject constructor(
         }
         FreeUpSpaceScanResult(
             totalLocal = candidates.size,
+            backedUpLocal = backedUpLocal,
             verified = verified,
             verifiedHashes = verifiedHashes
         )
@@ -199,10 +239,12 @@ class FreeUpSpaceEngine @Inject constructor(
             ?: return@withContext null
         val preferencesByAlbum = uploadPrefDao.getEnabledList().groupBy { it.albumId }
         val configsById = configDao.getAll().first().associateBy { it.id }
-        val cutoffMs = System.currentTimeMillis() - (cutoffDays.toLong() * 86_400_000L)
+        val nowMs = System.currentTimeMillis()
         candidates.mapNotNull { candidate ->
             val media = currentById[candidate.id] ?: return@mapNotNull null
-            if (media.uri.scheme == "cloud" || media.definedTimestamp * 1000L >= cutoffMs) {
+            if (media.uri.scheme == "cloud" ||
+                !passesFreeUpSpaceAge(media.definedTimestamp, cutoffDays, nowMs)
+            ) {
                 return@mapNotNull null
             }
             if (keepFavorites && media.isFavorite) return@mapNotNull null
@@ -244,10 +286,12 @@ class FreeUpSpaceEngine @Inject constructor(
     ): List<UriMedia>? = withContext(Dispatchers.IO) {
         val currentById = loadCompleteMedia()?.associateBy { media -> media.id }
             ?: return@withContext null
-        val cutoffMs = System.currentTimeMillis() - (cutoffDays.toLong() * 86_400_000L)
+        val nowMs = System.currentTimeMillis()
         candidates.mapNotNull { candidate ->
             val media = currentById[candidate.id] ?: return@mapNotNull null
-            if (media.uri.scheme == "cloud" || media.definedTimestamp * 1000L >= cutoffMs) {
+            if (media.uri.scheme == "cloud" ||
+                !passesFreeUpSpaceAge(media.definedTimestamp, cutoffDays, nowMs)
+            ) {
                 return@mapNotNull null
             }
             if (keepFavorites && media.isFavorite) return@mapNotNull null

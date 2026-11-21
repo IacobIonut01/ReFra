@@ -887,11 +887,15 @@
     <string name="cloud_free_space_6m">6 months</string>
     <string name="cloud_free_space_1y">1 year</string>
     <string name="cloud_free_space_never">Never</string>
+    <string name="cloud_free_space_any_age">Any age</string>
     <string name="cloud_free_space_never_summary">Automatic removal is off. Pick a time range to scan for local copies to remove.</string>
     <string name="cloud_free_space_scan">Scan for backed-up items</string>
     <string name="cloud_free_space_scanning">Scanning…</string>
     <string name="cloud_free_space_loading">Loading local media…</string>
     <string name="cloud_free_space_none_verified">No local copies were verified on every configured destination.</string>
+    <string name="cloud_free_space_none_match">No local items match the selected age and favorites settings.</string>
+    <string name="cloud_free_space_none_backed_up">None of the matching items are in an album that is backed up.</string>
+    <string name="cloud_free_space_none_matched_cloud">None of the backed-up items matched its cloud copy on every destination. Items edited since their last backup qualify after the next backup.</string>
     <string name="cloud_free_space_verified_count">Verified %1$d local copies on every configured destination.</string>
     <string name="cloud_local_deletion_unavailable">Local deletion is temporarily unavailable while backup safety checks are being upgraded.</string>
     <string name="cloud_free_space_remove_count">Remove %1$d local copies</string>
