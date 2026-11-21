@@ -63,11 +63,6 @@ import com.dot.gallery.feature.settings.generated.resources.settings_media_viewe
 import com.dot.gallery.feature.settings.generated.resources.settings_media_viewer_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_root_footnote
 import com.dot.gallery.feature.settings.generated.resources.settings_search
-import com.dot.gallery.feature.settings.generated.resources.settings_section_about
-import com.dot.gallery.feature.settings.generated.resources.settings_section_intelligence
-import com.dot.gallery.feature.settings.generated.resources.settings_section_personalize
-import com.dot.gallery.feature.settings.generated.resources.settings_section_privacy_data
-import com.dot.gallery.feature.settings.generated.resources.settings_section_viewer
 import com.dot.gallery.feature.settings.generated.resources.settings_security
 import com.dot.gallery.feature.settings.generated.resources.settings_security_summary
 import com.dot.gallery.feature.settings.generated.resources.settings_timeline_albums
@@ -75,9 +70,9 @@ import com.dot.gallery.feature.settings.generated.resources.settings_timeline_al
 import com.dot.gallery.feature.settings.generated.resources.settings_title
 
 /**
- * Settings hub — whole screen, state + callbacks only: the app card, the
- * Personalize, Viewer, Privacy and data, Intelligence and About groups with coloured
- * circle row icons, then a footnote. The platform wrapper owns preferences ([state]),
+ * Settings hub — whole screen, state + callbacks only: the app card, then unlabelled groups of
+ * pages with coloured circle row icons, then a footnote. Like Android Settings, the gap after
+ * each group is what separates them. The platform wrapper owns preferences ([state]),
  * navigation ([actions]), the support sheet, and the developer-unlock toast.
  */
 @Composable
@@ -174,26 +169,18 @@ fun SettingsScreenContent(
             onClick = { actions.onNavigate(SettingsRoute.DEVELOPER) },
             screenPosition = Position.Bottom
         )
-        val personalizeHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_personalize))
-        val viewerHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_viewer))
-        val privacyHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_privacy_data))
-        val intelligenceHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_intelligence))
-        val aboutHeader = SettingsEntity.Header(stringResource(Res.string.settings_section_about))
         return remember(
             appearancePref, timelineAlbumsPref, mediaViewerPref, gesturesPref, editorsPref,
             securityPref, generalPref, backupPref, cloudPref, smartPref, helpPref,
-            developerPref, personalizeHeader, viewerHeader, privacyHeader, intelligenceHeader, aboutHeader,
+            developerPref,
         ) {
             mutableStateListOf<SettingsEntity>(
-                personalizeHeader,
                 appearancePref, timelineAlbumsPref,
-                viewerHeader,
                 mediaViewerPref, gesturesPref, editorsPref,
-                privacyHeader,
                 securityPref, generalPref, backupPref,
             ).apply {
                 if (cloudPref != null) add(cloudPref)
-                addAll(listOf(intelligenceHeader, smartPref, aboutHeader, helpPref, developerPref))
+                addAll(listOf(smartPref, helpPref, developerPref))
             }
         }
     }
@@ -247,9 +234,6 @@ fun SettingsScreenContent(
         settingsList = settingsList,
         listState = listState,
         settingsBuilder = { setting, index, modifier ->
-            // Section headers don't take a colour, so each row keeps the same one with or
-            // without the group labels.
-            val rowIndex = settingsList.subList(0, index).count { !it.isHeader }
             SettingsItem(
                 item = setting,
                 modifier = modifier,
@@ -258,8 +242,8 @@ fun SettingsScreenContent(
                         iconVector = icon,
                         iconUri = iconUri,
                         iconRes = iconRes,
-                        containerColor = backgroundColors[rowIndex % backgroundColors.size],
-                        contentColor = onBackgroundColors[rowIndex % onBackgroundColors.size],
+                        containerColor = backgroundColors[index % backgroundColors.size],
+                        contentColor = onBackgroundColors[index % onBackgroundColors.size],
                     )
                 },
             )

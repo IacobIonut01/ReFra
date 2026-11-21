@@ -726,11 +726,6 @@
     <string name="reset">Reset</string>
     <string name="weekly_date">Weekly Date</string>
     <string name="handover_title">Remote inference</string>
-    <string name="settings_section_personalize">Personalize</string>
-    <string name="settings_section_viewer">Viewer</string>
-    <string name="settings_section_privacy_data">Privacy &amp; data</string>
-    <string name="settings_section_intelligence">Intelligence</string>
-    <string name="settings_section_about">About</string>
     <string name="settings_root_footnote">ReFra keeps your library on this phone. Nothing leaves it unless you add a cloud account.</string>
     <string name="private_folder_body_configured">Hidden from your timeline, other apps and the media library</string>
     <string name="private_folder_body_none">Pick a folder to keep its photos and videos out of your timeline and other apps</string>
