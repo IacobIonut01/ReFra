@@ -7,6 +7,7 @@ package com.dot.gallery.cloud.ui.settings
 
 import android.text.format.Formatter
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lan
@@ -44,6 +46,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,8 +65,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.cloud.core.CloudLibraryScope
 import com.dot.gallery.cloud.core.CloudStorageInfo
 import com.dot.gallery.cloud.core.ConnectionState
+import com.dot.gallery.cloud.core.ProviderType
+import com.dot.gallery.cloud.core.UploadTargetResolver
+import com.dot.gallery.cloud.core.libraryScope
 import com.dot.gallery.cloud.ui.components.CloudPage
 import com.dot.gallery.cloud.ui.components.CloudProgressBar
 import com.dot.gallery.cloud.ui.components.CloudSummaryCard
@@ -82,6 +90,7 @@ import com.dot.gallery.data.dao.PendingDownloadInfo
 import com.dot.gallery.data.entity.CloudServerConfigEntity
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.action_cancel
+import com.dot.gallery.generated.resources.action_save
 import com.dot.gallery.generated.resources.cloud_adv_troubleshooting
 import com.dot.gallery.generated.resources.cloud_advanced
 import com.dot.gallery.generated.resources.cloud_authenticating
@@ -111,6 +120,13 @@ import com.dot.gallery.generated.resources.cloud_download_videos
 import com.dot.gallery.generated.resources.cloud_download_videos_summary
 import com.dot.gallery.generated.resources.cloud_error
 import com.dot.gallery.generated.resources.cloud_free_space
+import com.dot.gallery.generated.resources.cloud_library_backup_folders
+import com.dot.gallery.generated.resources.cloud_library_backup_folders_summary
+import com.dot.gallery.generated.resources.cloud_library_chosen_folder
+import com.dot.gallery.generated.resources.cloud_library_folder
+import com.dot.gallery.generated.resources.cloud_library_folder_desc
+import com.dot.gallery.generated.resources.cloud_library_folder_hint
+import com.dot.gallery.generated.resources.cloud_library_whole_account
 import com.dot.gallery.generated.resources.cloud_free_space_description
 import com.dot.gallery.generated.resources.cloud_net_auto_url_summary
 import com.dot.gallery.generated.resources.cloud_networking
@@ -175,6 +191,9 @@ fun CloudProviderSettingsContent(
     var showRemoveCopiesDialog by rememberSaveable(config.id) {
         mutableStateOf(initialDialog == CloudProviderSettingsDialog.REMOVE_DOWNLOADS)
     }
+    var showLibraryScopeDialog by rememberSaveable(config.id) { mutableStateOf(false) }
+    var libraryScopeChoice by rememberSaveable(config.id) { mutableStateOf(0) }
+    var libraryFolderText by rememberSaveable(config.id) { mutableStateOf("") }
     LaunchedEffect(Unit) {
         if (initialDialog == CloudProviderSettingsDialog.SYNC_INTERVAL) intervalSheet.show()
     }
@@ -273,6 +292,24 @@ fun CloudProviderSettingsContent(
                     summary = stringResource(Res.string.cloud_wifi_only_summary),
                     isChecked = config.wifiOnly,
                     onCheck = { checked -> actions.updateConfig { copy(wifiOnly = checked) } },
+                )
+            )
+        }
+        if (config.providerType in libraryScopeProviders) {
+            add(
+                SettingsEntity.Preference(
+                    icon = Icons.Outlined.FolderOpen,
+                    title = stringResource(Res.string.cloud_library_folder),
+                    summary = libraryScopeSummary(config.libraryScope),
+                    onClick = {
+                        libraryScopeChoice = when (config.libraryScope) {
+                            CloudLibraryScope.WholeAccount -> 0
+                            CloudLibraryScope.BackupFolders -> 1
+                            is CloudLibraryScope.Folder -> 2
+                        }
+                        libraryFolderText = (config.libraryScope as? CloudLibraryScope.Folder)?.path.orEmpty()
+                        showLibraryScopeDialog = true
+                    },
                 )
             )
         }
@@ -525,6 +562,110 @@ fun CloudProviderSettingsContent(
                 }
             }
         )
+    }
+
+    if (showLibraryScopeDialog) {
+        AlertDialog(
+            onDismissRequest = { showLibraryScopeDialog = false },
+            title = { Text(stringResource(Res.string.cloud_library_folder)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(Res.string.cloud_library_folder_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    LibraryScopeOption(
+                        selected = libraryScopeChoice == 0,
+                        label = stringResource(Res.string.cloud_library_whole_account),
+                        onClick = { libraryScopeChoice = 0 }
+                    )
+                    LibraryScopeOption(
+                        selected = libraryScopeChoice == 1,
+                        label = stringResource(Res.string.cloud_library_backup_folders),
+                        summary = stringResource(Res.string.cloud_library_backup_folders_summary),
+                        onClick = { libraryScopeChoice = 1 }
+                    )
+                    LibraryScopeOption(
+                        selected = libraryScopeChoice == 2,
+                        label = stringResource(Res.string.cloud_library_chosen_folder),
+                        onClick = { libraryScopeChoice = 2 }
+                    )
+                    if (libraryScopeChoice == 2) {
+                        OutlinedTextField(
+                            value = libraryFolderText,
+                            onValueChange = { libraryFolderText = it },
+                            placeholder = { Text(stringResource(Res.string.cloud_library_folder_hint)) },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 48.dp, top = 4.dp, bottom = 8.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val scope = when (libraryScopeChoice) {
+                            1 -> CloudLibraryScope.BackupFolders
+                            2 -> UploadTargetResolver.sanitizePath(libraryFolderText)
+                                .let { if (it.isEmpty()) CloudLibraryScope.WholeAccount else CloudLibraryScope.Folder(it) }
+                            else -> CloudLibraryScope.WholeAccount
+                        }
+                        actions.setLibraryScope(scope)
+                        showLibraryScopeDialog = false
+                    }
+                ) {
+                    Text(stringResource(Res.string.action_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLibraryScopeDialog = false }) {
+                    Text(stringResource(Res.string.action_cancel))
+                }
+            }
+        )
+    }
+}
+
+private val libraryScopeProviders = setOf(
+    ProviderType.WEBDAV,
+    ProviderType.NEXTCLOUD,
+    ProviderType.OWNCLOUD
+)
+
+@Composable
+private fun libraryScopeSummary(scope: CloudLibraryScope): String = when (scope) {
+    CloudLibraryScope.WholeAccount -> stringResource(Res.string.cloud_library_whole_account)
+    CloudLibraryScope.BackupFolders -> stringResource(Res.string.cloud_library_backup_folders)
+    is CloudLibraryScope.Folder -> scope.path
+}
+
+@Composable
+private fun LibraryScopeOption(
+    selected: Boolean,
+    label: String,
+    summary: String? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Column {
+            Text(label)
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

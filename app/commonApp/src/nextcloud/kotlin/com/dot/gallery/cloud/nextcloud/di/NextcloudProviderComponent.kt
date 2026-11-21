@@ -10,6 +10,8 @@ import com.dot.gallery.cloud.core.MediaCapabilityProvider
 import com.dot.gallery.cloud.core.ProviderInstanceFactory
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.dao.CloudMediaDao
+import com.dot.gallery.data.dao.CloudServerConfigDao
+import com.dot.gallery.data.dao.CloudUploadPrefDao
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import com.dot.gallery.core.injection.Singleton
@@ -30,11 +32,13 @@ interface NextcloudProviderComponent {
     @Provides
     fun provideNextcloudProviderFactory(
         context: Context,
-        cloudMediaDao: CloudMediaDao
+        cloudMediaDao: CloudMediaDao,
+        configDao: CloudServerConfigDao,
+        uploadPrefDao: CloudUploadPrefDao
     ): ProviderInstanceFactory = object : ProviderInstanceFactory {
         override val providerType = ProviderType.NEXTCLOUD
         override fun create(): MediaCapabilityProvider =
-            WebDavMediaProvider(context, cloudMediaDao, NextcloudDialect())
+            WebDavMediaProvider(context, cloudMediaDao, configDao, uploadPrefDao, NextcloudDialect())
     }
 
     @Singleton

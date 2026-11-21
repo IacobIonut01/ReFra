@@ -12,6 +12,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.cloud.core.CloudAuthToken
+import com.dot.gallery.cloud.core.CloudLibraryScope
 import com.dot.gallery.cloud.core.CloudServerConfig
 import com.dot.gallery.cloud.core.CloudServerInfo
 import com.dot.gallery.cloud.core.CloudStorageInfo
@@ -33,7 +34,12 @@ import com.dot.gallery.cloud.core.capabilities.ShareLinkCapableProvider
 import com.dot.gallery.cloud.core.capabilities.SyncDelta
 import com.dot.gallery.cloud.core.capabilities.remoteAlbumFilePath
 import com.dot.gallery.cloud.core.capabilities.remoteCopyFileName
+import com.dot.gallery.cloud.core.cloudLibraryRoots
+import com.dot.gallery.cloud.core.isInCloudLibrary
+import com.dot.gallery.cloud.core.libraryScope
 import com.dot.gallery.data.dao.CloudMediaDao
+import com.dot.gallery.data.dao.CloudServerConfigDao
+import com.dot.gallery.data.dao.CloudUploadPrefDao
 import com.dot.gallery.data.entity.CloudMediaEntity
 import com.dot.gallery.cloud.webdav.data.api.WebDavClient
 import com.dot.gallery.cloud.webdav.data.api.WebDavException
@@ -72,6 +78,8 @@ import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.uri.query
 import com.dot.gallery.cloud.image.firstAvailableVideoFrame
 import com.dot.gallery.core.logging.printDebug
+import com.dot.gallery.core.logging.printInfo
+import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.domain.model.parseCaptureTimestamp
 
 
@@ -130,6 +138,8 @@ internal fun resolveWebDavCaptureTime(
 open class WebDavMediaProvider(
     private val context: Context,
     private val cloudMediaDao: CloudMediaDao,
+    private val configDao: CloudServerConfigDao,
+    private val uploadPrefDao: CloudUploadPrefDao,
     private val dialect: WebDavDialect
 ) : RemoteMediaProvider,
     ShareLinkCapableProvider,
@@ -244,7 +254,9 @@ open class WebDavMediaProvider(
         try {
             val client = webDavClient ?: throw IllegalStateException("Not configured")
             val configId = currentConfig?.id ?: 0L
-            val scan = scanMediaFiles(client, "")
+            val roots = libraryRoots(configId)
+            if (page == 0) pruneOutsideLibrary(configId, roots)
+            val scan = scanLibrary(client, roots)
             if (shouldReconcileWebDavScan(page, configId, scan.complete)) {
                 val pruned = cloudMediaDao.deleteMissingRemoteMedia(
                     configId,
@@ -277,7 +289,7 @@ open class WebDavMediaProvider(
         try {
             val client = webDavClient ?: throw IllegalStateException("Not configured")
             val configId = currentConfig?.id ?: 0L
-            val favorites = scanMediaFiles(client, "").files
+            val favorites = scanLibrary(client, libraryRoots(configId)).files
                 .filter { it.favorite }
                 .map { it.toCloudMediaEntity(configId) }
             emit(Resource.Success(favorites))
@@ -300,24 +312,60 @@ open class WebDavMediaProvider(
         try {
             val client = webDavClient ?: throw IllegalStateException("Not configured")
             val configId = currentConfig?.id ?: 0L
-            val resources = client.propFind("", depth = 1)
-            val folders = resources.mapNotNull { res ->
-                if (!res.isCollection) return@mapNotNull null
-                // Folder remoteId is the relative path: getRemoteAlbumMedia() uses it
-                // directly as the PROPFIND path, so it must never be the numeric fileid.
-                val relativePath = client.relativePath(res.href)
-                // A blank relative path is the files-collection root itself (the PROPFIND
-                // target), not a child album — skip it so the whole tree isn't listed as
-                // one giant album (which would also double the path and fetch nothing).
-                if (relativePath.isBlank()) return@mapNotNull null
-                CloudAlbum(
-                    remoteId = relativePath,
-                    providerType = dialect.providerType,
-                    serverConfigId = configId,
-                    name = res.displayName,
-                    assetCount = 0,
-                    isShared = false
-                )
+            val roots = libraryRoots(configId)
+            val folders = if (roots == listOf("")) {
+                client.propFind("", depth = 1).mapNotNull { res ->
+                    if (!res.isCollection) return@mapNotNull null
+                    // Folder remoteId is the relative path: getRemoteAlbumMedia() uses it
+                    // directly as the PROPFIND path, so it must never be the numeric fileid.
+                    val relativePath = client.relativePath(res.href)
+                    // A blank relative path is the files-collection root itself (the PROPFIND
+                    // target), not a child album — skip it so the whole tree isn't listed as
+                    // one giant album (which would also double the path and fetch nothing).
+                    if (relativePath.isBlank()) return@mapNotNull null
+                    CloudAlbum(
+                        remoteId = relativePath,
+                        providerType = dialect.providerType,
+                        serverConfigId = configId,
+                        name = res.displayName,
+                        assetCount = 0,
+                        isShared = false
+                    )
+                }
+            } else {
+                val seen = mutableSetOf<String>()
+                val albums = mutableListOf<CloudAlbum>()
+                for (root in roots) {
+                    val resources = try {
+                        client.propFind(root, depth = 1)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        printWarn(
+                            "cloud.sync",
+                            "${dialect.displayName} album listing failed for '$root'",
+                            ctx = mapOf(
+                                "configId" to configId.toString(),
+                                "error" to e.toString()
+                            )
+                        )
+                        continue
+                    }
+                    for (res in resources) {
+                        if (!res.isCollection) continue
+                        val relativePath = client.relativePath(res.href)
+                        if (relativePath.isBlank() || !seen.add(relativePath)) continue
+                        albums += CloudAlbum(
+                            remoteId = relativePath,
+                            providerType = dialect.providerType,
+                            serverConfigId = configId,
+                            name = res.displayName,
+                            assetCount = 0,
+                            isShared = false
+                        )
+                    }
+                }
+                albums
             }
             emit(Resource.Success(folders))
         } catch (e: CancellationException) {
@@ -400,7 +448,7 @@ open class WebDavMediaProvider(
         return try {
             val client = webDavClient ?: throw IllegalStateException("Not configured")
             val configId = currentConfig?.id ?: 0L
-            val matched = scanMediaFiles(client, "").files
+            val matched = scanLibrary(client, libraryRoots(configId)).files
                 .filter { it.displayName.contains(query, ignoreCase = true) }
                 .map { it.toCloudMediaEntity(configId) }
             Result.success(matched)
@@ -685,7 +733,9 @@ open class WebDavMediaProvider(
             // WebDAV has no delta endpoint — the "delta" is a full recursive scan. Report
             // the complete remote index whenever the scan finished cleanly so the caller
             // can prune vanished files; an incomplete scan must not prune (see AGENTS.md).
-            val scan = scanMediaFiles(client, "")
+            val roots = libraryRoots(configId)
+            pruneOutsideLibrary(configId, roots)
+            val scan = scanLibrary(client, roots)
             Result.success(
                 SyncDelta(
                     items = scan.files.map { it.toCloudMediaEntity(configId) },
@@ -861,6 +911,55 @@ open class WebDavMediaProvider(
         } catch (_: Exception) {
             WebDavMediaScan(emptyList(), false)
         }
+    }
+
+    /**
+     * Remote folder roots this account's library is limited to. Read fresh on
+     * every scan — `configure()` is not re-run when the library-folder setting
+     * changes, so the scope must come from the DAO each time.
+     */
+    private suspend fun libraryRoots(configId: Long): List<String> {
+        if (configId <= 0L) return listOf("")
+        val entity = configDao.getById(configId) ?: return listOf("")
+        val scope = entity.libraryScope
+        if (scope == CloudLibraryScope.WholeAccount) return listOf("")
+        return cloudLibraryRoots(
+            scope,
+            entity,
+            uploadPrefDao.getEnabledByConfigList(configId),
+            dialect.defaultUploadFolder
+        )
+    }
+
+    private fun scanLibrary(client: WebDavClient, roots: List<String>): WebDavMediaScan {
+        val files = mutableListOf<WebDavResource>()
+        var complete = true
+        for (root in roots) {
+            val scan = scanMediaFiles(client, root)
+            files += scan.files
+            complete = complete && scan.complete
+        }
+        return WebDavMediaScan(files.distinctBy { it.href }, complete)
+    }
+
+    /**
+     * Drops cached rows outside the configured library roots. Works on stored
+     * ids only, so it runs even when a scan is incomplete, and deliberately
+     * bypasses the remote-deletion path: leaving the library scope is not a
+     * remote deletion, so app-local copies and backup revisions stay.
+     */
+    private suspend fun pruneOutsideLibrary(configId: Long, roots: List<String>) {
+        if (configId <= 0L || roots == listOf("")) return
+        val stale = cloudMediaDao.getRemoteIds(dialect.providerType, configId)
+            .filterNot { isInCloudLibrary(it, roots) }
+        if (stale.isEmpty()) return
+        stale.chunked(900).forEach { chunk ->
+            cloudMediaDao.deleteByRemoteIdsRaw(dialect.providerType, configId, chunk)
+        }
+        printInfo(
+            "cloud.sync",
+            "pruned ${stale.size} ${dialect.displayName} row(s) outside the library folder (configId=$configId)"
+        )
     }
 
     private fun WebDavResource.toCloudMediaEntity(configId: Long): CloudMediaEntity {

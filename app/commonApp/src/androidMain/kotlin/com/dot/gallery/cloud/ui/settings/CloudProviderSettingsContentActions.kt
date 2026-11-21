@@ -5,6 +5,7 @@
 
 package com.dot.gallery.cloud.ui.settings
 
+import com.dot.gallery.cloud.core.CloudLibraryScope
 import com.dot.gallery.data.dao.PendingDownloadInfo
 import com.dot.gallery.data.entity.CloudServerConfigEntity
 
@@ -21,4 +22,5 @@ data class CloudProviderSettingsContentActions(
     val pendingDownloadStats: suspend () -> PendingDownloadInfo = { PendingDownloadInfo(0, 0L) },
     val removeDownloadedCopies: () -> Unit = {},
     val deleteServer: () -> Unit = {},
+    val setLibraryScope: (CloudLibraryScope) -> Unit = {},
 )

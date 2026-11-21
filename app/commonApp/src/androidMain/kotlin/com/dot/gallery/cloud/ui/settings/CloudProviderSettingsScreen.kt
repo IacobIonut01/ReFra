@@ -80,6 +80,7 @@ fun CloudProviderSettingsScreen(
             pendingDownloadStats = { viewModel.pendingDownloadStats(configId) },
             removeDownloadedCopies = { viewModel.removeDownloadedCopies(configId) },
             deleteServer = { viewModel.deleteServer(configId) },
+            setLibraryScope = { scope -> viewModel.setLibraryScope(configId, scope) },
         ),
     )
 }

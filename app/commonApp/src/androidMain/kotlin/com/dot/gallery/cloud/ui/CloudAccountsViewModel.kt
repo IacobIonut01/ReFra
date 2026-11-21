@@ -9,6 +9,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.brewkits.kmpworkmanager.background.domain.BackgroundTaskScheduler
+import com.dot.gallery.cloud.core.CloudLibraryScope
 import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.cloud.core.CloudServerConfig
 import com.dot.gallery.cloud.core.CloudStorageInfo
@@ -17,6 +18,7 @@ import com.dot.gallery.cloud.core.Disconnectable
 import com.dot.gallery.cloud.core.ProviderCapability
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.cloud.core.SyncState
+import com.dot.gallery.cloud.core.encode
 import com.dot.gallery.cloud.core.auth.CloudInteractiveAuthHandler
 import com.dot.gallery.cloud.core.auth.InteractiveAuthErrorKind
 import com.dot.gallery.cloud.core.auth.InteractiveAuthException
@@ -35,6 +37,7 @@ import com.dot.gallery.data.entity.CloudUploadPrefEntity
 import com.dot.gallery.cloud.data.repository.CloudRepository
 import com.dot.gallery.cloud.offline.CacheAssetRef
 import com.dot.gallery.cloud.sync.cloudSyncScheduleChanged
+import com.dot.gallery.core.MediaDistributor
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.data.repository.MediaRepository
 import com.dot.gallery.domain.util.MediaOrder
@@ -171,6 +174,7 @@ class CloudAccountsViewModel @Inject constructor(
     private val albumSyncDao: CloudAlbumSyncDao,
     private val mediaRepository: MediaRepository,
     private val cloudRepository: CloudRepository,
+    private val mediaDistributor: MediaDistributor,
     private val syncScheduler: CloudSyncScheduler,
     interactiveAuthHandlers: Set<@JvmSuppressWildcards CloudInteractiveAuthHandler> = emptySet()
 ) : ViewModel() {
@@ -590,6 +594,19 @@ class CloudAccountsViewModel @Inject constructor(
             val updated = entity.transform()
             configDao.update(updated)
             if (cloudSyncScheduleChanged(entity, updated)) syncScheduler.reconcile()
+        }
+    }
+
+    /**
+     * Persists the account's library-folder scope, then refreshes cloud data so
+     * the scoped scan and the album list pick up the new roots — `configure()`
+     * is not re-run for settings changes.
+     */
+    fun setLibraryScope(configId: Long, scope: CloudLibraryScope) {
+        viewModelScope.launch {
+            val entity = configDao.getById(configId) ?: return@launch
+            configDao.update(entity.copy(syncFolders = scope.encode()))
+            mediaDistributor.invalidate()
         }
     }
 

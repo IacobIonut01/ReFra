@@ -10,6 +10,8 @@ import com.dot.gallery.cloud.core.MediaCapabilityProvider
 import com.dot.gallery.cloud.core.ProviderInstanceFactory
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.dao.CloudMediaDao
+import com.dot.gallery.data.dao.CloudServerConfigDao
+import com.dot.gallery.data.dao.CloudUploadPrefDao
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import com.dot.gallery.core.injection.Singleton
@@ -27,11 +29,13 @@ interface WebDavProviderComponent {
     @Provides
     fun provideWebDavProviderFactory(
         context: Context,
-        cloudMediaDao: CloudMediaDao
+        cloudMediaDao: CloudMediaDao,
+        configDao: CloudServerConfigDao,
+        uploadPrefDao: CloudUploadPrefDao
     ): ProviderInstanceFactory = object : ProviderInstanceFactory {
         override val providerType = ProviderType.WEBDAV
         override fun create(): MediaCapabilityProvider =
-            WebDavMediaProvider(context, cloudMediaDao, GenericWebDavDialect())
+            WebDavMediaProvider(context, cloudMediaDao, configDao, uploadPrefDao, GenericWebDavDialect())
     }
 }
 

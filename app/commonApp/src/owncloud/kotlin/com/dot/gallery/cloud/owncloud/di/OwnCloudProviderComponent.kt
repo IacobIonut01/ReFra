@@ -10,6 +10,8 @@ import com.dot.gallery.cloud.core.MediaCapabilityProvider
 import com.dot.gallery.cloud.core.ProviderInstanceFactory
 import com.dot.gallery.cloud.core.ProviderType
 import com.dot.gallery.data.dao.CloudMediaDao
+import com.dot.gallery.data.dao.CloudServerConfigDao
+import com.dot.gallery.data.dao.CloudUploadPrefDao
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import com.dot.gallery.core.injection.Singleton
@@ -27,11 +29,13 @@ interface OwnCloudProviderComponent {
     @Provides
     fun provideOwnCloudProviderFactory(
         context: Context,
-        cloudMediaDao: CloudMediaDao
+        cloudMediaDao: CloudMediaDao,
+        configDao: CloudServerConfigDao,
+        uploadPrefDao: CloudUploadPrefDao
     ): ProviderInstanceFactory = object : ProviderInstanceFactory {
         override val providerType = ProviderType.OWNCLOUD
         override fun create(): MediaCapabilityProvider =
-            WebDavMediaProvider(context, cloudMediaDao, OwnCloudDialect())
+            WebDavMediaProvider(context, cloudMediaDao, configDao, uploadPrefDao, OwnCloudDialect())
     }
 }
 

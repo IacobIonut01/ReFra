@@ -597,6 +597,13 @@
     <string name="cloud_sync_header">Sync</string>
     <string name="cloud_sync_now">Sync now</string>
     <string name="cloud_sync_now_syncing">Syncing…</string>
+    <string name="cloud_library_folder">Library folder</string>
+    <string name="cloud_library_folder_desc">Choose which folders on this server appear in your library.</string>
+    <string name="cloud_library_whole_account">Whole account</string>
+    <string name="cloud_library_backup_folders">Backup folders only</string>
+    <string name="cloud_library_backup_folders_summary">Only the folders this account backs up to</string>
+    <string name="cloud_library_chosen_folder">Chosen folder</string>
+    <string name="cloud_library_folder_hint">e.g. Photos/Family</string>
     <string name="cloud_upload_albums">Albums to upload</string>
     <string name="cloud_storage_used">%1$s of %2$s used</string>
     <string name="cloud_account_unavailable">Cloud account unavailable. Return and select an account again.</string>
