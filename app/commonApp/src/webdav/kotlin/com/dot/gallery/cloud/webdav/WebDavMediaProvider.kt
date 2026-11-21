@@ -9,6 +9,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.LruCache
 import androidx.core.net.toUri
 import com.dot.gallery.cloud.core.CloudAlbum
 import com.dot.gallery.cloud.core.CloudAuthToken
@@ -58,6 +59,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -76,6 +79,9 @@ import com.dot.gallery.core.presentation.util.remove
 import com.dot.gallery.cloud.sync.deleteAppLocalCopies
 import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.uri.query
+import com.dot.gallery.cloud.image.RangeBlockReader
+import com.dot.gallery.cloud.image.RangeBudgetExceededException
+import com.dot.gallery.cloud.image.RemoteVideoDataSource
 import com.dot.gallery.cloud.image.firstAvailableVideoFrame
 import com.dot.gallery.core.logging.printDebug
 import com.dot.gallery.core.logging.printInfo
@@ -84,6 +90,9 @@ import com.dot.gallery.domain.model.parseCaptureTimestamp
 
 
 internal fun canCacheWebDavChecksum(etag: String): Boolean = etag.isNotBlank()
+
+private const val VIDEO_POSTER_CACHE_BYTES = 8 * 1024 * 1024
+private const val VIDEO_POSTER_TARGET_PX = 1024
 
 internal fun shouldReconcileWebDavScan(page: Int, configId: Long, complete: Boolean): Boolean =
     page == 0 && configId > 0L && complete
@@ -158,6 +167,15 @@ open class WebDavMediaProvider(
     private val checksumMutex = Mutex()
     private val copyMutex = Mutex()
     private val remoteChecksumCache = ConcurrentHashMap<String, CachedRemoteChecksum>()
+
+    // Locally-decoded video posters, keyed by remoteId + remote size so a
+    // re-uploaded file re-extracts. Byte-sized LRU plus a per-key mutex: a second
+    // request for the same video waits for the first and then hits the cache,
+    // while a cancelled first attempt lets the waiter extract for itself.
+    private val videoPosterCache = object : LruCache<String, ByteArray>(VIDEO_POSTER_CACHE_BYTES) {
+        override fun sizeOf(key: String, value: ByteArray): Int = value.size
+    }
+    private val videoPosterLocks = ConcurrentHashMap<String, Mutex>()
 
     private data class CachedRemoteChecksum(
         val revision: String,
@@ -494,38 +512,118 @@ open class WebDavMediaProvider(
         webDavClient?.getAuthHeaders() ?: emptyMap()
 
     /**
-     * WebDAV has no server-side preview for videos, so decode a poster frame locally from
-     * the authenticated original URL. MediaMetadataRetriever reads only the moov atom and
-     * the frames it needs, so it doesn't download the whole remote file.
+     * WebDAV has no server-side preview for videos, so decode a poster frame locally.
+     * MediaMetadataRetriever reads through a [RangeBlockReader] backed by bounded
+     * ranged GETs ([RemoteMediaProvider.fetchRange]), so it touches only the moov
+     * atom and the frames it decodes — never the whole remote file — and the read
+     * stops as soon as the requesting coroutine is cancelled. Posters are always
+     * extracted at [VIDEO_POSTER_TARGET_PX] and cached per provider instance.
      */
     override suspend fun getVideoThumbnailBytes(remoteId: String, size: ThumbnailSize): ByteArray? =
         withContext(Dispatchers.IO) {
             val remotePath = resolveRemotePath(remoteId)
             if (!isVideoPath(remotePath)) return@withContext null
-            val url = getOriginalUrl(remoteId).ifBlank { return@withContext null }
-            val retriever = MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(url, getAuthHeaders())
-                val durationMillis = retriever
-                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    ?.toLongOrNull()
-                val frame = firstAvailableVideoFrame(durationMillis) { timeUs ->
-                    runCatching {
-                        retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                    }.getOrNull()
-                } ?: return@withContext null
-                val target = if (size == ThumbnailSize.THUMBNAIL) 256 else 1024
-                val scaled = scaleBitmap(frame, target)
-                ByteArrayOutputStream().use { out ->
-                    scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
-                    out.toByteArray()
-                }
-            } catch (_: Exception) {
-                null
-            } finally {
-                runCatching { retriever.release() }
+            val client = webDavClient ?: return@withContext null
+            val configId = currentConfig?.id ?: -1L
+            val fileSize = remoteFileSize(client, remotePath, remoteId, configId)
+                ?: return@withContext null
+            val cacheKey = "$remoteId|$fileSize"
+            videoPosterCache.get(cacheKey)?.let { return@withContext it }
+            val lock = videoPosterLocks.getOrPut(cacheKey) { Mutex() }
+            lock.withLock {
+                videoPosterCache.get(cacheKey)?.let { return@withContext it }
+                extractVideoPoster(remoteId, fileSize, cacheKey)
             }
         }
+
+    /** Remote byte size for [remoteId]: the synced entity first, then a PROPFIND. */
+    private suspend fun remoteFileSize(
+        client: WebDavClient,
+        remotePath: String,
+        remoteId: String,
+        configId: Long
+    ): Long? {
+        if (configId > 0L) {
+            cloudMediaDao.getByRemoteId(remoteId, providerType, configId)
+                ?.size?.takeIf { it > 0L }?.let { return it }
+        }
+        val propSize = runCatching {
+            client.propFind(remotePath, depth = 0).firstOrNull()
+                ?.takeUnless { it.isCollection }?.contentLength
+        }.onFailure {
+            printWarn(
+                "cloud.thumbnail",
+                "video size lookup failed",
+                mapOf(
+                    "remoteId" to remoteId,
+                    "error" to (it.message ?: it.javaClass.simpleName)
+                )
+            )
+        }.getOrNull()
+        if ((propSize ?: 0L) > 0L) return propSize
+        printWarn(
+            "cloud.thumbnail",
+            "video size unknown; cannot bound poster extraction",
+            mapOf("remoteId" to remoteId)
+        )
+        return null
+    }
+
+    private suspend fun extractVideoPoster(
+        remoteId: String,
+        fileSize: Long,
+        cacheKey: String
+    ): ByteArray? {
+        val job = currentCoroutineContext().job
+        var reader: RangeBlockReader? = null
+        val retriever = MediaMetadataRetriever()
+        return try {
+            val rangeReader = RangeBlockReader(
+                size = fileSize,
+                isCancelled = { !job.isActive },
+                fetch = { offset, length ->
+                    runBlocking { fetchRange(remoteId, offset, length.toLong()) }
+                }
+            )
+            reader = rangeReader
+            retriever.setDataSource(RemoteVideoDataSource(rangeReader))
+            val durationMillis = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull()
+            val frame = firstAvailableVideoFrame(durationMillis) { timeUs ->
+                runCatching {
+                    retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                }.getOrNull()
+            } ?: return null
+            val scaled = scaleBitmap(frame, VIDEO_POSTER_TARGET_PX)
+            ByteArrayOutputStream().use { out ->
+                scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                out.toByteArray()
+            }.also { videoPosterCache.put(cacheKey, it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // A cancelled extraction fails quietly — the caller is already gone.
+            if (!job.isActive) return null
+            val fetched = reader?.fetchedBytes ?: 0L
+            if (e is RangeBudgetExceededException) {
+                printWarn(
+                    "cloud.thumbnail",
+                    "video poster range budget exceeded",
+                    mapOf("remoteId" to remoteId, "fetchedBytes" to fetched.toString())
+                )
+            } else {
+                printWarn(
+                    "cloud.thumbnail",
+                    "video poster extraction failed: ${e.message ?: e.javaClass.simpleName}",
+                    mapOf("remoteId" to remoteId, "fetchedBytes" to fetched.toString())
+                )
+            }
+            null
+        } finally {
+            runCatching { retriever.release() }
+        }
+    }
 
     private fun scaleBitmap(bitmap: Bitmap, target: Int): Bitmap {
         val max = maxOf(bitmap.width, bitmap.height)
@@ -908,7 +1006,15 @@ open class WebDavMediaProvider(
                 }
             }
             WebDavMediaScan(files, complete)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            printWarn(
+                "cloud.sync",
+                "${dialect.displayName} folder scan failed",
+                mapOf(
+                    "path" to path,
+                    "error" to (e.message ?: e.javaClass.simpleName)
+                )
+            )
             WebDavMediaScan(emptyList(), false)
         }
     }

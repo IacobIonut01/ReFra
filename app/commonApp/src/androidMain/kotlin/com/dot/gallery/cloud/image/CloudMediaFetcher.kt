@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import com.dot.gallery.cloud.offline.CloudCacheInterceptor
@@ -97,7 +98,9 @@ class CloudMediaFetcher private constructor(
 
             val authHeaders = provider.getAuthHeaders()
             val offlineKey = CloudMediaCache.keyFor(
-                providerType, configId, remoteId, sizeParam, typeParam
+                providerType, configId, remoteId,
+                cloudCacheSizeFor(url, provider.getOriginalUrl(remoteId), sizeParam),
+                typeParam
             )
             fetchBytes(
                 url = url,
@@ -195,6 +198,7 @@ suspend fun fetchHttpRange(
     runCatching {
         val request = Request.Builder().url(url)
             .header("Range", "bytes=$offset-${offset + length - 1}")
+            .cacheControl(CacheControl.Builder().noCache().noStore().build())
             .apply { headers.forEach { (k, v) -> header(k, v) } }
             .build()
         client.newCall(request).execute().use { response ->
@@ -219,6 +223,20 @@ suspend fun fetchHttpRange(
         }
     }.getOrNull()
 }
+
+/**
+ * Disk-cache size label for a resolved cloud URL. Providers without server-side
+ * previews (the WebDAV family) resolve thumbnail/preview requests to the original
+ * URL, so those requests must share the viewer's `"original"` cache entry through
+ * [CloudCacheInterceptor] instead of downloading the same bytes once per size
+ * variant. Any other URL keeps the requested size label.
+ */
+internal fun cloudCacheSizeFor(url: String, originalUrl: String, requestedSize: String): String =
+    if (url.isNotBlank() && originalUrl.isNotBlank() && url == originalUrl) {
+        "original"
+    } else {
+        requestedSize
+    }
 
 /**
  * Signals that a cloud item has no server-side preview (e.g. a video on a server

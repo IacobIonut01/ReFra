@@ -25,6 +25,7 @@ import com.dot.gallery.cloud.core.capabilities.RemoteMediaProvider
 import com.dot.gallery.cloud.core.resolveRemote
 import com.dot.gallery.cloud.offline.CloudMediaCache
 import com.dot.gallery.core.logging.printWarn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,7 +34,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Call
 import okhttp3.Callback
@@ -124,7 +124,7 @@ private fun createCloudDataFetcher(
             parsed.providerType,
             parsed.configId,
             parsed.remoteId,
-            effectiveSize,
+            cloudCacheSizeFor(url, provider.getOriginalUrl(parsed.remoteId), effectiveSize),
             parsed.typeParam
         )
     )
@@ -148,6 +148,14 @@ private class CloudProviderResolvingFetcher(
                 parsed.configId
             )
             if (provider == null) {
+                printWarn(
+                    "cloud.thumbnail",
+                    "cloud provider did not initialize",
+                    mapOf(
+                        "provider" to parsed.providerType.name,
+                        "configId" to parsed.configId.toString()
+                    )
+                )
                 if (isActive) callback.onLoadFailed(
                     IllegalStateException("Cloud provider did not initialize for ${parsed.providerType}/${parsed.configId}")
                 )
@@ -203,6 +211,16 @@ internal class CloudOkHttpFetcher(
             val start = System.nanoTime()
             call!!.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
+                    if (!call.isCanceled()) {
+                        printWarn(
+                            "cloud.thumbnail",
+                            "thumbnail fetch failed",
+                            mapOf(
+                                "url" to url,
+                                "error" to (e.message ?: e.javaClass.simpleName)
+                            )
+                        )
+                    }
                     callback.onLoadFailed(e)
                 }
 
@@ -265,8 +283,9 @@ internal class CloudOkHttpFetcher(
 /**
  * Glide DataFetcher that produces a locally-decoded video poster frame for items that have
  * no server-side preview (videos on path-based stores like SMB/NFS/WebDAV). Delegates to
- * [RemoteMediaProvider.getVideoThumbnailBytes]. Runs on Glide's background thread, so the
- * blocking bridge to the provider's suspend API is safe here.
+ * [RemoteMediaProvider.getVideoThumbnailBytes] on its own coroutine scope so
+ * [cancel]/[cleanup] actually stop the in-flight extraction — the provider's ranged
+ * reader checks the job before every fetch.
  */
 private class CloudVideoFrameFetcher(
     private val provider: RemoteMediaProvider,
@@ -274,21 +293,34 @@ private class CloudVideoFrameFetcher(
     private val size: ThumbnailSize
 ) : DataFetcher<InputStream> {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-        try {
-            val bytes = runBlocking { provider.getVideoThumbnailBytes(remoteId, size) }
-            if (bytes != null && bytes.isNotEmpty()) {
-                callback.onDataReady(ByteArrayInputStream(bytes))
-            } else {
-                callback.onLoadFailed(NoPreviewAvailableException(remoteId))
+        scope.launch {
+            try {
+                val bytes = provider.getVideoThumbnailBytes(remoteId, size)
+                if (!isActive) return@launch
+                if (bytes != null && bytes.isNotEmpty()) {
+                    callback.onDataReady(ByteArrayInputStream(bytes))
+                } else {
+                    callback.onLoadFailed(NoPreviewAvailableException(remoteId))
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (isActive) callback.onLoadFailed(e)
             }
-        } catch (e: Exception) {
-            callback.onLoadFailed(e)
         }
     }
 
-    override fun cleanup() {}
-    override fun cancel() {}
+    override fun cleanup() {
+        scope.cancel()
+    }
+
+    override fun cancel() {
+        scope.cancel()
+    }
+
     override fun getDataClass(): Class<InputStream> = InputStream::class.java
     override fun getDataSource(): DataSource = DataSource.LOCAL
 }
