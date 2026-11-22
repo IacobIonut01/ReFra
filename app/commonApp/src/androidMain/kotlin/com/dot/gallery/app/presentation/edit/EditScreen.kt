@@ -147,9 +147,7 @@ import com.dot.gallery.generated.resources.editor_more_options
 import com.dot.gallery.generated.resources.editor_redo
 import com.dot.gallery.generated.resources.editor_rotate_90
 import com.dot.gallery.generated.resources.editor_save_copy_subtitle
-import com.dot.gallery.generated.resources.editor_save_subtitle
 import com.dot.gallery.generated.resources.editor_undo
-import com.dot.gallery.generated.resources.override
 import com.dot.gallery.generated.resources.revert_to_original
 import com.dot.gallery.generated.resources.revert_to_original_confirmation
 import com.dot.gallery.generated.resources.save_copy
@@ -311,6 +309,7 @@ fun EditScreen2(
     }
 
     var showRevertDialog by remember { mutableStateOf(false) }
+    var showOverwriteDialog by remember { mutableStateOf(false) }
 
     // Visible tabs depend on the media: RAW hides Lighting/Colour/Effects behind the Develop tab.
     val visibleTabs = remember(isRawEdit, cutoutAvailable) { EditorItems.visibleItems(isRawEdit, cutoutAvailable) }
@@ -510,6 +509,14 @@ fun EditScreen2(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    // Overwrite sits beside Save copy as the quieter outlined choice; it
+                    // asks before replacing the original.
+                    if (isChanged && canOverride) {
+                        EditOverwriteButton(
+                            enabled = canSave && !isMarkupDrawing && !isProcessing && !isSaving,
+                            onClick = { showOverwriteDialog = true }
+                        )
+                    }
                     Button(
                         onClick = onSaveCopy,
                         enabled = isChanged && canSave && !isMarkupDrawing && !isProcessing && !isSaving,
@@ -536,7 +543,7 @@ fun EditScreen2(
                         }
                     }
                     // Only show 3-dot menu if there are actions available
-                    val hasMenuActions = (isChanged && canOverride) || isChanged || hasOriginalBackup
+                    val hasMenuActions = isChanged || hasOriginalBackup
                     AnimatedVisibility(
                         visible = hasMenuActions,
                         enter = enterAnimation,
@@ -559,24 +566,6 @@ fun EditScreen2(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            if (isChanged && canOverride) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Column {
-                                            Text(stringResource(Res.string.override))
-                                            Text(
-                                                text = stringResource(Res.string.editor_save_subtitle),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onOverride()
-                                    }
-                                )
-                            }
                             if (isChanged) {
                                 DropdownMenuItem(
                                     text = {
@@ -1319,6 +1308,16 @@ fun EditScreen2(
                 onRemove = {
                     showTextOverlay = false
                 }
+            )
+        }
+
+        if (showOverwriteDialog) {
+            OverwriteConfirmDialog(
+                onConfirm = {
+                    showOverwriteDialog = false
+                    onOverride()
+                },
+                onDismiss = { showOverwriteDialog = false }
             )
         }
 

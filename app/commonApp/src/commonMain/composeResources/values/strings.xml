@@ -345,6 +345,8 @@
     <string name="editor_done">Done</string>
     <string name="editor_save_subtitle">You can always undo these changes</string>
     <string name="editor_save_copy_subtitle">Your original won't change</string>
+    <string name="editor_overwrite_confirm_title">Overwrite the original?</string>
+    <string name="editor_overwrite_confirm_message">Your edits replace the photo in place. ReFra keeps a backup of the original, so you can bring it back later with Revert to Original.</string>
     <string name="editor_mirror">Mirror image</string>
     <string name="editor_rotate_90">Rotate 90 degrees</string>
     <string name="editor_aspect_ratio">Aspect ratio</string>
