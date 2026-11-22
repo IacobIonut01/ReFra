@@ -117,6 +117,7 @@ fun TimelineScreen(
         mediaState = mediaState,
         metadataState = metadataState,
         albums = albumsState.value.albums,
+        albumsLoaded = !albumsState.value.isLoading,
         dateFormats = dateFormats,
         groupByMonth = timelineSettings?.groupTimelineByMonth == true,
         groupByYear = timelineSettings?.groupTimelineByYear == true,

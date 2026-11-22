@@ -279,6 +279,7 @@ private fun DocsTimelinePage(
         mediaState = mediaState,
         metadataState = metadataState,
         albums = albumState.albums,
+        albumsLoaded = !albumState.isLoading,
         dateFormats = dateFormats,
         groupByMonth = distributor.groupByMonth,
         groupByYear = distributor.groupByYear,

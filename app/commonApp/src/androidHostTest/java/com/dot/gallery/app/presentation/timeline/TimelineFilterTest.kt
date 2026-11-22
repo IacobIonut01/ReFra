@@ -13,6 +13,8 @@ import com.dot.gallery.feature.timeline.decodeTimelineFilter
 import com.dot.gallery.feature.timeline.encodeTimelineFilter
 import com.dot.gallery.feature.timeline.resolveTimelineAlbumSourceIds
 import com.dot.gallery.feature.timeline.filterTimelineItems
+import com.dot.gallery.feature.timeline.filterWithAvailableAlbums
+import com.dot.gallery.domain.settings.SettingsKeys
 import com.dot.gallery.feature.timeline.sortToCommit
 import com.dot.gallery.feature.timeline.timelineControlsActive
 import com.dot.gallery.domain.model.MediaTypeFilter
@@ -102,6 +104,59 @@ class TimelineFilterTest {
         )
         assertEquals(filter, decodeTimelineFilter(encodeTimelineFilter(filter)))
         assertEquals(TimelineFilter(), decodeTimelineFilter(emptyList()))
+    }
+
+    @Test
+    fun rememberedFilterSurvivesThePreference() {
+        val key = SettingsKeys.savedTimelineFilter
+        val filter = TimelineFilter(
+            mediaType = MediaTypeFilter.VIDEOS,
+            favoritesOnly = true,
+            selectedYears = setOf(2023),
+            selectedAlbumIds = setOf(42L, -7L),
+        )
+        assertEquals(filter, key.decode(key.encode(filter)))
+        assertEquals(TimelineFilter(), key.decode(key.encode(TimelineFilter())))
+    }
+
+    @Test
+    fun rememberedFilterIgnoresTheDerivedActiveFlag() {
+        val encoded = SettingsKeys.savedTimelineFilter.encode(TimelineFilter(favoritesOnly = true))
+        assertFalse(encoded.contains("isActive"))
+    }
+
+    @Test
+    fun rememberedFilterFillsMissingFieldsWithDefaults() {
+        assertEquals(
+            TimelineFilter(selectedYears = setOf(2020)),
+            SettingsKeys.savedTimelineFilter.decode("""{"selectedYears":[2020]}"""),
+        )
+    }
+
+    @Test
+    fun unreadableRememberedFilterFallsBackToNoFilter() {
+        val key = SettingsKeys.savedTimelineFilter
+        assertEquals(TimelineFilter(), key.decode("not json"))
+        assertEquals(TimelineFilter(), key.decode("""{"mediaType":"DOCUMENTS"}"""))
+        assertFalse(key.decode("").isActive)
+    }
+
+    @Test
+    fun rememberedFilterDropsAlbumsThatNoLongerExist() {
+        val filter = TimelineFilter(favoritesOnly = true, selectedAlbumIds = setOf(1L, 2L))
+        assertEquals(
+            filter.copy(selectedAlbumIds = setOf(2L)),
+            filterWithAvailableAlbums(filter, availableAlbumIds = setOf(2L, 3L)),
+        )
+        assertTrue(filterWithAvailableAlbums(filter, setOf(1L, 2L)) === filter)
+    }
+
+    @Test
+    fun indicatorClearsOnceOnlyMissingAlbumsWereRemembered() {
+        val remembered = TimelineFilter(selectedAlbumIds = setOf(99L))
+        assertTrue(timelineControlsActive(remembered, DefaultTimelineSort))
+        val pruned = filterWithAvailableAlbums(remembered, availableAlbumIds = setOf(1L))
+        assertFalse(timelineControlsActive(pruned, DefaultTimelineSort))
     }
 
     private fun filter(

@@ -50,6 +50,8 @@ import com.dot.gallery.feature.timeline.generated.resources.filter_type
 import com.dot.gallery.feature.timeline.generated.resources.modified_time_summary
 import com.dot.gallery.feature.timeline.generated.resources.order_by
 import com.dot.gallery.feature.timeline.generated.resources.photos
+import com.dot.gallery.feature.timeline.generated.resources.remember_filters
+import com.dot.gallery.feature.timeline.generated.resources.remember_filters_summary
 import com.dot.gallery.feature.timeline.generated.resources.show_date_headers
 import com.dot.gallery.feature.timeline.generated.resources.show_date_headers_summary
 import com.dot.gallery.feature.timeline.generated.resources.sort_ascending
@@ -67,6 +69,7 @@ const val TIMELINE_CAPTURE_SORT_TAG = "TimelineCaptureSort"
 const val TIMELINE_MODIFIED_SORT_TAG = "TimelineModifiedSort"
 const val TIMELINE_NAME_SORT_TAG = "TimelineNameSort"
 const val TIMELINE_DATE_HEADERS_TAG = "TimelineDateHeaders"
+const val TIMELINE_REMEMBER_FILTERS_TAG = "TimelineRememberFilters"
 
 /** The order every media page starts with, and what Reset goes back to. */
 val DefaultTimelineSort = LastSort(OrderType.Descending, FilterKind.DATE)
@@ -95,6 +98,8 @@ fun TimelineFilterSheet(
     showNameSort: Boolean = false,
     dateHeaders: Boolean? = null,
     onDateHeadersChange: (Boolean) -> Unit = {},
+    rememberFilters: Boolean? = null,
+    onRememberFiltersChange: (Boolean) -> Unit = {},
 ) {
     if (!sheetState.isVisible) return
     val draftSort = remember(sort) { mutableStateOf(sort) }
@@ -122,6 +127,8 @@ fun TimelineFilterSheet(
             showNameSort = showNameSort,
             dateHeaders = dateHeaders,
             onDateHeadersChange = onDateHeadersChange,
+            rememberFilters = rememberFilters,
+            onRememberFiltersChange = onRememberFiltersChange,
         )
     }
 }
@@ -131,8 +138,9 @@ fun sortToCommit(saved: LastSort, draft: LastSort): LastSort? = draft.takeIf { i
 
 /**
  * Stateless body of [TimelineFilterSheet]: order options as a grouped radio list, every other
- * filter as a chip row, an optional date headers switch, then Reset. [availableAlbums] are id
- * and label pairs; an empty list hides the Source section.
+ * filter as a chip row, an optional date headers switch, an optional "Remember filters" switch
+ * (null hides it), then Reset. [availableAlbums] are id and label pairs; an empty list hides the
+ * Source section.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -150,6 +158,8 @@ fun ColumnScope.TimelineFilterSheetContent(
     showNameSort: Boolean = false,
     dateHeaders: Boolean? = null,
     onDateHeadersChange: (Boolean) -> Unit = {},
+    rememberFilters: Boolean? = null,
+    onRememberFiltersChange: (Boolean) -> Unit = {},
 ) {
     SheetHeader(title = title, modifier = Modifier.padding(bottom = 0.dp))
 
@@ -278,6 +288,18 @@ fun ColumnScope.TimelineFilterSheetContent(
                 )
             }
         }
+    }
+
+    if (rememberFilters != null) {
+        SheetOptionRow(
+            title = stringResource(Res.string.remember_filters),
+            summary = stringResource(Res.string.remember_filters_summary),
+            trailing = SheetRowTrailing.Switch(rememberFilters),
+            onClick = { onRememberFiltersChange(!rememberFilters) },
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .testTag(TIMELINE_REMEMBER_FILTERS_TAG),
+        )
     }
 
     SheetActions {

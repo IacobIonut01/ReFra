@@ -36,8 +36,9 @@ A small dot appears on the filter icon while a filter or a non-default sort is a
 | Status | **Favorites** | Shows only items you have marked with a heart. |
 | Time | One chip per year present in the library | Shows only items from the tapped year or years. |
 | Source | One chip per filterable album | Shows only items in the tapped album or albums. Merged albums include every folder they merged. Locked and cloud-internal folders are not offered. |
+| Remember filters | On or off (off by default) | Timeline only. Keeps the current filters when you leave the timeline or close ReFra, until you change them or tap **Reset**. |
 
-Sections combine: choosing **Videos**, the year 2025, and the album **Camera** shows only videos from 2025 that live in Camera. Filters belong to the screen you set them on and are not saved; the order is saved.
+Sections combine: choosing **Videos**, the year 2025, and the album **Camera** shows only videos from 2025 that live in Camera. Filters belong to the screen you set them on, and the order is always saved. On the timeline, filters reset when you leave it unless **Remember filters** is on. A remembered album that no longer exists is dropped from the filter, and the dot on the filter icon clears once nothing else is set.
 
 While ReFra is still checking embedded capture dates, the sheet shows a "Checking capture dates" progress line. Ordering may shift as dates are read; files without an embedded date keep sorting by their modified time.
 
@@ -50,6 +51,13 @@ While ReFra is still checking embedded capture dates, the sheet shows a "Checkin
 5. Under **Source**, tap **Camera**. The grid now holds only favorited videos recorded in 2025 that sit in the Camera album.
 6. Swipe the sheet down to look at them.
 7. When done, reopen the sheet and tap **Reset**. The full timeline returns.
+
+## Example: keep screenshots out of the timeline
+
+Two ways work, depending on whether you want the rest of the library filtered too:
+
+- **Hide one folder for good**: add an ignore rule for Screenshots under **Library › Ignored** and set **Hide from** to **Timeline**. The album stays in Library; see [ignored albums](/ReFra/features/ignored-albums).
+- **Show only chosen folders**: in the sheet, tap **Camera** (and any other album you want) under **Source**, then turn on **Remember filters**. The timeline keeps showing only those albums after you leave it.
 
 ## If a filter seems to hide too much
 

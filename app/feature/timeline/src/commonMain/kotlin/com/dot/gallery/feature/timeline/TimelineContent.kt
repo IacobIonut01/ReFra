@@ -75,6 +75,8 @@ fun TimelineContent(
     mediaState: State<MediaState<UriMedia>>,
     metadataState: State<MediaMetadataState>,
     albums: List<Album>,
+    /** False while [albums] is still the empty placeholder, so remembered albums are kept. */
+    albumsLoaded: Boolean,
     dateFormats: Triple<String, String, String>,
     groupByMonth: Boolean,
     groupByYear: Boolean,
@@ -107,7 +109,14 @@ fun TimelineContent(
     val paneChrome = LocalGalleryPaneChrome.current
     val headerReveal = rememberGalleryHeaderRevealState()
 
-    var timelineFilter by remember { mutableStateOf(TimelineFilter()) }
+    // Filters last until the timeline is left, unless "Remember filters" keeps them in a pref.
+    var rememberFilters by rememberPreference(SettingsKeys.rememberTimelineFilters)
+    var savedFilter by rememberPreference(SettingsKeys.savedTimelineFilter)
+    var sessionFilter by remember { mutableStateOf(TimelineFilter()) }
+    val timelineFilter = if (rememberFilters) savedFilter else sessionFilter
+    val onTimelineFilterChange: (TimelineFilter) -> Unit = { filter ->
+        if (rememberFilters) savedFilter = filter else sessionFilter = filter
+    }
     var timelineSort by rememberPreference(SettingsKeys.timelineSort)
     val filterSheetState = rememberAppBottomSheetState()
 
@@ -115,7 +124,12 @@ fun TimelineContent(
         albums.filterableOnTimeline().sortedBy { it.label }
     }
 
-    KeepFilterAlbumsAvailable(availableAlbums, timelineFilter) { timelineFilter = it }
+    KeepFilterAlbumsAvailable(
+        albums = availableAlbums,
+        filter = timelineFilter,
+        albumsLoaded = albumsLoaded,
+        onFilterChange = onTimelineFilterChange,
+    )
 
     val availableYears = rememberAvailableTimelineYears(mediaState)
 
@@ -235,10 +249,21 @@ fun TimelineContent(
         availableYears = availableYears,
         availableAlbums = availableAlbums,
         indexProgress = indexProgress,
-        onFilterChange = { timelineFilter = it },
+        onFilterChange = onTimelineFilterChange,
         onSortCommit = { newSort ->
             timelineSort = newSort
             scrollToTop.requestScrollToTop(scrollToTopRoute)
+        },
+        rememberFilters = rememberFilters,
+        onRememberFiltersChange = { keep ->
+            // Carry the filters across, so flipping the switch never changes what is shown.
+            if (keep) {
+                savedFilter = sessionFilter
+            } else {
+                sessionFilter = savedFilter
+                savedFilter = TimelineFilter()
+            }
+            rememberFilters = keep
         },
     )
 }

@@ -73,6 +73,7 @@ object PortableBackupSettings {
         "show_favorite_button",
         "show_searchbar_favorite_button",
         "show_filter_button",
+        "remember_timeline_filters",
         "show_home_favorites_button",
         "show_home_select_button",
         "favorites_group_by_date",

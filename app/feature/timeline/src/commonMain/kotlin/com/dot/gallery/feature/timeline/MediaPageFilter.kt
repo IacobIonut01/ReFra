@@ -53,21 +53,31 @@ fun sourceAlbumsFor(albums: List<Album>, media: List<UriMedia>): List<Album> {
         .sortedBy { it.label }
 }
 
-/** Drops selected Source albums that are no longer offered, so no hidden filter stays on. */
+/**
+ * Drops selected Source albums that are no longer offered, so no hidden filter stays on.
+ * Nothing is dropped until [albumsLoaded]: a remembered filter would otherwise lose every album
+ * against the empty list shown while albums load.
+ */
 @Composable
 fun KeepFilterAlbumsAvailable(
     albums: List<Album>,
     filter: TimelineFilter,
+    albumsLoaded: Boolean = true,
     onFilterChange: (TimelineFilter) -> Unit,
 ) {
     val currentFilter by rememberUpdatedState(filter)
     val currentOnChange by rememberUpdatedState(onFilterChange)
-    LaunchedEffect(albums) {
-        val supported = currentFilter.selectedAlbumIds.intersect(albums.mapTo(hashSetOf()) { it.id })
-        if (supported != currentFilter.selectedAlbumIds) {
-            currentOnChange(currentFilter.copy(selectedAlbumIds = supported))
-        }
+    LaunchedEffect(albums, albumsLoaded) {
+        if (!albumsLoaded) return@LaunchedEffect
+        val pruned = filterWithAvailableAlbums(currentFilter, albums.mapTo(hashSetOf()) { it.id })
+        if (pruned != currentFilter) currentOnChange(pruned)
     }
+}
+
+/** [filter] without the Source albums missing from [availableAlbumIds]. */
+fun filterWithAvailableAlbums(filter: TimelineFilter, availableAlbumIds: Set<Long>): TimelineFilter {
+    val supported = filter.selectedAlbumIds.intersect(availableAlbumIds)
+    return if (supported == filter.selectedAlbumIds) filter else filter.copy(selectedAlbumIds = supported)
 }
 
 /**
