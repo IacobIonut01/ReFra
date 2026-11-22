@@ -38,7 +38,12 @@ data class EditorSettings(
     /** Inserting on the main lane shifts later clips. */
     val videoRipple: Boolean = true,
     /** New audio lands on the selected empty audio track instead of a new one. */
-    val videoFillEmptyAudioTracks: Boolean = true
+    val videoFillEmptyAudioTracks: Boolean = true,
+    /**
+     * The last aspect preset picked in Crop & straighten, by name; an
+     * uncropped photo opens on it. Null (or an unknown name) opens on Free.
+     */
+    val cropPreset: String? = null
 )
 
 /**

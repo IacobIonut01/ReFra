@@ -103,14 +103,24 @@ internal class PhotoToolUiState {
     var brushHardness by mutableStateOf(20f)
     var brushFlow by mutableStateOf(35f)
 
-    /** Seeds the preset from the document once — later calls are no-ops. */
-    fun seedPreset(geometry: PhotoGeometry, upright: PixelSize) {
-        if (!presetSeeded) {
-            val (preset, portrait) = CropAspectPreset.derive(geometry, upright)
-            cropPreset = preset
-            cropPortrait = portrait
-            presetSeeded = true
-        }
+    /**
+     * Seeds the preset from the document once — later calls are no-ops.
+     * An uncropped photo opens on [remembered] (the last preset the user
+     * picked) instead of Free. Returns true when that remembered preset is
+     * a fixed ratio the frame does not have yet, so the caller fits it.
+     */
+    fun seedPreset(
+        geometry: PhotoGeometry,
+        upright: PixelSize,
+        remembered: CropAspectPreset? = null
+    ): Boolean {
+        if (presetSeeded) return false
+        val (preset, portrait) = CropAspectPreset.derive(geometry, upright)
+        val untouched = CropAspectPreset.isWholeFrame(geometry, upright)
+        cropPreset = if (untouched && remembered != null) remembered else preset
+        cropPortrait = portrait
+        presetSeeded = true
+        return untouched && remembered?.isFixedRatio == true
     }
 
     companion object {
@@ -134,7 +144,7 @@ internal class PhotoToolUiState {
                 PhotoToolUiState().apply {
                     cropPreset = CropAspectPreset.entries.firstOrNull {
                         it.name == saved[0] as String
-                    } ?: CropAspectPreset.Original
+                    } ?: CropAspectPreset.Free
                     presetSeeded = saved[1] as Boolean
                     showGrid = saved[2] as Boolean
                     // Added later — a 3-item save restores the defaults.

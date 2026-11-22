@@ -3,6 +3,7 @@ package com.dot.gallery.editor.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
@@ -51,13 +52,17 @@ class CropToolUiTest {
         session = null
     }
 
-    private fun ComposeUiTest.liveSession(): PhotoEditorSession {
+    private fun ComposeUiTest.liveSession(
+        settings: EditorSettingsStore? = null
+    ): PhotoEditorSession {
         val s = openedSession(samplePixels())
         session = s
         setContent {
             TestEditorRoot {
-                Box(Modifier.size(412.dp, 832.dp).fillMaxSize()) {
-                    PhotoEditorScreen(session = s, onClose = {}, onRetryOpen = {})
+                CompositionLocalProvider(LocalEditorSettingsStore provides settings) {
+                    Box(Modifier.size(412.dp, 832.dp).fillMaxSize()) {
+                        PhotoEditorScreen(session = s, onClose = {}, onRetryOpen = {})
+                    }
                 }
             }
         }
@@ -77,6 +82,89 @@ class CropToolUiTest {
         awaitState { it.toolEditing }
         // An untouched photo starts free, not locked to its own ratio.
         onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("Free", substring = true)
+    }
+
+    @Test
+    fun pickingAPresetIsRemembered() = runComposeUiTest {
+        val settings = EditorSettingsStore()
+        liveSession(settings)
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing }
+        selectCropAspect(TAG_CROP_4_5)
+        awaitState { !it.interactionActive }
+        assertEquals(CropAspectPreset.FourFive.name, settings.settings.cropPreset)
+    }
+
+    @Test
+    fun anUncroppedPhotoOpensOnTheRememberedPreset() = runComposeUiTest {
+        val settings = EditorSettingsStore().apply {
+            update { it.copy(cropPreset = CropAspectPreset.Square.name) }
+        }
+        val s = liveSession(settings)
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing && !it.interactionActive }
+        // The remembered fixed ratio is fitted, so the strip and the frame agree.
+        waitUntil(timeoutMillis = 15_000) {
+            val st = s.state.value
+            val up = st.info?.uprightSize ?: return@waitUntil false
+            val rect = CropFitting.planeRect(up, st.document!!.geometry)
+            abs(rect.width / rect.height - 1.0) < 0.01
+        }
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("1:1", substring = true)
+    }
+
+    @Test
+    fun aRememberedPresetNeverOverridesAnExistingCrop() = runComposeUiTest {
+        val settings = EditorSettingsStore().apply {
+            update { it.copy(cropPreset = CropAspectPreset.Wide.name) }
+        }
+        val s = liveSession(settings)
+        val up = s.state.value.info!!.uprightSize
+        // The sample is square, so a portrait 4:5 is a real crop of it.
+        val cropped = CropFitting.withAspect(up, PhotoGeometry(), 0.8)
+        runOnUiThread {
+            s.applyEdits("Crop aspect", s.state.value.document!!.toEdits().copy(geometry = cropped))
+        }
+        awaitState { it.document?.geometry == cropped }
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing && !it.interactionActive }
+        waitForIdle()
+        assertEquals(cropped, s.state.value.document!!.geometry)
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("4:5", substring = true)
+    }
+
+    @Test
+    fun aCropDragKeepsTrackingOverTheBottomControls() = runComposeUiTest {
+        // The finger that grabbed the frame's bottom edge may cross the
+        // tool controls below the canvas; the drag must keep following it
+        // there and back instead of stopping at the canvas edge.
+        val s = liveSession()
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing && !it.interactionActive }
+        waitForIdle()
+        val canvas = onNodeWithTag(TAG_CROP_CANVAS).getBoundsInRoot()
+        val frame0 = onNodeWithTag(TAG_CROP_BOX).getBoundsInRoot()
+        val before = s.state.value.document!!.geometry
+        onNodeWithTag(TAG_CROP_CANVAS).performTouchInput {
+            val x = ((frame0.left + frame0.right) / 2 - canvas.left).toPx()
+            val bottom = (frame0.bottom - canvas.top).toPx()
+            down(Offset(x, bottom - 4.dp.toPx()))
+            moveTo(Offset(x, bottom - 60.dp.toPx()))
+            // Well past the canvas, over the controls below it.
+            moveTo(Offset(x, (canvas.bottom - canvas.top + 120.dp).toPx()))
+            moveTo(Offset(x, bottom - 140.dp.toPx()))
+            up()
+        }
+        awaitState { !it.interactionActive }
+        waitForIdle()
+        val crop = s.state.value.document!!.geometry.crop
+        assertNotEquals(before, s.state.value.document!!.geometry)
+        // The frame refits after the drag, so read the crop itself: the
+        // bottom edge ends where the finger came back to (~140 of the
+        // 262 dp frame up), not clamped at the photo's foot where the
+        // finger left the canvas.
+        assertTrue(crop.bottom < 0.7, "the bottom edge followed the finger back up: $crop")
+        assertTrue(crop.bottom > 0.3, "the bottom edge stopped at the finger: $crop")
     }
 
     @Test

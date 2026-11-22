@@ -33,7 +33,8 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
                 videoSnap = preferences.getBoolean(KEY_SNAP, defaults.videoSnap),
                 videoRipple = preferences.getBoolean(KEY_RIPPLE, defaults.videoRipple),
                 videoFillEmptyAudioTracks =
-                    preferences.getBoolean(KEY_FILL_TRACKS, defaults.videoFillEmptyAudioTracks)
+                    preferences.getBoolean(KEY_FILL_TRACKS, defaults.videoFillEmptyAudioTracks),
+                cropPreset = preferences.getString(KEY_CROP_PRESET, null)
             )
         }.onFailure { log("read", it) }.getOrDefault(defaults)
     }
@@ -51,6 +52,7 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
                 .putBoolean(KEY_SNAP, settings.videoSnap)
                 .putBoolean(KEY_RIPPLE, settings.videoRipple)
                 .putBoolean(KEY_FILL_TRACKS, settings.videoFillEmptyAudioTracks)
+                .putString(KEY_CROP_PRESET, settings.cropPreset)
                 .apply()
         }.onFailure { log("write", it) }
     }
@@ -75,5 +77,6 @@ class AndroidEditorSettingsPersistence(context: Context) : EditorSettingsPersist
         const val KEY_SNAP = "video_snap"
         const val KEY_RIPPLE = "video_ripple"
         const val KEY_FILL_TRACKS = "video_fill_empty_audio_tracks"
+        const val KEY_CROP_PRESET = "crop_preset"
     }
 }

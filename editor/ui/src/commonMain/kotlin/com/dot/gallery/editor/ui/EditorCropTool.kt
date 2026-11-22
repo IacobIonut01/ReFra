@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -164,8 +165,22 @@ internal fun CropToolContent(
     val latestState by rememberUpdatedState(state)
     val latestActions by rememberUpdatedState(actions)
 
+    // An uncropped photo opens on the last preset the user picked; a fixed
+    // ratio is fitted as one "Crop aspect" step, so the strip never names a
+    // ratio the frame does not have.
+    val settingsStore = rememberEditorSettingsStore()
+    SideEffect {
+        ops.onPresetChosen = { preset ->
+            settingsStore.update { it.copy(cropPreset = preset.name) }
+        }
+    }
     LaunchedEffect(state.info?.reference, document != null) {
-        if (document != null && upright != null) uiState.seedPreset(document.geometry, upright)
+        if (document != null && upright != null) {
+            val remembered = CropAspectPreset.fromName(settingsStore.settings.cropPreset)
+            if (uiState.seedPreset(document.geometry, upright, remembered)) {
+                ops.fitPreset()
+            }
+        }
     }
     LaunchedEffect(initialTab) {
         if (initialTab != null) uiState.cropTab = initialTab

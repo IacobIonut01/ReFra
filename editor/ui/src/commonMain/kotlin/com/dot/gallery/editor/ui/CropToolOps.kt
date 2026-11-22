@@ -102,9 +102,18 @@ internal class CropToolOps(
 
     // Aspect strip ----------------------------------------------------
 
+    /** Told about each preset the user picks, so the editor can remember it. */
+    var onPresetChosen: (CropAspectPreset) -> Unit = {}
+
     fun selectPreset(preset: CropAspectPreset) {
         ui.cropPreset = preset
-        if (preset == CropAspectPreset.Free) return
+        onPresetChosen(preset)
+        fitPreset()
+    }
+
+    /** Fits the crop to the selected preset's ratio; Free changes nothing. */
+    fun fitPreset() {
+        if (ui.cropPreset == CropAspectPreset.Free) return
         apply("Crop aspect") { g, up ->
             val ratio = ui.cropAspect(g, up) ?: return@apply g
             CropFitting.withAspect(up, g, ratio)
