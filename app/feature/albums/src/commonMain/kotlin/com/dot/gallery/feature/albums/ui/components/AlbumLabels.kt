@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.dot.gallery.feature.albums.ui.util.formatSizeShort
 
 const val AlbumCoverLabelTag = "Album.CoverLabel"
+const val AlbumLabelNameTag = "Album.LabelName"
 const val AlbumLabelCountTag = "Album.LabelCount"
 const val AlbumLabelSizeTag = "Album.LabelSize"
 
@@ -91,7 +93,7 @@ private fun AlbumNameRow(name: String, count: Long?, style: TextStyle, color: Co
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = name,
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier.weight(1f, fill = false).testTag(AlbumLabelNameTag),
             style = style,
             color = color,
             maxLines = 1,
@@ -160,19 +162,27 @@ fun AlbumCoverLabel(
     }
 }
 
-/** The default label under the cover: "Name · 12", then the size with one decimal. */
+/**
+ * The default label under the cover: "Name · 12", then the size with one decimal. Its width is
+ * the cover's, so the text scales with the grid like [AlbumCoverLabel].
+ */
 @Composable
 fun AlbumBelowLabel(
     name: String,
     count: Long?,
     sizeBytes: Long,
     modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier.padding(horizontal = 16.dp).padding(top = 12.dp, bottom = 16.dp)) {
+) = BoxWithConstraints(modifier) {
+    val metrics = albumBelowLabelMetrics(maxWidth)
+    Column(
+        modifier = Modifier
+            .padding(horizontal = metrics.horizontalPadding)
+            .padding(top = 12.dp, bottom = 16.dp),
+    ) {
         AlbumNameRow(
             name = name,
             count = count,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = metrics.nameSize),
             color = MaterialTheme.colorScheme.onSurface,
         )
         if (sizeBytes > 0) {

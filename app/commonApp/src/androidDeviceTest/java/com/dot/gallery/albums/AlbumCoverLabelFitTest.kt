@@ -7,6 +7,13 @@ package com.dot.gallery.albums
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import com.dot.gallery.feature.albums.ui.components.AlbumBelowLabel
+import com.dot.gallery.feature.albums.ui.components.AlbumLabelNameTag
+import org.junit.Assert.assertFalse
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +47,8 @@ import org.junit.runner.RunWith
  * Issue 1448: the on-cover label must fit inside the cover at every album grid size (1 to 7
  * columns) on phone and tablet widths, at the default and a large font size. The count must stay
  * fully visible beside an ellipsized name, and the size line shows only on wide enough covers.
+ * The label below the cover keeps its count whole too, and short names stay whole up to three
+ * columns on a phone.
  */
 @MediumTest
 @RunWith(AndroidJUnit4::class)
@@ -50,20 +59,31 @@ class AlbumCoverLabelFitTest {
 
     private var cover by mutableStateOf(100.dp)
     private var fontScale by mutableStateOf(1f)
+    private var below by mutableStateOf(false)
+    private var albumName by mutableStateOf("WhatsApp Images from the summer trip")
 
     private fun show() {
         rule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 PreviewHost {
-                    Box(Modifier.size(cover).testTag(COVER)) {
-                        AlbumCoverLabel(
-                            name = "WhatsApp Images from the summer trip",
-                            count = 2045,
-                            sizeBytes = 1_932_735_283,
-                            coverWidth = cover,
-                            modifier = Modifier.align(Alignment.BottomStart),
+                    if (below) {
+                        AlbumBelowLabel(
+                            name = albumName,
+                            count = 7,
+                            sizeBytes = 15_728_640,
+                            modifier = Modifier.width(cover).testTag(COVER),
                         )
+                    } else {
+                        Box(Modifier.size(cover).testTag(COVER)) {
+                            AlbumCoverLabel(
+                                name = albumName,
+                                count = 2045,
+                                sizeBytes = 1_932_735_283,
+                                coverWidth = cover,
+                                modifier = Modifier.align(Alignment.BottomStart),
+                            )
+                        }
                     }
                 }
             }
@@ -108,6 +128,43 @@ class AlbumCoverLabelFitTest {
                         sizeLines,
                     )
                 }
+            }
+        }
+    }
+
+    @Test
+    fun belowLabelKeepsShortNamesWholeUpToThreeColumns() {
+        below = true
+        albumName = "Camera"
+        show()
+        for (window in listOf(360.dp, 412.dp)) {
+            for (columns in 1..3) {
+                cover = coverWidth(window, columns)
+                rule.waitForIdle()
+                val layout = mutableListOf<TextLayoutResult>()
+                rule.onNodeWithTag(AlbumLabelNameTag, useUnmergedTree = true)
+                    .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layout) }
+                assertFalse(
+                    "\"Camera\" cut off below the cover: window $window, $columns columns, cover $cover",
+                    layout.single().isLineEllipsized(0),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun belowLabelKeepsTheCountWholeAtEveryGridSize() {
+        below = true
+        show()
+        for (window in listOf(360.dp, 412.dp, 840.dp)) {
+            for (columns in 1..7) {
+                cover = coverWidth(window, columns)
+                rule.waitForIdle()
+                val where = "window $window, $columns columns, cover $cover"
+                val box = rule.onNodeWithTag(COVER).getUnclippedBoundsInRoot()
+                val count = rule.onNodeWithTag(AlbumLabelCountTag, useUnmergedTree = true)
+                    .getUnclippedBoundsInRoot()
+                assertTrue("count cut off below the cover: $where", count.right <= box.right + Slack)
             }
         }
     }

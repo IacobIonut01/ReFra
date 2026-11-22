@@ -6,6 +6,7 @@
 package com.dot.gallery.app.presentation.albums
 
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.feature.albums.ui.components.albumBelowLabelMetrics
 import com.dot.gallery.feature.albums.ui.components.albumCoverLabelMetrics
 import com.dot.gallery.feature.albums.ui.util.formatSizeShort
 import org.junit.Assert.assertEquals
@@ -45,5 +46,18 @@ class AlbumLabelMetricsTest {
         assertFalse(albumCoverLabelMetrics(79.dp).showSize)
         assertTrue(albumCoverLabelMetrics(80.dp).showSize)
         assertTrue(albumCoverLabelMetrics(182.dp).showSize)
+    }
+
+    @Test
+    fun belowLabelShrinksOnNarrowCellsOnly() {
+        // One column keeps the original 16 sp title and 16 dp padding.
+        assertEquals(16f, albumBelowLabelMetrics(380.dp).nameSize.value, 0.001f)
+        assertEquals(16f, albumBelowLabelMetrics(380.dp).horizontalPadding.value, 0.001f)
+        // Three columns on a 412 dp phone: smaller name, tighter padding.
+        val three = albumBelowLabelMetrics(116.dp)
+        assertEquals(13.92f, three.nameSize.value, 0.001f)
+        assertEquals(8.12f, three.horizontalPadding.value, 0.001f)
+        assertEquals(13f, albumBelowLabelMetrics(40.dp).nameSize.value, 0.001f)
+        assertEquals(4f, albumBelowLabelMetrics(40.dp).horizontalPadding.value, 0.001f)
     }
 }
