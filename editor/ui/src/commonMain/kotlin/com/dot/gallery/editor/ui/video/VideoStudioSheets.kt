@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,8 +44,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dot.gallery.editor.ui.EditorV2Layout
 import com.dot.gallery.editor.render.video.VideoEditorState
 import com.dot.gallery.editor.ui.EditorToolGroup
 import com.dot.gallery.editor.ui.EditorToolId
@@ -110,11 +113,33 @@ internal fun VideoCatalogueSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
-        Column(Modifier.testTag(TAG_VIDEO_CATALOGUE_SHEET)) {
-            VideoCatalogueList(state, initialGroup, activeTool, onSelect, onHistory, onSettings)
+        // One fixed body height, shared with the photo editor's All tools,
+        // so switching chips or searching never resizes the sheet. Short
+        // windows (landscape phones) cap it to what fits.
+        BoxWithConstraints {
+            val height = videoCatalogueSheetHeight(maxHeight)
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .height(height)
+                    .testTag(TAG_VIDEO_CATALOGUE_SHEET)
+            ) {
+                VideoCatalogueList(state, initialGroup, activeTool, onSelect, onHistory, onSettings)
+            }
         }
     }
 }
+
+/**
+ * The All tools sheet's body height: the photo editor's fixed tools sheet
+ * body, or 85% of the space the modal offers when that is smaller.
+ */
+internal fun videoCatalogueSheetHeight(available: Dp): Dp =
+    if (available == Dp.Infinity || available <= 0.dp) {
+        EditorV2Layout.PhoneToolsSheetContent
+    } else {
+        minOf(EditorV2Layout.PhoneToolsSheetContent, available * 0.85f)
+    }
 
 /**
  * The video tools list itself, shared by the phone sheet and the large

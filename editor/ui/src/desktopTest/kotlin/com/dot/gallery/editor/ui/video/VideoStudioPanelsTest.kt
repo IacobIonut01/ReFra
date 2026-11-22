@@ -36,7 +36,10 @@ import com.dot.gallery.editor.render.video.VideoLevels
 import com.dot.gallery.editor.render.video.VideoMediaAccess
 import com.dot.gallery.editor.render.video.VideoPlayback
 import com.dot.gallery.editor.render.video.VoiceRecorder
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.dp
 import com.dot.gallery.editor.ui.TAG_CATALOGUE_GRID
+import com.dot.gallery.editor.ui.TAG_CATALOGUE_SEARCH
 import com.dot.gallery.editor.ui.TestEditorRoot
 import com.dot.gallery.editor.ui.V3DarkColors
 import com.dot.gallery.editor.ui.V3LightColors
@@ -489,6 +492,41 @@ class VideoStudioPanelsTest {
         } finally {
             runOnUiThread { session.close() }
         }
+    }
+
+    @Test
+    fun allToolsSheetKeepsOneHeightAcrossCategoriesAndSearch() =
+        runDesktopComposeUiTest(width = 390, height = 884) {
+            val session = stagedVideo()
+            try {
+                onNodeWithTag(TAG_VIDEO_TOOLS).performClick()
+                mainClock.advanceTimeBy(1_000)
+                waitForIdle()
+                fun sheetHeight() =
+                    onNodeWithTag(TAG_VIDEO_CATALOGUE_SHEET).fetchSemanticsNode().boundsInRoot.height
+                val expected = sheetHeight()
+                assertTrue(expected > 0f)
+                listOf("Edit", "Picture", "Audio", "Deliver", "all").forEach { chip ->
+                    onNodeWithTag("editor.catalogue.chip.$chip").performClick()
+                    waitForIdle()
+                    assertEquals(expected, sheetHeight(), "height changed on the $chip chip")
+                }
+                // A query with no match empties the list; the sheet stays put.
+                onNodeWithTag(TAG_CATALOGUE_SEARCH).performTextInput("zzzz")
+                waitForIdle()
+                assertEquals(expected, sheetHeight(), "height changed while searching")
+            } finally {
+                runOnUiThread { session.close() }
+            }
+        }
+
+    @Test
+    fun allToolsSheetHeightIsSharedWithThePhotoEditorAndFitsShortWindows() {
+        assertEquals(
+            com.dot.gallery.editor.ui.EditorV2Layout.PhoneToolsSheetContent,
+            videoCatalogueSheetHeight(2_000.dp)
+        )
+        assertEquals(300.dp * 0.85f, videoCatalogueSheetHeight(300.dp))
     }
 
     private fun VideoEditorSession.selected() = state.value.sequence!!.tracks
