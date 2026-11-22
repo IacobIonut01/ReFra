@@ -9,6 +9,7 @@ import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.DeferredAnimatedVisibility
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -446,12 +447,13 @@ fun AppBarContainer(
                             } + fadeOut(),
                         ) {
                             if (useOldNavbar) {
+                                val railRoute = rememberRouteWhileLeaving(currentRoute)
                                 ClassicNavigationRail(
-                                    backStackEntry = backStackEntry,
+                                    selectedRoute = railRoute,
                                     navigationItems = bottomNavItems,
                                     onClick = { onNavItemClick(navController, it, scrollToTop) },
-                                    onSearchClick = searchActionFor(currentRoute) {
-                                        navController.navigate(Screen.SearchScreen())
+                                    onSearchClick = searchActionFor(railRoute) {
+                                        openSearch(navController)
                                     },
                                 )
                             } else {
@@ -477,12 +479,14 @@ fun AppBarContainer(
                             enter = slideInVertically { it * 2 },
                             exit = slideOutVertically { it * 2 },
                         ) {
+                            // Keeps its selection and Search item while sliding out into search.
+                            val barRoute = rememberRouteWhileLeaving(currentRoute)
                             ClassicNavBar(
-                                backStackEntry = backStackEntry,
+                                selectedRoute = barRoute,
                                 navigationItems = bottomNavItems,
                                 onClick = { onNavItemClick(navController, it, scrollToTop) },
-                                onSearchClick = searchActionFor(currentRoute) {
-                                    navController.navigate(Screen.SearchScreen())
+                                onSearchClick = searchActionFor(barRoute) {
+                                    openSearch(navController)
                                 },
                             )
                         }
@@ -612,14 +616,37 @@ fun GalleryNavBar(
 internal fun searchActionFor(currentRoute: String?, openSearch: () -> Unit): (() -> Unit)? =
     if (currentRoute == Screen.SearchScreen()) null else openSearch
 
+/** A second tap while the bar slides away must not stack another search screen. */
+private fun openSearch(navController: NavController) {
+    navController.navigate(Screen.SearchScreen()) { launchSingleTop = true }
+}
+
+/**
+ * The route a navigation bar shows: the live route while it is visible, and the route it last
+ * showed while it slides out. The classic bar and rail leave because the route changed, so
+ * following the live route made the Search item vanish and the selection jump mid-exit when
+ * opening search (issue 1451).
+ */
+internal fun routeShownByBar(shownRoute: String?, currentRoute: String?, leaving: Boolean): String? =
+    if (leaving) shownRoute else currentRoute
+
+private class ShownRoute(var route: String?)
+
+@Composable
+private fun AnimatedVisibilityScope.rememberRouteWhileLeaving(currentRoute: String?): String? {
+    val held = remember { ShownRoute(currentRoute) }
+    val leaving = transition.targetState != EnterExitState.Visible
+    return routeShownByBar(held.route, currentRoute, leaving).also { held.route = it }
+}
+
 @Composable
 fun ClassicNavBar(
-    backStackEntry: NavBackStackEntry?,
+    selectedRoute: String?,
     navigationItems: List<NavigationItem>,
     onClick: (route: String) -> Unit,
     onSearchClick: (() -> Unit)? = null,
 ) = ClassicNavigationBarContent(
-    selectedRoute = backStackEntry?.destination?.route,
+    selectedRoute = selectedRoute,
     navigationItems = navigationItems,
     onClick = onClick,
     onSearchClick = onSearchClick,
@@ -627,12 +654,12 @@ fun ClassicNavBar(
 
 @Composable
 private fun ClassicNavigationRail(
-    backStackEntry: NavBackStackEntry?,
+    selectedRoute: String?,
     navigationItems: List<NavigationItem>,
     onClick: (route: String) -> Unit,
     onSearchClick: (() -> Unit)? = null,
 ) = ClassicNavigationRailContent(
-    selectedRoute = backStackEntry?.destination?.route,
+    selectedRoute = selectedRoute,
     navigationItems = navigationItems,
     onClick = onClick,
     onSearchClick = onSearchClick,

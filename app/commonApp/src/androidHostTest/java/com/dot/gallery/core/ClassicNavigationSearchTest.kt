@@ -6,6 +6,7 @@
 package com.dot.gallery.core
 
 import com.dot.gallery.core.presentation.components.classicSearchSlot
+import com.dot.gallery.core.presentation.components.routeShownByBar
 import com.dot.gallery.core.presentation.components.searchActionFor
 import com.dot.gallery.core.presentation.util.Screen
 import org.junit.Assert.assertEquals
@@ -48,5 +49,30 @@ class ClassicNavigationSearchTest {
     @Test
     fun searchActionHidesOnTheSearchScreen() {
         assertNull(searchActionFor(Screen.SearchScreen()) {})
+    }
+
+    @Test
+    fun leavingBarKeepsSearchAndSelectionWhileOpeningSearch() {
+        // Issue 1451: the bar slides out because the route became Search; it must keep showing
+        // the route it had, or the Search item vanishes and the selection jumps mid-exit.
+        val shown = routeShownByBar(
+            shownRoute = Screen.TimelineScreen.route,
+            currentRoute = Screen.SearchScreen(),
+            leaving = true,
+        )
+        assertEquals(Screen.TimelineScreen.route, shown)
+        assertNotNull(searchActionFor(shown) {})
+    }
+
+    @Test
+    fun visibleBarFollowsTheLiveRoute() {
+        assertEquals(
+            Screen.LibraryScreen(),
+            routeShownByBar(
+                shownRoute = Screen.TimelineScreen.route,
+                currentRoute = Screen.LibraryScreen(),
+                leaving = false,
+            ),
+        )
     }
 }

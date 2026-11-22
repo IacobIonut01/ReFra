@@ -6,6 +6,7 @@
 package com.dot.gallery.feature.classifier.ui.search
 
 import com.dot.gallery.core.presentation.components.NavigationBackButton
+import com.dot.gallery.core.ui.util.backClosesKeyboard
 import com.dot.gallery.core.presentation.components.selectionAwareBottomPadding
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
@@ -432,6 +433,9 @@ private fun SearchTopBar(
         TextField(
             modifier = Modifier
                 .focusRequester(focusRequester)
+                // One back gesture closes the keyboard and does what the back button does,
+                // instead of the keyboard taking the first gesture on its own (issue 1451).
+                .backClosesKeyboard(onBack = onBack)
                 .weight(1f)
                 .heightIn(min = 56.dp),
             value = query,
