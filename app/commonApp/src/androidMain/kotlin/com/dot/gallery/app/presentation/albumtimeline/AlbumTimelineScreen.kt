@@ -5,6 +5,7 @@
 
 package com.dot.gallery.app.presentation.albumtimeline
 
+import com.dot.gallery.feature.albums.ui.util.formatSize
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -284,6 +285,8 @@ fun AlbumTimelineScreen(
     )
     val itemsLabel = stringResource(Res.string.s_items, media.size.toString())
     val dateRange = remember(media) { mediaDateRangeLabel(media) }
+    // Grid labels round to one decimal; inside the album the size keeps both (issue 1448).
+    val exactSize = currentAlbum?.size?.takeIf { it > 0 }?.let(::formatSize)
     val slideshowLabel = stringResource(Res.string.slideshow)
     val openSlideshow: () -> Unit = { slideshowScope.launch { slideshowSheetState.show() } }
 
@@ -292,7 +295,7 @@ fun AlbumTimelineScreen(
         Column {
             GalleryDetailHeader(
                 title = resolvedAlbumName,
-                stats = listOfNotNull(itemsLabel, dateRange).joinToString(" · "),
+                stats = listOfNotNull(itemsLabel, exactSize, dateRange).joinToString(" · "),
                 cover = {
                     GalleryDetailCover(
                         model = currentAlbum?.uri?.toString() ?: media.firstOrNull()?.getUri()?.toString(),

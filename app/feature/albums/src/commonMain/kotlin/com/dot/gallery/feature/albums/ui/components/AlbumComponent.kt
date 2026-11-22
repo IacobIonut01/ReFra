@@ -5,14 +5,12 @@
 
 package com.dot.gallery.feature.albums.ui.components
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -160,6 +160,12 @@ fun AlbumComponent(
 ) {
     val scope = rememberCoroutineScope()
     val appBottomSheetState = rememberAppBottomSheetState()
+    val labelsOnCover by rememberPreference(SettingsKeys.albumLabelsOnCover)
+    val showCount by rememberPreference(SettingsKeys.albumLabelShowCount)
+    val labelCount = album.count.takeIf { showCount }
+    // The "new album" placeholder is an outlined icon, not a photo to lay text over.
+    val coverLabel = labelsOnCover && !(album.id == -200L && album.count == 0L)
+    val thumbnailInteraction = remember { MutableInteractionSource() }
     Column(
         modifier = modifier
             .alpha(if (isEnabled) 1f else 0.4f)
@@ -185,7 +191,7 @@ fun AlbumComponent(
             supportsTrash = supportsTrash,
             thumbnailActions = thumbnailActions,
         )
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .aspectRatio(1f)
         ) {
@@ -193,6 +199,7 @@ fun AlbumComponent(
                 modifier = thumbnailModifier,
                 album = album,
                 isEnabled = isEnabled,
+                interactionSource = thumbnailInteraction,
                 onItemClick = onItemClick,
                 onItemLongClick = if (onTogglePinClick != null) {
                     {
@@ -202,12 +209,24 @@ fun AlbumComponent(
                     }
                 } else null
             )
+            if (coverLabel) {
+                val coverRadius = albumCornerRadius(thumbnailInteraction)
+                AlbumCoverLabel(
+                    name = album.label,
+                    count = labelCount,
+                    sizeBytes = album.size,
+                    coverWidth = maxWidth,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .clip(RoundedCornerShape(bottomStart = coverRadius, bottomEnd = coverRadius)),
+                )
+            }
             if (album.isOnSdcard) {
                 Icon(
                     modifier = Modifier
                         .padding(16.dp)
                         .size(24.dp)
-                        .align(Alignment.BottomEnd),
+                        .align(if (coverLabel) Alignment.TopEnd else Alignment.BottomEnd),
                     imageVector = Icons.Outlined.SdCard,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface
@@ -218,37 +237,20 @@ fun AlbumComponent(
                     album = album,
                     providerIcon = providerIcon,
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(if (coverLabel) Alignment.TopStart else Alignment.BottomStart)
                         .padding(8.dp)
                 )
             }
         }
-        Text(
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .padding(horizontal = 16.dp),
-            text = album.label,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1
-        )
-        if (album.count > 0) {
-            Text(
-                modifier = Modifier
-                    .padding(top = 2.dp, bottom = 16.dp)
-                    .padding(horizontal = 16.dp),
-                text = pluralStringResource(
-                    Res.plurals.item_count,
-                    album.count.toInt(),
-                    album.count
-                ) + if (album.size > 0) " (${formatSize(album.size)})" else "",
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                style = MaterialTheme.typography.labelMedium,
+        if (coverLabel) {
+            Spacer(Modifier.height(16.dp))
+        } else {
+            AlbumBelowLabel(
+                name = album.label,
+                count = labelCount,
+                sizeBytes = album.size,
             )
         }
-
     }
 }
 
@@ -856,14 +858,10 @@ fun AlbumImage(
     album: Album,
     isEnabled: Boolean,
     onItemClick: (Album) -> Unit,
-    onItemLongClick: ((Album) -> Unit)?
+    onItemLongClick: ((Album) -> Unit)?,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed = interactionSource.collectIsPressedAsState()
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed.value) 32.dp else 16.dp,
-        label = "cornerRadius"
-    )
+    val cornerRadius = albumCornerRadius(interactionSource)
     val feedbackManager = rememberFeedbackManager()
     if (albumThumbnailPresentation(album.isLocked) == AlbumThumbnailPresentation.LOCKED_PLACEHOLDER) {
         LockedAlbumThumbnail(

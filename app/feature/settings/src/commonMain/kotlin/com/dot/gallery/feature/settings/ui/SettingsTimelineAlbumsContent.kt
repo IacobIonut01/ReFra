@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.GifBox
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.MergeType
+import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
@@ -214,6 +215,10 @@ import com.dot.gallery.feature.settings.generated.resources.group_similar_media_
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_summary
 import com.dot.gallery.feature.settings.generated.resources.group_similar_media_title
 import com.dot.gallery.feature.settings.generated.resources.media_grouping_restart_note
+import com.dot.gallery.feature.settings.generated.resources.album_label_show_count
+import com.dot.gallery.feature.settings.generated.resources.album_label_show_count_summary
+import com.dot.gallery.feature.settings.generated.resources.album_labels_on_cover
+import com.dot.gallery.feature.settings.generated.resources.album_labels_on_cover_summary
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_description
 import com.dot.gallery.feature.settings.generated.resources.merge_albums_by_name_summary
@@ -325,6 +330,8 @@ fun SettingsTimelineAlbumsContent(
     val showSelectButton by rememberPreference(SettingsKeys.showHomeSelectButton)
     var dateHeaderAlbums by rememberPreference(SettingsKeys.albumGroupByDate)
     var mergeAlbumsByName by rememberPreference(SettingsKeys.mergeAlbumsByName)
+    var albumLabelsOnCover by rememberPreference(SettingsKeys.albumLabelsOnCover)
+    var albumLabelShowCount by rememberPreference(SettingsKeys.albumLabelShowCount)
     var albumSectionsEnabled by rememberPreference(SettingsKeys.albumSectionsEnabled)
     var updateModifiedDate by rememberPreference(SettingsKeys.updateModifiedDate)
     var favIconPosition by rememberPreference(SettingsKeys.favoriteIconPosition)
@@ -645,6 +652,10 @@ fun SettingsTimelineAlbumsContent(
                 showSelectButton = showSelectButton,
                 mergeAlbumsByName = mergeAlbumsByName,
                 onMergeAlbumsChange = { mergeAlbumsByName = it },
+                albumLabelsOnCover = albumLabelsOnCover,
+                onAlbumLabelsOnCoverChange = { albumLabelsOnCover = it },
+                albumLabelShowCount = albumLabelShowCount,
+                onAlbumLabelShowCountChange = { albumLabelShowCount = it },
                 albumSectionsEnabled = albumSectionsEnabled,
                 updateModifiedDate = updateModifiedDate,
                 onUpdateModifiedDateChange = { updateModifiedDate = it },
@@ -685,6 +696,10 @@ private fun TimelineAlbumsListContent(
     showSelectButton: Boolean,
     mergeAlbumsByName: Boolean,
     onMergeAlbumsChange: (Boolean) -> Unit,
+    albumLabelsOnCover: Boolean = false,
+    onAlbumLabelsOnCoverChange: (Boolean) -> Unit = {},
+    albumLabelShowCount: Boolean = true,
+    onAlbumLabelShowCountChange: (Boolean) -> Unit = {},
     albumSectionsEnabled: Boolean = false,
     updateModifiedDate: Boolean,
     onUpdateModifiedDateChange: (Boolean) -> Unit,
@@ -863,6 +878,26 @@ private fun TimelineAlbumsListContent(
             screenPosition = Position.Top
         )
 
+        val albumLabelsOnCoverPref = rememberSwitchPreference(
+            albumLabelsOnCover,
+            title = stringResource(Res.string.album_labels_on_cover),
+            icon = Icons.Outlined.Title,
+            summary = stringResource(Res.string.album_labels_on_cover_summary),
+            isChecked = albumLabelsOnCover,
+            onCheck = onAlbumLabelsOnCoverChange,
+            screenPosition = Position.Middle
+        )
+
+        val albumLabelShowCountPref = rememberSwitchPreference(
+            albumLabelShowCount,
+            title = stringResource(Res.string.album_label_show_count),
+            icon = Icons.Outlined.Numbers,
+            summary = stringResource(Res.string.album_label_show_count_summary),
+            isChecked = albumLabelShowCount,
+            onCheck = onAlbumLabelShowCountChange,
+            screenPosition = Position.Middle
+        )
+
         val updateModifiedDatePref = rememberSwitchPreference(
             updateModifiedDate,
             title = stringResource(Res.string.update_modified_date_title),
@@ -978,7 +1013,8 @@ private fun TimelineAlbumsListContent(
             timelineHeader, timelineLayoutPref, timelineOrderPref, groupSimilarMediaPref,
             allowGifAnimationPref, monthHighlightsPref, headerPlacesPref, floatingDateLabelPref,
             dateHeaderPref, recheckCaptureDatesPref, topBarPref, storyCardsPref,
-            albumsHeader, mergeAlbumsByNamePref, updateModifiedDatePref, albumSectionsPref,
+            albumsHeader, mergeAlbumsByNamePref, albumLabelsOnCoverPref, albumLabelShowCountPref,
+            updateModifiedDatePref, albumSectionsPref,
             displayHeader, thumbnailBadgesPref,
             dateHeadersPref, groupMethodPref,
             selectionHeader, showSelectionTitlesPref, selectionActionsPref,
@@ -999,6 +1035,8 @@ private fun TimelineAlbumsListContent(
 
                 add(albumsHeader)
                 add(mergeAlbumsByNamePref)
+                add(albumLabelsOnCoverPref)
+                add(albumLabelShowCountPref)
                 add(updateModifiedDatePref)
                 add(albumSectionsPref)
 

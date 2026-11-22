@@ -644,6 +644,10 @@
     <string name="merge_albums_by_name_description">Combines albums that share the same name from different storage locations into a single album. Useful if you have media spread across internal storage and SD card.</string>
     <string name="timeline_layout_description">Choose how photos are arranged in the timeline grid. The uniform grid shows equal-sized thumbnails, while the mosaic layout varies sizes for a more dynamic look.</string>
     <string name="merge_albums_by_name">Merge albums by name</string>
+    <string name="album_labels_on_cover">Labels on album covers</string>
+    <string name="album_labels_on_cover_summary">Show album names over the bottom of the cover instead of below it</string>
+    <string name="album_label_show_count">Show item counts</string>
+    <string name="album_label_show_count_summary">Show the number of items next to each album name</string>
     <string name="merge_albums_by_name_summary">Albums with the same name are displayed as one. They still exist in separate folders.</string>
     <string name="update_modified_date_title">Update modified date</string>
     <string name="update_modified_date_summary">Move copied, renamed, edited and rotated media to the top when sorting by modified date</string>

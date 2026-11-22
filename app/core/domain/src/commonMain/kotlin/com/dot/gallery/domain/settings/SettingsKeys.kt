@@ -223,6 +223,10 @@ object SettingsKeys {
     val albumSectionsEnabled = PrefKey.bool("album_sections_enabled", default = false)
     val showMediaTypeAlbums = PrefKey.bool("show_media_type_albums", default = true)
     val showPinnedAlbums = PrefKey.bool("show_pinned_albums", default = true)
+    /** Album names, counts and sizes sit over the bottom of the cover instead of below it. */
+    val albumLabelsOnCover = PrefKey.bool("album_labels_on_cover", default = false)
+    /** Album labels read "Name · 12"; off leaves just the name. */
+    val albumLabelShowCount = PrefKey.bool("album_label_show_count", default = true)
     /** Show every Library shortcut instead of folding long lists behind "Show more". */
     val showAllLibraryShortcuts = PrefKey.bool("show_all_library_shortcuts", default = false)
     val updateModifiedDate = PrefKey.bool("update_modified_date", default = false)
