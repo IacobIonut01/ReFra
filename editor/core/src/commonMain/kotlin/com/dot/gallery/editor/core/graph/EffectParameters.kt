@@ -2,6 +2,7 @@ package com.dot.gallery.editor.core.graph
 
 import com.dot.gallery.editor.core.model.ColorAdjustments
 import com.dot.gallery.editor.core.model.PhotoBlendMode
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoFinishing
 import com.dot.gallery.editor.core.model.PhotoRetouch
 import com.dot.gallery.editor.core.model.PhotoGeometry
@@ -96,7 +97,9 @@ sealed interface EffectParameters {
     data class Retouch(
         val retouch: PhotoRetouch,
         val originY: Int = 0,
-        val fullSize: PixelSize
+        val fullSize: PixelSize,
+        /** The crop outline, clipped last over the full output. */
+        val shape: PhotoCropShape = PhotoCropShape.Rectangle
     ) : EffectParameters {
         init {
             require(originY >= 0) {

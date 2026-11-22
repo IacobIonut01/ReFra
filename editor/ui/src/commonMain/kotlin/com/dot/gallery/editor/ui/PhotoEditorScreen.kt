@@ -11,6 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.dot.gallery.editor.render.photo.PhotoEditorSession
 import com.dot.gallery.editor.render.photo.PhotoExportResult
+import com.dot.gallery.editor.render.photo.losesTransparency
+import com.dot.gallery.editor.core.model.PhotoExportFormat
 
 /**
  * The session-bound editor screen: collects [PhotoEditorSession.state] and
@@ -56,6 +58,22 @@ fun PhotoEditorScreen(
 ) {
     val state by session.state.collectAsState()
     val rawExportOpen = remember(session) { mutableStateOf(false) }
+    val transparentExportOpen = remember(session) { mutableStateOf(false) }
+    // A transparent result (a shaped crop or removed background) bound for a
+    // container without alpha, such as a JPEG source's own, asks for PNG or
+    // WebP first instead of quietly changing the format.
+    val writeOrAsk: (PhotoExportFormat?) -> Unit = { format ->
+        val current = session.state.value
+        val document = current.document
+        if (document != null && losesTransparency(
+                document, format, current.info?.sourceKeepsAlpha == true
+            )
+        ) {
+            transparentExportOpen.value = true
+        } else {
+            session.exportCopy(format)
+        }
+    }
     val settingsStore = rememberEditorSettingsStore()
     // Save stays in the header while a tool is open, and exportCopy
     // rejects while a tool transaction is, so a save or export keeps the
@@ -87,12 +105,12 @@ fun PhotoEditorScreen(
                 )
                 when (decision) {
                     SaveFormatDecision.Ask -> rawExportOpen.value = true
-                    is SaveFormatDecision.Write -> session.exportCopy(decision.format)
+                    is SaveFormatDecision.Write -> writeOrAsk(decision.format)
                 }
             },
             exportCopy = { format ->
                 settleOpenTool()
-                session.exportCopy(format)
+                writeOrAsk(format)
             },
             exportFormats = session.exportFormats,
             cancelExport = session::cancelExport,
@@ -148,9 +166,20 @@ fun PhotoEditorScreen(
                     onSelect = { format ->
                         rawExportOpen.value = false
                         settleOpenTool()
-                        session.exportCopy(format)
+                        writeOrAsk(format)
                     },
                     onDismiss = { rawExportOpen.value = false }
+                )
+            }
+            if (transparentExportOpen.value) {
+                PhotoTransparentExportSheet(
+                    allowWebp = PhotoExportFormat.WEBP in session.exportFormats,
+                    onSelect = { format ->
+                        transparentExportOpen.value = false
+                        settleOpenTool()
+                        session.exportCopy(format)
+                    },
+                    onDismiss = { transparentExportOpen.value = false }
                 )
             }
         }

@@ -112,14 +112,15 @@ fun PhotoDocument.renderGraph(outputSize: PixelSize? = null): RenderGraph {
         )
         previous = "finishing"
     }
-    // Retouch paints over the finished picture, again only when needed.
-    if (!retouch.isNeutral) {
+    // Retouch paints over the finished picture, again only when needed; a
+    // shaped crop rides the same last node so it clips everything above.
+    if (!retouch.isNeutral || geometry.shape.isShaped) {
         nodes += EffectNode(
             id = "retouch",
             effect = EffectDescriptor.PhotoRetouch,
             inputs = persistentListOf(previous),
             parameters = EffectParameters.Retouch(
-                retouch, originY = 0, fullSize = canvas
+                retouch, originY = 0, fullSize = canvas, shape = geometry.shape
             )
         )
         previous = "retouch"

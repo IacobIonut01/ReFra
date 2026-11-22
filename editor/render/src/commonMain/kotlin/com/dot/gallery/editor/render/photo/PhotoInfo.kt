@@ -13,7 +13,9 @@ data class PhotoInfo(
     val rawSize: PixelSize,
     val orientation: Int = 1,
     /** A camera RAW, which the recipe's develop stage turns into pixels. */
-    val isRaw: Boolean = false
+    val isRaw: Boolean = false,
+    /** The source's own container keeps alpha (PNG), so a copy in it stays transparent. */
+    val sourceKeepsAlpha: Boolean = false
 ) {
     init {
         require(reference.isNotBlank()) { "reference must be non-blank" }

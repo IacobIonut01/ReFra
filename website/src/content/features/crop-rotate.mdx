@@ -6,7 +6,7 @@ path:
   - Media viewer
   - Edit
   - Crop
-related: [editor, lighting-colour, legacy-crop-rotate]
+related: [editor, lighting-colour, save-edits, legacy-crop-rotate]
 scenes: [studio-photo]
 order: 2
 ---
@@ -19,10 +19,17 @@ order: 2
 
 - Drag the frame's edges or corners to crop; drag inside the frame to move the photo under it. The label above the frame shows the ratio and the output size in pixels.
 - The ratio menu offers **Free**, **Original**, **1:1**, **4:5**, **3:2**, **4:3**, and **16:9**. The button next to it switches the ratio between portrait and landscape.
+- Below the ratios, **Circle** and **Rounded square** crop to a shape. Both lock the frame to 1:1, and the photo outside the shape is dimmed and outlined while you crop.
 - **Rotate left** turns the photo 90 degrees; **Flip** mirrors it horizontally.
 - **Apply Crop** keeps the result; **Reset** returns the frame to the full photo.
 
 The crop always stays inside the photo, so straightening or keystone correction never leaves blank corners.
+
+## Crop shapes
+
+A shaped crop makes everything outside the circle or rounded square transparent, and the canvas shows those areas as a checkerboard. Picking any ratio from the menu returns to a plain rectangle, and **Undo** removes the shape like any other step.
+
+Transparent areas need a format that keeps them. A shaped crop of a PNG keeps the PNG format; for a JPEG, **Save copy** first asks for **PNG** or **WebP**. See [Saving copies](/ReFra/features/save-edits).
 
 ## Straighten and keystone
 

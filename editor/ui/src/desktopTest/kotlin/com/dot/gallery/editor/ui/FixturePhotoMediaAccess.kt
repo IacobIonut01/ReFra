@@ -20,6 +20,9 @@ internal class FixturePhotoMediaAccess(
     var exportCalls = 0
         private set
 
+    /** The container each export was asked for (null = the source's own). */
+    val exportedFormats = mutableListOf<com.dot.gallery.editor.core.model.PhotoExportFormat?>()
+
     /** When set, export suspends before publishing — tests hold the
      * receipt to observe mid-export session state. */
     var exportPrePublishGate: CompletableDeferred<Unit>? = null
@@ -34,6 +37,7 @@ internal class FixturePhotoMediaAccess(
         onProgress: (Float) -> Unit
     ): PhotoExportResult {
         exportCalls++
+        exportedFormats += format
         exportPrePublishGate?.await()
         onProgress(1f)
         val result = PhotoExportResult(

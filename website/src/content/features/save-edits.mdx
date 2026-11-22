@@ -27,7 +27,7 @@ For a RAW file the button reads **Export** and asks for a format each time; see 
 
 **Copy format** in the editor's settings is **Original** by default. With **Original**, a JPEG photo is saved as a JPEG at the source's own quality, and a PNG stays a lossless PNG. Pick **WebP**, **HEIF**, or **JPEG XL** to write every copy in that format instead.
 
-A photo edited with **Remove background** is saved as a PNG so the transparent background survives.
+A photo with transparent areas, from **Remove background** or a **Circle** or **Rounded square** crop, needs a format that keeps them. A PNG source stays PNG. Otherwise, when the chosen format can't hold transparency (a JPEG source's own format, or **Export as JPEG**, **HEIF**, or **JPEG XL**), the editor asks for **PNG** or **WebP** before it saves.
 
 ## Where copies go
 

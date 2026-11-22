@@ -8,6 +8,7 @@ import com.dot.gallery.editor.core.model.PhotoDocument
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.PhotoExportFormat
 import com.dot.gallery.editor.core.model.PhotoMarkup
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoRawDevelop
 import com.dot.gallery.editor.core.model.PhotoFinishing
 import com.dot.gallery.editor.core.model.PhotoImageLayer
@@ -834,10 +835,14 @@ class PhotoEditorSession(
      */
     private fun displayDocumentFor(document: PhotoDocument): PhotoDocument? =
         if (cropPreviewMode) {
-            // Markup and the border sit on the output frame, so they step
-            // aside while the crop tool shows the whole source.
+            // Markup, the border and the crop shape sit on the output frame,
+            // so they step aside while the crop tool shows the whole source
+            // (the crop overlay previews the shape instead).
             document.copy(
-                geometry = document.geometry.copy(crop = NormalizedCrop()),
+                geometry = document.geometry.copy(
+                    crop = NormalizedCrop(),
+                    shape = PhotoCropShape.Rectangle
+                ),
                 retouch = document.retouch.copy(
                     markup = PhotoMarkup(),
                     matte = null,
@@ -1051,12 +1056,9 @@ class PhotoEditorSession(
                 withContext(workerDispatcher) {
                     media.export(
                         snapshot,
-                        // Only PNG keeps a removed background transparent.
-                        format = if (snapshot.retouch.hasTransparency) {
-                            PhotoExportFormat.PNG
-                        } else {
-                            format
-                        },
+                        format = transparentExportFormat(
+                            snapshot, format, _state.value.info?.sourceKeepsAlpha == true
+                        ),
                         onPublished = { receipt.value = it },
                         onProgress = { value ->
                             exportProgressUpdates.value =

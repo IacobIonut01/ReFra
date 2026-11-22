@@ -11,6 +11,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -23,6 +24,8 @@ import androidx.compose.ui.test.withKeyDown
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import com.dot.gallery.editor.core.geometry.CropFitting
+import com.dot.gallery.editor.core.model.PhotoCropShape
+import com.dot.gallery.editor.core.model.PhotoExportFormat
 import com.dot.gallery.editor.core.model.PhotoGeometry
 import com.dot.gallery.editor.core.model.PhotoWarp
 import com.dot.gallery.editor.core.model.toEdits
@@ -35,6 +38,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Crop & straighten 2 behaviour through the real session: one undo step
@@ -444,5 +449,79 @@ class CropToolUiTest {
         // The drawn line leans by atan(0.08 / 0.6) ≈ 7.6° on the square
         // frame; levelling it needs a rotation of about that size.
         assertTrue(abs(g.warp.rotationDegrees) in 6f..9.5f, "rotation ${g.warp.rotationDegrees}")
+    }
+
+    @Test
+    fun aCircleCropLocksSquareAndKeepsTheShapeInTheRecipe() = runComposeUiTest {
+        val s = liveSession()
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing && !it.interactionActive }
+        selectCropAspect(TAG_CROP_CIRCLE)
+        awaitState { it.document?.geometry?.shape == PhotoCropShape.Circle && !it.interactionActive }
+        val st = s.state.value
+        val rect = CropFitting.planeRect(st.info!!.uprightSize, st.document!!.geometry)
+        assertEquals(1.0, rect.width / rect.height, 0.01)
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("Circle", substring = true)
+        // The orientation swap has nothing to swap on a circle.
+        assertTrue(CropAspectPreset.Circle.isSquare)
+
+        // A plain ratio drops the shape again, in one step.
+        selectCropAspect(TAG_CROP_4_5)
+        awaitState { it.document?.geometry?.shape == PhotoCropShape.Rectangle && !it.interactionActive }
+    }
+
+    @Test
+    fun undoingAShapeReturnsTheStripToTheFrame() = runComposeUiTest {
+        val s = liveSession()
+        openPhotoTool(TAG_CATEGORY_CROP)
+        awaitState { it.toolEditing && !it.interactionActive }
+        selectCropAspect(TAG_CROP_ROUNDED_SQUARE)
+        awaitState { it.document?.geometry?.shape == PhotoCropShape.RoundedSquare }
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("Rounded square", substring = true)
+        runOnUiThread { s.undo() }
+        awaitState { it.document?.geometry?.shape == PhotoCropShape.Rectangle }
+        waitForIdle()
+        // The sample is square, so the undone frame is the untouched Free one.
+        onNodeWithTag(TAG_CROP_ASPECT).assertTextContains("Free", substring = true)
+    }
+
+    @Test
+    fun savingAShapedJpegAsksForATransparentFormat() = runComposeUiTest {
+        val media = FixturePhotoMediaAccess { samplePixels() }
+        lateinit var s: PhotoEditorSession
+        runOnUiThread {
+            s = PhotoEditorSession(
+                scope = CoroutineScope(Dispatchers.Main),
+                media = media,
+                onError = {}
+            )
+            s.open("fixture://editor_sample.jpg")
+        }
+        session = s
+        setContent {
+            TestEditorRoot {
+                Box(Modifier.size(412.dp, 832.dp).fillMaxSize()) {
+                    PhotoEditorScreen(session = s, onClose = {}, onRetryOpen = {})
+                }
+            }
+        }
+        awaitImage(s)
+        val shaped = s.state.value.document!!.geometry.copy(shape = PhotoCropShape.Circle)
+        runOnUiThread {
+            s.applyEdits("Crop shape", s.state.value.document!!.toEdits().copy(geometry = shaped))
+        }
+        awaitState { it.document?.geometry?.shape == PhotoCropShape.Circle }
+
+        onNodeWithTag(TAG_SAVE).performClick()
+        waitForIdle()
+        val menuItem = onAllNodesWithTag(TAG_SAVE_MENU_COPY).fetchSemanticsNodes()
+        if (menuItem.isNotEmpty()) onNodeWithTag(TAG_SAVE_MENU_COPY).performClick()
+        // The fixture source is not a PNG, so its own container would drop
+        // the transparent corners: nothing is written before the user picks.
+        onNodeWithTag(TAG_TRANSPARENT_EXPORT_SHEET).assertIsDisplayed()
+        assertEquals(0, media.exportCalls)
+        onNodeWithTag("$TAG_TRANSPARENT_EXPORT_SHEET.PNG").performClick()
+        awaitState { it.exported != null }
+        assertEquals(listOf<PhotoExportFormat?>(PhotoExportFormat.PNG), media.exportedFormats)
     }
 }

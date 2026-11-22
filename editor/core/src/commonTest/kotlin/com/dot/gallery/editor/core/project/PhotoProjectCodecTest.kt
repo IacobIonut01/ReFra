@@ -5,6 +5,7 @@ import com.dot.gallery.editor.core.model.MediaAsset
 import com.dot.gallery.editor.core.model.NormalizedCrop
 import com.dot.gallery.editor.core.model.NormalizedPoint
 import com.dot.gallery.editor.core.model.PhotoBlendMode
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.PhotoCurves
 import com.dot.gallery.editor.core.model.PhotoFinishing
@@ -22,6 +23,7 @@ import com.dot.gallery.editor.core.model.PhotoWarp
 import com.dot.gallery.editor.core.model.PixelSize
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlinx.collections.immutable.persistentListOf
@@ -175,6 +177,17 @@ class PhotoProjectCodecTest {
             PhotoProjectCodec.encode(snapshot),
             PhotoProjectCodec.encode(snapshot)
         )
+    }
+
+    @Test
+    fun `every crop shape round-trips and an old project reads as a rectangle`() {
+        for (shape in PhotoCropShape.entries) {
+            val snapshot = PhotoProjectSnapshot(PhotoEdits(geometry = PhotoGeometry(shape = shape)))
+            assertEquals(snapshot, PhotoProjectCodec.decode(PhotoProjectCodec.encode(snapshot)))
+        }
+        // A rectangle writes no shape key, so older readers see the same file.
+        val plain = PhotoProjectCodec.encode(PhotoProjectSnapshot(PhotoEdits()))
+        assertFalse(plain.contains("\"shape\""))
     }
 
     @Test

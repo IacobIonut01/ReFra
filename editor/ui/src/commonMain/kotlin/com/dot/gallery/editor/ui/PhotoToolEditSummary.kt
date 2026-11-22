@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.dot.gallery.editor.core.model.LensBlurMode
 import com.dot.gallery.editor.core.model.NormalizedCrop
 import com.dot.gallery.editor.core.model.PhotoBlendMode
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.PhotoGeometry
 import com.dot.gallery.editor.core.model.PhotoLayerMask
@@ -12,6 +13,9 @@ import com.dot.gallery.editor.core.model.PhotoMapping
 import com.dot.gallery.editor.core.model.PixelSize
 import com.dot.gallery.editor.core.model.contrastAmount
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_circle
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_rounded_square
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_shape
 import com.dot.gallery.editor.ui.generated.resources.editor_amount
 import com.dot.gallery.editor.ui.generated.resources.editor_angle
 import com.dot.gallery.editor.ui.generated.resources.editor_blacks
@@ -463,6 +467,17 @@ internal fun photoEditParams(
         labelRes = Res.string.editor_tool_crop, snapshot = crop,
         display = cropDisplay(geometry, sourceSize),
         isDefault = crop == NormalizedCrop()
+    )
+    params += PhotoEditParam(
+        key = "geometry.shape", tool = EditorToolIds.PhotoCrop,
+        labelRes = Res.string.editor_crop_shape, snapshot = geometry.shape,
+        display = geometry.shape.name,
+        displayRes = when (geometry.shape) {
+            PhotoCropShape.Rectangle -> null
+            PhotoCropShape.Circle -> Res.string.editor_crop_circle
+            PhotoCropShape.RoundedSquare -> Res.string.editor_crop_rounded_square
+        },
+        isDefault = !geometry.shape.isShaped
     )
     val turns = geometry.quarterTurns.mod(4)
     params += PhotoEditParam(

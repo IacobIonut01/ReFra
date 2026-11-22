@@ -1,6 +1,7 @@
 package com.dot.gallery.editor.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.LocalDensity
 import com.dot.gallery.editor.ui.icons.Crop
 import com.dot.gallery.editor.ui.icons.KeyboardArrowDown
@@ -64,7 +66,9 @@ import androidx.compose.ui.unit.sp
 import com.dot.gallery.editor.core.model.PhotoMapping
 import com.dot.gallery.editor.render.photo.PhotoEditorState
 import com.dot.gallery.editor.ui.generated.resources.Res
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_circle
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_four_five
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_rounded_square
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_free
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_guided_count
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_guided_hint
@@ -107,6 +111,8 @@ internal const val TAG_CROP_4_5 = "editor.crop.4x5"
 internal const val TAG_CROP_3_2 = "editor.crop.3x2"
 internal const val TAG_CROP_4_3 = "editor.crop.4x3"
 internal const val TAG_CROP_16_9 = "editor.crop.16x9"
+internal const val TAG_CROP_CIRCLE = "editor.crop.circle"
+internal const val TAG_CROP_ROUNDED_SQUARE = "editor.crop.roundedSquare"
 internal const val TAG_CROP_ORIENTATION = "editor.crop.orientation"
 internal const val TAG_CROP_ASPECT = "editor.crop.aspect"
 internal const val TAG_CROP_AXIS = "editor.crop.axis"
@@ -180,6 +186,16 @@ internal fun CropToolContent(
             if (uiState.seedPreset(document.geometry, upright, remembered)) {
                 ops.fitPreset()
             }
+        }
+    }
+    // The shape is in the recipe and the preset is not: after an undo or
+    // redo changes the shape, the strip follows the frame again.
+    val shape = document?.geometry?.shape
+    LaunchedEffect(shape) {
+        val doc = latestState.document ?: return@LaunchedEffect
+        val up = latestState.info?.uprightSize ?: return@LaunchedEffect
+        if (uiState.presetSeeded && uiState.cropPreset.shape != doc.geometry.shape) {
+            uiState.cropPreset = CropAspectPreset.derive(doc.geometry, up).first
         }
     }
     LaunchedEffect(initialTab) {
@@ -442,6 +458,13 @@ private fun CropAspectPill(ops: CropToolOps, enabled: Boolean) {
         CropAspectPreset.ThreeTwo to TAG_CROP_3_2,
         CropAspectPreset.FourThree to TAG_CROP_4_3
     )
+    // The shaped crops lock 1:1 and save with transparency.
+    val shapes = listOf(
+        CropAspectPreset.Circle to TAG_CROP_CIRCLE,
+        CropAspectPreset.RoundedSquare to TAG_CROP_ROUNDED_SQUARE
+    )
+    val circle = stringResource(Res.string.editor_crop_circle)
+    val roundedSquare = stringResource(Res.string.editor_crop_rounded_square)
     val free = stringResource(Res.string.editor_crop_free)
     val original = stringResource(Res.string.editor_crop_original)
     val square = stringResource(Res.string.editor_crop_square)
@@ -451,6 +474,8 @@ private fun CropAspectPill(ops: CropToolOps, enabled: Boolean) {
         CropAspectPreset.Free -> free
         CropAspectPreset.Original -> original
         CropAspectPreset.Square -> square
+        CropAspectPreset.Circle -> circle
+        CropAspectPreset.RoundedSquare -> roundedSquare
         CropAspectPreset.FourFive -> if (portrait) fourFive else preset.ratioLabel(false)
         else -> preset.ratioLabel(portrait)
     }
@@ -527,9 +552,14 @@ private fun CropAspectPill(ops: CropToolOps, enabled: Boolean) {
             }
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            presets.forEach { (preset, tag) ->
+            val item: @Composable (CropAspectPreset, String) -> Unit = { preset, tag ->
                 DropdownMenuItem(
                     text = { Text(labelOf(preset)) },
+                    leadingIcon = if (preset.shape.isShaped) {
+                        { CropShapeGlyph(preset) }
+                    } else {
+                        null
+                    },
                     onClick = {
                         open = false
                         ops.selectPreset(preset)
@@ -538,8 +568,22 @@ private fun CropAspectPill(ops: CropToolOps, enabled: Boolean) {
                     modifier = Modifier.testTag(tag)
                 )
             }
+            presets.forEach { (preset, tag) -> item(preset, tag) }
+            HorizontalDivider(Modifier.padding(vertical = 4.dp))
+            shapes.forEach { (preset, tag) -> item(preset, tag) }
         }
     }
+}
+
+/** A small outline of a shaped preset for its menu row. */
+@Composable
+private fun CropShapeGlyph(preset: CropAspectPreset) {
+    val shape = if (preset == CropAspectPreset.Circle) CircleShape else RoundedCornerShape(30)
+    Box(
+        Modifier
+            .size(18.dp)
+            .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, shape)
+    )
 }
 
 /** The aspect pill and the axis pill share the card's first row. */

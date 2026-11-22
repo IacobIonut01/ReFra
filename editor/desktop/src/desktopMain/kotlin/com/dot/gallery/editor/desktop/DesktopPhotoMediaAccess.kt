@@ -119,7 +119,8 @@ class DesktopPhotoMediaAccess(
                 reference = reference,
                 displayName = path.name,
                 rawSize = PixelSize(width, height),
-                orientation = orientation
+                orientation = orientation,
+                sourceKeepsAlpha = mime == MIME_PNG
             )
             return DesktopPhotoRaster(info, reader, input, ioDispatcher)
         } catch (t: Throwable) {

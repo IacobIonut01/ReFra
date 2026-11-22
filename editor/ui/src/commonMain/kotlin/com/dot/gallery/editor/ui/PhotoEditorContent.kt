@@ -435,8 +435,10 @@ fun PhotoEditorContent(
     // The retouch stage is CPU only: markup, the matte and neighbourhood
     // effects have no fixed-cost shader form, so the CPU preview draws them.
     // A RAW's develop rewrites the source itself, which the shader's bitmap
-    // never sees, so RAW sources always draw through the CPU preview.
+    // never sees, so RAW sources always draw through the CPU preview. A
+    // shaped crop is clipped in the retouch stage, so it draws there too.
     val retouchActive = shaderEdits?.retouch?.isNeutral == false ||
+        shaderEdits?.geometry?.shape?.isShaped == true ||
         state.info?.isRaw == true
     val shaderDrawing = shaderUsable && !viewport.showsBefore &&
         shaderEdits != null && shaderImageSize != null && !maskToolActive &&

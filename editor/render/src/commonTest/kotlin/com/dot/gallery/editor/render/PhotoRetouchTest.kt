@@ -2,6 +2,7 @@ package com.dot.gallery.editor.render
 
 import com.dot.gallery.editor.core.model.NormalizedPoint
 import com.dot.gallery.editor.core.model.PhotoColourTone
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoCutoutMatte
 import com.dot.gallery.editor.core.model.PhotoEffects
 import com.dot.gallery.editor.core.model.PhotoMarkup
@@ -232,5 +233,31 @@ class PhotoRetouchTest {
             y += bandRows
         }
         assertContentEquals(full, banded)
+    }
+
+    @Test
+    fun aCircleCropClearsTheCornersAndKeepsTheCentre() = runTest {
+        val square = PixelSize(48, 48)
+        val pixels = IntArray(square.width * square.height) { 0xFF336699.toInt() }
+        val frame = SrgbPixels(square, pixels).toLinearFrame()
+        val out = PhotoRetouchRenderer(PhotoRetouch(), square, PhotoCropShape.Circle)
+            .process(frame).toSrgbPixels().copyPixels()
+        assertEquals(0, out[0] ushr 24, "corner is transparent")
+        assertEquals(0, out[out.size - 1] ushr 24, "far corner is transparent")
+        val centre = out[24 * square.width + 24]
+        assertEquals(0xFF336699.toInt(), centre, "centre is untouched")
+    }
+
+    @Test
+    fun aBandKeepsTheShapeInAbsoluteCoordinates() = runTest {
+        // A banded export renders rows 24..47 of a 48x48 circle: its last row
+        // is the frame's bottom edge, whose corners must clear too.
+        val full = PixelSize(48, 48)
+        val band = PixelSize(48, 24)
+        val frame = SrgbPixels(band, IntArray(band.width * band.height) { -1 }).toLinearFrame()
+        val out = PhotoRetouchRenderer(PhotoRetouch(), full, PhotoCropShape.Circle)
+            .process(frame, originY = 24).toSrgbPixels().copyPixels()
+        assertEquals(0, out[out.size - 1] ushr 24)
+        assertEquals(0xFF, out[0 * band.width + 24] ushr 24, "the band's top centre is inside")
     }
 }

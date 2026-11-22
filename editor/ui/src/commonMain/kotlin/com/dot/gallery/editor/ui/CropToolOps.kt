@@ -111,12 +111,17 @@ internal class CropToolOps(
         fitPreset()
     }
 
-    /** Fits the crop to the selected preset's ratio; Free changes nothing. */
+    /**
+     * Fits the crop to the selected preset's ratio and gives it the preset's
+     * shape, as one step. Free keeps the crop as it is and only drops a shape.
+     */
     fun fitPreset() {
-        if (ui.cropPreset == CropAspectPreset.Free) return
-        apply("Crop aspect") { g, up ->
-            val ratio = ui.cropAspect(g, up) ?: return@apply g
-            CropFitting.withAspect(up, g, ratio)
+        val preset = ui.cropPreset
+        val label = if (preset.shape != geometry.shape) "Crop shape" else "Crop aspect"
+        apply(label) { g, up ->
+            val shaped = g.copy(shape = preset.shape)
+            val ratio = ui.cropAspect(shaped, up) ?: return@apply shaped
+            CropFitting.withAspect(up, shaped, ratio)
         }
     }
 

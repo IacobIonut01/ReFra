@@ -1,6 +1,7 @@
 package com.dot.gallery.editor.ui
 
 import com.dot.gallery.editor.core.geometry.CropFitting
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoGeometry
 import com.dot.gallery.editor.core.model.PixelSize
 import kotlin.math.abs
@@ -15,18 +16,31 @@ import kotlin.math.abs
  * The preset is UI-only state (see [PhotoToolUiState]) and never part of
  * the recipe: it decides which ratio the handles preserve and what a
  * preset click fits.
+ *
+ * [Circle] and [RoundedSquare] are the shaped presets: both lock 1:1 and
+ * carry the recipe's [PhotoCropShape], which the preset sets when picked
+ * (every other preset sets [PhotoCropShape.Rectangle]). Unlike the ratio,
+ * the shape is part of the recipe, so [derive] reads it back from there.
  */
-internal enum class CropAspectPreset(val long: Int, val short: Int) {
+internal enum class CropAspectPreset(
+    val long: Int,
+    val short: Int,
+    val shape: PhotoCropShape = PhotoCropShape.Rectangle
+) {
     Free(0, 0),
     Original(0, 0),
     Square(1, 1),
     FourFive(5, 4),
     ThreeTwo(3, 2),
     FourThree(4, 3),
-    Wide(16, 9);
+    Wide(16, 9),
+    Circle(1, 1, PhotoCropShape.Circle),
+    RoundedSquare(1, 1, PhotoCropShape.RoundedSquare);
 
     val isFixedRatio: Boolean get() = this != Free && this != Original
-    val isSquare: Boolean get() = this == Square
+
+    /** A 1:1 preset: it has no orientation to swap or turn. */
+    val isSquare: Boolean get() = long != 0 && long == short
 
     /**
      * The displayed ratio for a plane of [planeWidth] x [planeHeight]
@@ -61,6 +75,10 @@ internal enum class CropAspectPreset(val long: Int, val short: Int) {
                 abs(rect.height - cp.height) <= 0.005 * cp.height
         }
 
+        /** The shaped preset that keeps [shape], or null for a rectangle. */
+        fun forShape(shape: PhotoCropShape): CropAspectPreset? =
+            entries.firstOrNull { it.shape.isShaped && it.shape == shape }
+
         /** The preset named [name], or null for an unknown or absent name. */
         fun fromName(name: String?): CropAspectPreset? =
             name?.let { n -> entries.firstOrNull { it.name == n } }
@@ -68,12 +86,14 @@ internal enum class CropAspectPreset(val long: Int, val short: Int) {
         /**
          * The preset and orientation matching [geometry]'s displayed crop
          * within 0.5 %: a whole-frame crop is the untouched Free default,
-         * any other unmatched ratio is Free too.
+         * any other unmatched ratio is Free too. A shaped crop is its shaped
+         * preset whatever its ratio.
          */
         fun derive(geometry: PhotoGeometry, upright: PixelSize): Pair<CropAspectPreset, Boolean> {
             val cp = CropFitting.planeOf(upright, geometry)
             val rect = cp.rectOf(geometry.crop)
             val defaultPortrait = portraitOf(cp.width, cp.height)
+            forShape(geometry.shape)?.let { return it to defaultPortrait }
             if (rect.width <= 0.0 || rect.height <= 0.0) return Free to defaultPortrait
             if (isWholeFrame(geometry, upright)) return Free to defaultPortrait
             val ratio = rect.aspect

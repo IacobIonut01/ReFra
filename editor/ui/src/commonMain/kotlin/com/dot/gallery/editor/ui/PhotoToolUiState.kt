@@ -115,6 +115,9 @@ internal class PhotoToolUiState {
         remembered: CropAspectPreset? = null
     ): Boolean {
         if (presetSeeded) return false
+        // A remembered shape is not reapplied: opening the tool must never
+        // make a photo transparent on its own.
+        val remembered = remembered?.takeUnless { it.shape.isShaped }
         val (preset, portrait) = CropAspectPreset.derive(geometry, upright)
         val untouched = CropAspectPreset.isWholeFrame(geometry, upright)
         cropPreset = if (untouched && remembered != null) remembered else preset

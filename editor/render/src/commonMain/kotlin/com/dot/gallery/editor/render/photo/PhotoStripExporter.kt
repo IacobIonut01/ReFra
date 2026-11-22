@@ -101,7 +101,7 @@ class PhotoStripExporter(
         // row, so a non-neutral recipe fills and composites each band
         // expanded by the recipe's halo, clipped to the output.
         val spatialHalo = document.spatial.requiredHalo
-        val retouch = PhotoRetouchRenderer(document.retouch, fullOutput)
+        val retouch = PhotoRetouchRenderer(document.retouch, fullOutput, document.geometry.shape)
         var y = 0
         while (y < outHeight) {
             val rows = min(bandRows, outHeight - y)
@@ -198,7 +198,7 @@ class PhotoStripExporter(
             "decoded zone ${width}x$height exceeds the output pixel budget"
         }
         val output = IntArray(width * height)
-        val retouch = PhotoRetouchRenderer(document.retouch, fullSize)
+        val retouch = PhotoRetouchRenderer(document.retouch, fullSize, document.geometry.shape)
         val retouchHalo = retouch.halo(region.top, region.height)
         val halo = document.spatial.requiredHalo + retouchHalo
         val left = maxOf(0, region.left - halo)

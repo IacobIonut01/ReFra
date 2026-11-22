@@ -277,6 +277,9 @@
     <string name="editor_crop_classic">4:3</string>
     <string name="editor_crop_four_five">4:5</string>
     <string name="editor_crop_wide">16:9</string>
+    <string name="editor_crop_circle">Circle</string>
+    <string name="editor_crop_rounded_square">Rounded square</string>
+    <string name="editor_crop_shape">Crop shape</string>
     <string name="editor_straighten">Straighten</string>
     <string name="editor_rotate_left">Rotate left</string>
     <string name="editor_rotate_right">Rotate right</string>
@@ -883,6 +886,10 @@
     <string name="editor_raw_export_png">PNG</string>
     <string name="editor_raw_export_tiff8">TIFF (8-bit)</string>
     <string name="editor_raw_export_tiff16">TIFF (16-bit)</string>
+    <string name="editor_transparent_export_title">Keep transparency</string>
+    <string name="editor_transparent_export_subtitle">JPEG can't hold transparent areas. Save the copy as PNG or WebP instead.</string>
+    <string name="editor_transparent_export_png">PNG (lossless)</string>
+    <string name="editor_transparent_export_webp">WebP (smaller)</string>
     <string name="editor_raw_export_tiff_note">TIFF keeps full bit depth but can't include crop, filters or markup. Remove them to export TIFF.</string>
     <string name="editor_settings">Editor settings</string>
     <string name="editor_settings_back">Back</string>

@@ -348,7 +348,8 @@ class AndroidPhotoMediaAccess(
                 reference = reference,
                 displayName = displayName(uri),
                 rawSize = PixelSize(width, height),
-                orientation = orientation
+                orientation = orientation,
+                sourceKeepsAlpha = mime == MIME_PNG
             )
             // The one-argument newInstance overload requires API 31; min is 29.
             @Suppress("DEPRECATION")

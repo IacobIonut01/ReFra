@@ -5,6 +5,7 @@ import com.dot.gallery.editor.core.model.MediaAsset
 import com.dot.gallery.editor.core.model.NormalizedCrop
 import com.dot.gallery.editor.core.model.NormalizedPoint
 import com.dot.gallery.editor.core.model.PhotoBlendMode
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoEdits
 import com.dot.gallery.editor.core.model.PhotoGeometry
 import com.dot.gallery.editor.core.model.PhotoImageLayer
@@ -139,6 +140,8 @@ object PhotoProjectCodec {
         out.key("horizontalPerspective").value(g.warp.horizontalPerspective)
         out.key("scale").value(g.warp.scale)
         out.endObject()
+        // Older projects have no shape and read back as a rectangle.
+        if (g.shape.isShaped) out.key("shape").value(g.shape.name)
         out.endObject()
     }
 
@@ -657,7 +660,8 @@ object PhotoProjectCodec {
         quarterTurns = obj.optInt("quarterTurns") ?: 0,
         flipHorizontal = obj.optBoolean("flipHorizontal") ?: false,
         flipVertical = obj.optBoolean("flipVertical") ?: false,
-        warp = obj.optObj("warp")?.let(::decodeWarp) ?: PhotoWarp()
+        warp = obj.optObj("warp")?.let(::decodeWarp) ?: PhotoWarp(),
+        shape = PhotoCropShape.fromName(obj.optString("shape"))
     )
 
     private fun decodeWarp(obj: ProjectJson.Object) = PhotoWarp(

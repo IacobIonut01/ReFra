@@ -25,7 +25,7 @@ class PhotoRetouchEffect : FrameEffect {
             ?: throw UnsupportedOperationException(
                 "photo.retouch requires EffectParameters.Retouch, got $parameters"
             )
-        return PhotoRetouchRenderer(params.retouch, params.fullSize)
+        return PhotoRetouchRenderer(params.retouch, params.fullSize, params.shape)
             .process(inputs.single(), params.originY)
     }
 }

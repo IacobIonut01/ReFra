@@ -2,6 +2,7 @@ package com.dot.gallery.editor.render
 
 import com.dot.gallery.editor.core.model.NormalizedPoint
 import com.dot.gallery.editor.core.model.PhotoColourTone
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoCutoutMatte
 import com.dot.gallery.editor.core.model.PhotoEffects
 import com.dot.gallery.editor.core.model.PhotoMarkupMetrics
@@ -45,11 +46,13 @@ expect fun measureMarkupTextEm(text: String): Pair<Float, Float>?
  * used by the render-graph preview and, band by band, by the strip exporter.
  * The stage works on display-encoded 8-bit pixels, matching the tools it comes
  * from and the export formats it feeds. One instance serves one recipe at one
- * output size and caches rasterized text between bands.
+ * output size and caches rasterized text between bands. A shaped crop
+ * ([shape]) is clipped last, over the frame's straight alpha.
  */
 internal class PhotoRetouchRenderer(
     private val retouch: PhotoRetouch,
-    private val fullSize: PixelSize
+    private val fullSize: PixelSize,
+    private val shape: PhotoCropShape = PhotoCropShape.Rectangle
 ) {
     private val textMasks = HashMap<Pair<String, Int>, PhotoTextMask?>()
 
@@ -85,7 +88,16 @@ internal class PhotoRetouchRenderer(
         originY: Int = 0,
         originX: Int = 0
     ): LinearRgbaFrame {
-        if (retouch.isNeutral) return frame
+        if (retouch.isNeutral && !shape.isShaped) return frame
+        val retouched = if (retouch.isNeutral) frame else retouch(frame, originY, originX)
+        return if (shape.isShaped) clipToShape(retouched, originY, originX) else retouched
+    }
+
+    private suspend fun retouch(
+        frame: LinearRgbaFrame,
+        originY: Int,
+        originX: Int
+    ): LinearRgbaFrame {
         val width = frame.size.width
         val height = frame.size.height
         require(originY >= 0 && originY + height <= fullSize.height) {
@@ -106,6 +118,27 @@ internal class PhotoRetouchRenderer(
             applyBorder(pixels, width, height, retouch.effects, fullSize, originX, originY)
         }
         return decode(frame.size, pixels)
+    }
+
+    /** Multiplies alpha by the crop outline's coverage in absolute output coordinates. */
+    private suspend fun clipToShape(
+        frame: LinearRgbaFrame,
+        originY: Int,
+        originX: Int
+    ): LinearRgbaFrame {
+        val width = frame.size.width
+        val out = frame.copyPixels()
+        for (y in 0 until frame.size.height) {
+            coroutineContext.ensureActive()
+            for (x in 0 until width) {
+                val keep = shape.coverage(x + originX, y + originY, fullSize.width, fullSize.height)
+                if (keep >= 1f) continue
+                val i = (y * width + x) * LinearRgbaFrame.COMPONENTS_PER_PIXEL +
+                    LinearRgbaFrame.ALPHA_OFFSET
+                out[i] *= keep
+            }
+        }
+        return LinearRgbaFrame.fromOwned(frame.size, out)
     }
 
     private suspend fun encode(frame: LinearRgbaFrame): IntArray {

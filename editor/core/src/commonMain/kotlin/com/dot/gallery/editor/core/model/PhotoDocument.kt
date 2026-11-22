@@ -34,6 +34,13 @@ data class PhotoDocument(
     }
 }
 
+/**
+ * Whether the output carries transparency — a removed background or a shaped
+ * crop — so it must be saved in a container that keeps alpha (PNG or WebP).
+ */
+val PhotoDocument.hasTransparency: Boolean
+    get() = retouch.hasTransparency || geometry.shape.isShaped
+
 /** Extracts the editable recipe — every reconstruction must go through this. */
 fun PhotoDocument.toEdits(): PhotoEdits =
     PhotoEdits(

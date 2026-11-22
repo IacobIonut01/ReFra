@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import com.dot.gallery.editor.core.model.PhotoMapping
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_circle
+import com.dot.gallery.editor.ui.generated.resources.editor_crop_rounded_square
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_free
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_original
 import com.dot.gallery.editor.ui.generated.resources.editor_crop_output
@@ -49,8 +51,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -82,6 +87,7 @@ import com.dot.gallery.editor.core.geometry.GuideAxis
 import com.dot.gallery.editor.core.geometry.GuidedUpright
 import com.dot.gallery.editor.core.geometry.PlaneRect
 import com.dot.gallery.editor.core.geometry.Vec2
+import com.dot.gallery.editor.core.model.PhotoCropShape
 import com.dot.gallery.editor.core.model.PhotoGeometry
 import com.dot.gallery.editor.core.model.PixelSize
 import com.dot.gallery.editor.core.model.toEdits
@@ -591,10 +597,12 @@ internal fun EditorCropWindow(
                             imageRect.right, imageRect.bottom
                         ) {
                             drawScrim(frame, scrim)
+                            drawShapeMask(frame, geometry.shape, scrim, onSurface)
                         }
                     } else {
                         clipRect(fieldL, fieldT, fieldL + fieldW, fieldT + fieldH) {
                             drawScrim(frame, scrim)
+                            drawShapeMask(frame, geometry.shape, scrim, onSurface)
                         }
                     }
                     clipRect(frameClipL, frameClipT, frameClipR, frameClipB) {
@@ -630,6 +638,10 @@ internal fun EditorCropWindow(
                             stringResource(Res.string.editor_crop_original)
                         CropAspectPreset.Square ->
                             stringResource(Res.string.editor_crop_square)
+                        CropAspectPreset.Circle ->
+                            stringResource(Res.string.editor_crop_circle)
+                        CropAspectPreset.RoundedSquare ->
+                            stringResource(Res.string.editor_crop_rounded_square)
                         else -> preset.ratioLabel(ui.cropPortrait)
                     }
                     val pillHeight = INFO_PILL_HEIGHT
@@ -870,6 +882,32 @@ private fun DrawScope.drawScrim(f: Rect, color: Color) {
     drawRect(color, Offset(0f, f.bottom), Size(w, (h - f.bottom).coerceAtLeast(0f)))
     drawRect(color, Offset(0f, f.top), Size(f.left.coerceAtLeast(0f), f.height))
     drawRect(color, Offset(f.right, f.top), Size((w - f.right).coerceAtLeast(0f), f.height))
+}
+
+/**
+ * The shaped crop's mask preview: the corners the shape clears get the same
+ * dim as the photo outside the frame, and a hairline traces the outline the
+ * saved copy keeps. A rectangle draws nothing.
+ */
+internal fun DrawScope.drawShapeMask(f: Rect, shape: PhotoCropShape, scrim: Color, line: Color) {
+    val outline = cropShapeOutline(f, shape) ?: return
+    val cleared = Path().apply {
+        fillType = PathFillType.EvenOdd
+        addRect(f)
+        addPath(outline)
+    }
+    drawPath(cleared, scrim)
+    drawPath(outline, line.copy(alpha = 0.8f), style = Stroke(1.5.dp.toPx()))
+}
+
+/** The outline of [shape] inscribed in [f], matching [PhotoCropShape.coverage]; null for a rectangle. */
+internal fun cropShapeOutline(f: Rect, shape: PhotoCropShape): Path? = when (shape) {
+    PhotoCropShape.Rectangle -> null
+    PhotoCropShape.Circle -> Path().apply { addOval(f) }
+    PhotoCropShape.RoundedSquare -> Path().apply {
+        val radius = (min(f.width, f.height) * PhotoCropShape.ROUNDED_CORNER_FRACTION).toFloat()
+        addRoundRect(RoundRect(f, CornerRadius(radius, radius)))
+    }
 }
 
 /** Thirds while idle; a dense 6×6 grid while a ruler drags. */
