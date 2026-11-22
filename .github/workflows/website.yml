@@ -41,7 +41,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Fix Gradle wrapper permissions
         run: chmod +x ./gradlew
       - uses: actions/setup-node@v4

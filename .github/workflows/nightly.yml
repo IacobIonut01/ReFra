@@ -42,7 +42,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Install pinned native CMake
         run: |
           curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
@@ -96,7 +96,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Install pinned native CMake
         run: |
           curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
@@ -150,7 +150,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Install pinned native CMake
         run: |
           curl -fsSL "https://dl.google.com/android/repository/cmake-3.31.6-linux.zip" -o /tmp/cmake.zip
@@ -199,7 +199,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Fix permissions
         run: chmod +x ./gradlew
       - name: Tune Gradle for CI
