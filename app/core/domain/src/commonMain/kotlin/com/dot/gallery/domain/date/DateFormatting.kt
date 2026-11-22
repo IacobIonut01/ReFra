@@ -43,6 +43,15 @@ fun Long.getMediaAppBarDate(format: CharSequence, extendedFormat: CharSequence):
     }
 
 /**
+ * Splits a formatted viewer header into its first line and the line under it. The second is
+ * null for a one-line pattern, such as the ISO 8601 presets, so the header shows it once.
+ */
+fun splitDateHeader(date: String): Pair<String, String?> {
+    val newline = date.indexOf('\n')
+    return if (newline < 0) date to null else date.substring(0, newline) to date.substring(newline + 1)
+}
+
+/**
  * Validates a user-entered LDML date pattern the way `SimpleDateFormat(pattern)` would:
  * every unquoted ASCII letter must be a known pattern symbol. Quoted literal runs
  * ('text') are skipped; an unmatched quote is an error.

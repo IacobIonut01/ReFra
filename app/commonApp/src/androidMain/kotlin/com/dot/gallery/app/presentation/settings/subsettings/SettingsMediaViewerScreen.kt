@@ -77,6 +77,7 @@ import com.dot.gallery.app.presentation.util.getEditVideoCapableApps
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import com.dot.gallery.ui.core.icons.VisualSearch
+import com.dot.gallery.domain.date.splitDateHeader
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.generated.resources.Res
@@ -183,23 +184,24 @@ private fun DateHeaderPreview(isChecked: Boolean) {
         buildAnnotatedString {
             val date = currentMillis.getDate(dateHeaderFormat)
             if (date.isNotEmpty()) {
-                val top = date.substringBefore("\n")
-                val bottom = date.substringAfter("\n")
+                val (top, bottom) = splitDateHeader(date)
                 withStyle(
                     style = textStyle.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     ).toSpanStyle()
                 ) {
-                    appendLine(top)
+                    if (bottom != null) appendLine(top) else append(top)
                 }
-                withStyle(
-                    style = textStyle.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp
-                    ).toSpanStyle()
-                ) {
-                    append(bottom)
+                if (bottom != null) {
+                    withStyle(
+                        style = textStyle.copy(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp
+                        ).toSpanStyle()
+                    ) {
+                        append(bottom)
+                    }
                 }
             }
         }

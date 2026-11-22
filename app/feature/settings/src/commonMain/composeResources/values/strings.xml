@@ -709,6 +709,10 @@
     <string name="back_cd">Back</string>
     <string name="classic_date">Classic Date</string>
     <string name="date_format_following_system">Following system format</string>
+    <string name="date_format_preset_iso_date">ISO 8601</string>
+    <string name="date_format_preset_iso_date_time">ISO 8601 date-time</string>
+    <string name="date_format_preset_rfc_3339">RFC 3339</string>
+    <string name="date_format_use_iso">Use ISO 8601 everywhere</string>
     <string name="date_format_info_action">Format help</string>
     <string name="date_format_info_date_section">Date components</string>
     <string name="date_format_info_standard_section">Common formats</string>

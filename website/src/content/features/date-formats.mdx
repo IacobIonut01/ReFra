@@ -21,6 +21,18 @@ ReFra prints dates in several places: the date line in the media viewer, the det
 
 Leaving a field empty makes it follow your device's own date and time format. Tap **Reset** on a field to return it to the default.
 
+## Presets
+
+Under every field, three chips fill in a standard pattern; the one in use is highlighted.
+
+| Chip | Pattern | Example |
+| --- | --- | --- |
+| **ISO 8601** | `yyyy-MM-dd` | `2026-06-15` |
+| **ISO 8601 date-time** | `yyyy-MM-dd'T'HH:mm` | `2026-06-15T14:05` |
+| **RFC 3339** | `yyyy-MM-dd HH:mm:ssXXX` | `2026-06-15 14:05:09+02:00` |
+
+**Use ISO 8601 everywhere**, at the top of the page, sets every field at once: the three grid fields get `yyyy-MM-dd`, and **Date Header**, **Extended Date Header** and **Exif Date** get `yyyy-MM-dd'T'HH:mm`. Tap **Reset** on a field to undo it there.
+
 ## The fields
 
 <PreviewCollection feature="date-formats" section="the-fields" />
@@ -60,6 +72,8 @@ Tap **Format help** on a field to see the same table in the app. Combine letters
 | `D` | Day of year | `166` |
 | `w` | Week of year | depends on your device's locale and week rules |
 | `G` | Era | `AD` |
+| `XXX` | UTC offset (`Z` for UTC) | `+02:00` |
+| `'T'` | Quoted text, printed as is | `T` |
 
 The one pair that bites: uppercase `M` is the month, lowercase `m` is minutes. `MM-dd` prints `06-15` while `mm-dd` prints `05-15`.
 
@@ -74,3 +88,4 @@ The one pair that bites: uppercase `M` is the month, lowercase `m` is minutes. `
 
 - An invalid pattern is not saved: the field highlights it and keeps the previously saved pattern. Fix the pattern, or clear the field (or tap **Reset**) to return to your device format.
 - Punctuation you type between letters is kept literally, so `yyyy/MM/dd` shows slashes and `d. MMM` shows a dot.
+- The viewer header puts a pattern's second line, if it has one, under the first in smaller text. A one-line pattern such as the ISO 8601 presets shows on a single line.

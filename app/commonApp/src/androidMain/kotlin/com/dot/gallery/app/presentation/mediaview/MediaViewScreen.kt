@@ -327,6 +327,7 @@ import com.dot.gallery.core.ui.mediaview.resolveVisualSearchTarget
 import com.dot.gallery.core.ui.mediaview.needsVisualSearchConvert
 import com.dot.gallery.core.presentation.util.hazeEffectScaled
 import com.dot.gallery.domain.model.definedTimestamp
+import com.dot.gallery.domain.date.splitDateHeader
 import com.dot.gallery.domain.date.getMediaAppBarDate
 import com.dot.gallery.feature.viewer.ViewerDismissState
 import com.dot.gallery.feature.viewer.VisualSearchStage
@@ -1260,23 +1261,24 @@ fun <T : Media> MediaViewScreen(
                     currentExtendedDateFormat
                 ) ?: ""
                 if (date.isNotEmpty()) {
-                    val top = date.substringBefore("\n")
-                    val bottom = date.substringAfter("\n")
+                    val (top, bottom) = splitDateHeader(date)
                     withStyle(
                         style = textStyle.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         ).toSpanStyle()
                     ) {
-                        appendLine(top)
+                        if (bottom != null) appendLine(top) else append(top)
                     }
-                    withStyle(
-                        style = textStyle.copy(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp
-                        ).toSpanStyle()
-                    ) {
-                        append(bottom)
+                    if (bottom != null) {
+                        withStyle(
+                            style = textStyle.copy(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp
+                            ).toSpanStyle()
+                        ) {
+                            append(bottom)
+                        }
                     }
                 }
             }

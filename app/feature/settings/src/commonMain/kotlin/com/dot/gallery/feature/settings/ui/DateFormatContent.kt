@@ -29,6 +29,8 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
@@ -68,7 +70,10 @@ import com.dot.gallery.core.Position
 import com.dot.gallery.core.presentation.components.DragHandle
 import com.dot.gallery.core.presentation.components.sheetGroupedShape
 import com.dot.gallery.core.presentation.util.LocalHazeState
+import com.dot.gallery.domain.date.splitDateHeader
+import com.dot.gallery.domain.date.DateFormatPreset
 import com.dot.gallery.domain.date.SystemDateFormatField
+import com.dot.gallery.domain.date.iso8601Pattern
 import com.dot.gallery.domain.date.getDate
 import com.dot.gallery.core.ui.components.PreviewHost
 import com.dot.gallery.core.ui.settings.rememberPreference
@@ -90,6 +95,10 @@ import com.dot.gallery.feature.settings.generated.resources.back_cd
 import com.dot.gallery.feature.settings.generated.resources.classic_date
 import com.dot.gallery.feature.settings.generated.resources.date_format_following_system
 import com.dot.gallery.feature.settings.generated.resources.date_format_info_action
+import com.dot.gallery.feature.settings.generated.resources.date_format_preset_iso_date
+import com.dot.gallery.feature.settings.generated.resources.date_format_preset_iso_date_time
+import com.dot.gallery.feature.settings.generated.resources.date_format_preset_rfc_3339
+import com.dot.gallery.feature.settings.generated.resources.date_format_use_iso
 import com.dot.gallery.feature.settings.generated.resources.date_format_settings
 import com.dot.gallery.feature.settings.generated.resources.date_header_title
 import com.dot.gallery.feature.settings.generated.resources.exif_date
@@ -174,6 +183,22 @@ fun DateFormatContent(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
+            FilledTonalButton(
+                onClick = {
+                    rawDateHeaderFormat = SystemDateFormatField.HEADER.iso8601Pattern
+                    rawExtendedDateHeaderFormat = SystemDateFormatField.EXTENDED_HEADER.iso8601Pattern
+                    rawExifDateFormat = SystemDateFormatField.EXIF.iso8601Pattern
+                    rawWeeklyDateFormat = SystemDateFormatField.WEEKLY.iso8601Pattern
+                    rawDefaultDateFormat = SystemDateFormatField.DEFAULT.iso8601Pattern
+                    rawExtendedDateFormat = SystemDateFormatField.EXTENDED.iso8601Pattern
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 8.dp)
+                    .heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(Res.string.date_format_use_iso))
+            }
             DateFormatSectionLabel(stringResource(Res.string.media_view))
             DateFormatPreview(
                 modifier = Modifier,
@@ -219,23 +244,24 @@ fun DateFormatContent(
                         buildAnnotatedString {
                             val date = currentMillis.getDate(dateHeaderFormat)
                             if (date.isNotEmpty()) {
-                                val top = date.substringBefore("\n")
-                                val bottom = date.substringAfter("\n")
+                                val (top, bottom) = splitDateHeader(date)
                                 withStyle(
                                     style = textStyle.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     ).toSpanStyle()
                                 ) {
-                                    appendLine(top)
+                                    if (bottom != null) appendLine(top) else append(top)
                                 }
-                                withStyle(
-                                    style = textStyle.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 14.sp
-                                    ).toSpanStyle()
-                                ) {
-                                    append(bottom)
+                                if (bottom != null) {
+                                    withStyle(
+                                        style = textStyle.copy(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 14.sp
+                                        ).toSpanStyle()
+                                    ) {
+                                        append(bottom)
+                                    }
                                 }
                             }
                         }
@@ -334,23 +360,24 @@ fun DateFormatContent(
                         buildAnnotatedString {
                             val date = currentMillis.getDate(extendedDateHeaderFormat)
                             if (date.isNotEmpty()) {
-                                val top = date.substringBefore("\n")
-                                val bottom = date.substringAfter("\n")
+                                val (top, bottom) = splitDateHeader(date)
                                 withStyle(
                                     style = textStyle.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     ).toSpanStyle()
                                 ) {
-                                    appendLine(top)
+                                    if (bottom != null) appendLine(top) else append(top)
                                 }
-                                withStyle(
-                                    style = textStyle.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 14.sp
-                                    ).toSpanStyle()
-                                ) {
-                                    append(bottom)
+                                if (bottom != null) {
+                                    withStyle(
+                                        style = textStyle.copy(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 14.sp
+                                        ).toSpanStyle()
+                                    ) {
+                                        append(bottom)
+                                    }
                                 }
                             }
                         }
@@ -694,6 +721,7 @@ fun DateFormatPreview(
                     text = editorText,
                     selection = TextRange(editorText.length)
                 )
+                isDateHeaderFormatError = false
             }
         }
         TextField(
@@ -726,8 +754,36 @@ fun DateFormatPreview(
                 errorIndicatorColor = Color.Transparent,
             )
         )
+        DateFormatPresetChips(rawFormat = rawFormat, onSelect = onDateFormatChange)
     }
 }
+
+/** One-tap standard patterns under a date format field; the one in use shows as selected. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DateFormatPresetChips(rawFormat: String, onSelect: (String) -> Unit) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        DateFormatPreset.entries.forEach { preset ->
+            FilterChip(
+                selected = rawFormat == preset.pattern,
+                onClick = { onSelect(preset.pattern) },
+                label = { Text(stringResource(preset.label)) },
+            )
+        }
+    }
+}
+
+private val DateFormatPreset.label
+    get() = when (this) {
+        DateFormatPreset.ISO_8601_DATE -> Res.string.date_format_preset_iso_date
+        DateFormatPreset.ISO_8601_DATE_TIME -> Res.string.date_format_preset_iso_date_time
+        DateFormatPreset.RFC_3339 -> Res.string.date_format_preset_rfc_3339
+    }
 
 @Preview
 @Composable
