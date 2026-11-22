@@ -494,44 +494,15 @@ fun EditScreen2(
                         )
                     }
 
-                    // Undo/Redo — drive the recipe normally, or the cut-out selection while editing.
-                    AnimatedVisibility(
-                        visible = effectiveCanUndo,
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        IconButton(
-                            onClick = effectiveUndo,
-                            enabled = !isSaving,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Undo,
-                                contentDescription = stringResource(Res.string.editor_undo),
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                    }
-
-                    AnimatedVisibility(
-                        visible = effectiveCanRedo,
-                        enter = enterAnimation,
-                        exit = exitAnimation
-                    ) {
-                        IconButton(
-                            onClick = effectiveRedo,
-                            enabled = !isSaving,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Redo,
-                                contentDescription = stringResource(Res.string.editor_redo),
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                    }
+                    // Undo/Redo — always shown so the bar never shifts; greyed out when there
+                    // is nothing to step through.
+                    EditUndoRedoButtons(
+                        canUndo = effectiveCanUndo,
+                        canRedo = effectiveCanRedo,
+                        enabled = !isSaving,
+                        onUndo = effectiveUndo,
+                        onRedo = effectiveRedo
+                    )
                 }
 
                 // Right cluster: Save pill + 3-dot menu
