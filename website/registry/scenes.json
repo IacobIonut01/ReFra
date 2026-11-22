@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-22T11:37:34.791Z",
-  "capturedAtMs": 1795284327212,
+  "generatedAt": "2026-11-22T16:16:14.042Z",
+  "capturedAtMs": 1795356486392,
   "sources": [
     "..\\docs-out",
     "..\\app\\docs\\showcase\\src\\commonMain\\kotlin\\com\\dot\\gallery\\docs\\SceneRegistry.kt"
@@ -30,8 +30,8 @@
             "src": "captures/album-transfer/light/phone-complete.webp",
             "type": "image",
             "file": "album-transfer/light/phone-complete.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -39,8 +39,8 @@
             "src": "captures/album-transfer/light/phone-copying.webp",
             "type": "image",
             "file": "album-transfer/light/phone-copying.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -48,8 +48,8 @@
             "src": "captures/album-transfer/light/phone-destinations.webp",
             "type": "image",
             "file": "album-transfer/light/phone-destinations.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -57,8 +57,8 @@
             "src": "captures/album-transfer/light/phone-destinations.webp",
             "type": "image",
             "file": "album-transfer/light/phone-destinations.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -71,8 +71,8 @@
               "src": "captures/album-transfer/dark/phone-complete.webp",
               "type": "image",
               "file": "album-transfer/dark/phone-complete.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -80,8 +80,8 @@
               "src": "captures/album-transfer/dark/phone-copying.webp",
               "type": "image",
               "file": "album-transfer/dark/phone-copying.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -89,8 +89,8 @@
               "src": "captures/album-transfer/dark/phone-destinations.webp",
               "type": "image",
               "file": "album-transfer/dark/phone-destinations.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -98,8 +98,8 @@
               "src": "captures/album-transfer/dark/phone-destinations.webp",
               "type": "image",
               "file": "album-transfer/dark/phone-destinations.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -111,8 +111,8 @@
               "src": "captures/album-transfer/light/phone-complete.webp",
               "type": "image",
               "file": "album-transfer/light/phone-complete.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -120,8 +120,8 @@
               "src": "captures/album-transfer/light/phone-copying.webp",
               "type": "image",
               "file": "album-transfer/light/phone-copying.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -129,8 +129,8 @@
               "src": "captures/album-transfer/light/phone-destinations.webp",
               "type": "image",
               "file": "album-transfer/light/phone-destinations.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -138,8 +138,8 @@
               "src": "captures/album-transfer/light/phone-destinations.webp",
               "type": "image",
               "file": "album-transfer/light/phone-destinations.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -156,7 +156,8 @@
       "states": [
         "folders",
         "pinned",
-        "collections"
+        "collections",
+        "labels-on-cover"
       ],
       "presentation": "screen",
       "widthDp": 412,
@@ -169,8 +170,8 @@
             "src": "captures/browse-albums/light/phone-collections.webp",
             "type": "image",
             "file": "browse-albums/light/phone-collections.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -178,8 +179,17 @@
             "src": "captures/browse-albums/light/phone-folders.webp",
             "type": "image",
             "file": "browse-albums/light/phone-folders.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
+            "widthDp": 412,
+            "heightDp": 915
+          },
+          "labels-on-cover": {
+            "src": "captures/browse-albums/light/phone-labels-on-cover.webp",
+            "type": "image",
+            "file": "browse-albums/light/phone-labels-on-cover.webp",
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -187,8 +197,8 @@
             "src": "captures/browse-albums/light/phone-pinned.webp",
             "type": "image",
             "file": "browse-albums/light/phone-pinned.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -196,8 +206,8 @@
             "src": "captures/browse-albums/light/phone-folders.webp",
             "type": "image",
             "file": "browse-albums/light/phone-folders.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -210,8 +220,8 @@
               "src": "captures/browse-albums/dark/phone-collections.webp",
               "type": "image",
               "file": "browse-albums/dark/phone-collections.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -219,8 +229,17 @@
               "src": "captures/browse-albums/dark/phone-folders.webp",
               "type": "image",
               "file": "browse-albums/dark/phone-folders.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "labels-on-cover": {
+              "src": "captures/browse-albums/dark/phone-labels-on-cover.webp",
+              "type": "image",
+              "file": "browse-albums/dark/phone-labels-on-cover.webp",
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -228,8 +247,8 @@
               "src": "captures/browse-albums/dark/phone-pinned.webp",
               "type": "image",
               "file": "browse-albums/dark/phone-pinned.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -237,8 +256,8 @@
               "src": "captures/browse-albums/dark/phone-folders.webp",
               "type": "image",
               "file": "browse-albums/dark/phone-folders.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -250,8 +269,8 @@
               "src": "captures/browse-albums/light/phone-collections.webp",
               "type": "image",
               "file": "browse-albums/light/phone-collections.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -259,8 +278,17 @@
               "src": "captures/browse-albums/light/phone-folders.webp",
               "type": "image",
               "file": "browse-albums/light/phone-folders.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "labels-on-cover": {
+              "src": "captures/browse-albums/light/phone-labels-on-cover.webp",
+              "type": "image",
+              "file": "browse-albums/light/phone-labels-on-cover.webp",
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -268,8 +296,8 @@
               "src": "captures/browse-albums/light/phone-pinned.webp",
               "type": "image",
               "file": "browse-albums/light/phone-pinned.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -277,8 +305,8 @@
               "src": "captures/browse-albums/light/phone-folders.webp",
               "type": "image",
               "file": "browse-albums/light/phone-folders.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -447,8 +475,8 @@
             "src": "captures/browse-library/light/phone-editing.webp",
             "type": "image",
             "file": "browse-library/light/phone-editing.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -456,8 +484,8 @@
             "src": "captures/browse-library/light/phone-overview.webp",
             "type": "image",
             "file": "browse-library/light/phone-overview.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -465,8 +493,8 @@
             "src": "captures/browse-library/light/phone-overview.webp",
             "type": "image",
             "file": "browse-library/light/phone-overview.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -479,8 +507,8 @@
               "src": "captures/browse-library/dark/phone-editing.webp",
               "type": "image",
               "file": "browse-library/dark/phone-editing.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -488,8 +516,8 @@
               "src": "captures/browse-library/dark/phone-overview.webp",
               "type": "image",
               "file": "browse-library/dark/phone-overview.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -497,8 +525,8 @@
               "src": "captures/browse-library/dark/phone-overview.webp",
               "type": "image",
               "file": "browse-library/dark/phone-overview.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -510,8 +538,8 @@
               "src": "captures/browse-library/light/phone-editing.webp",
               "type": "image",
               "file": "browse-library/light/phone-editing.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -519,8 +547,8 @@
               "src": "captures/browse-library/light/phone-overview.webp",
               "type": "image",
               "file": "browse-library/light/phone-overview.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -528,8 +556,8 @@
               "src": "captures/browse-library/light/phone-overview.webp",
               "type": "image",
               "file": "browse-library/light/phone-overview.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -559,8 +587,8 @@
             "src": "captures/browse-timeline/light/phone-grid.webp",
             "type": "image",
             "file": "browse-timeline/light/phone-grid.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -568,8 +596,8 @@
             "src": "captures/browse-timeline/light/phone-mosaic.webp",
             "type": "image",
             "file": "browse-timeline/light/phone-mosaic.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -577,8 +605,8 @@
             "src": "captures/browse-timeline/light/phone-selected.webp",
             "type": "image",
             "file": "browse-timeline/light/phone-selected.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -586,8 +614,8 @@
             "src": "captures/browse-timeline/light/phone-grid.webp",
             "type": "image",
             "file": "browse-timeline/light/phone-grid.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -600,8 +628,8 @@
               "src": "captures/browse-timeline/dark/phone-grid.webp",
               "type": "image",
               "file": "browse-timeline/dark/phone-grid.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -609,8 +637,8 @@
               "src": "captures/browse-timeline/dark/phone-mosaic.webp",
               "type": "image",
               "file": "browse-timeline/dark/phone-mosaic.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -618,8 +646,8 @@
               "src": "captures/browse-timeline/dark/phone-selected.webp",
               "type": "image",
               "file": "browse-timeline/dark/phone-selected.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -627,8 +655,8 @@
               "src": "captures/browse-timeline/dark/phone-grid.webp",
               "type": "image",
               "file": "browse-timeline/dark/phone-grid.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -640,8 +668,8 @@
               "src": "captures/browse-timeline/light/phone-grid.webp",
               "type": "image",
               "file": "browse-timeline/light/phone-grid.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -649,8 +677,8 @@
               "src": "captures/browse-timeline/light/phone-mosaic.webp",
               "type": "image",
               "file": "browse-timeline/light/phone-mosaic.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -658,8 +686,8 @@
               "src": "captures/browse-timeline/light/phone-selected.webp",
               "type": "image",
               "file": "browse-timeline/light/phone-selected.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -667,8 +695,8 @@
               "src": "captures/browse-timeline/light/phone-grid.webp",
               "type": "image",
               "file": "browse-timeline/light/phone-grid.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1820,8 +1848,8 @@
             "src": "captures/cloud-albums-browser/light/phone-default.webp",
             "type": "image",
             "file": "cloud-albums-browser/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -1834,8 +1862,8 @@
               "src": "captures/cloud-albums-browser/dark/phone-default.webp",
               "type": "image",
               "file": "cloud-albums-browser/dark/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -1847,8 +1875,8 @@
               "src": "captures/cloud-albums-browser/light/phone-default.webp",
               "type": "image",
               "file": "cloud-albums-browser/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -7974,8 +8002,8 @@
             "src": "captures/search-library/light/phone-empty.webp",
             "type": "image",
             "file": "search-library/light/phone-empty.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -7983,8 +8011,8 @@
             "src": "captures/search-library/light/phone-results.webp",
             "type": "image",
             "file": "search-library/light/phone-results.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -7992,8 +8020,8 @@
             "src": "captures/search-library/light/phone-suggestions.webp",
             "type": "image",
             "file": "search-library/light/phone-suggestions.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -8001,8 +8029,8 @@
             "src": "captures/search-library/light/phone-suggestions.webp",
             "type": "image",
             "file": "search-library/light/phone-suggestions.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -8015,8 +8043,8 @@
               "src": "captures/search-library/dark/phone-empty.webp",
               "type": "image",
               "file": "search-library/dark/phone-empty.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8024,8 +8052,8 @@
               "src": "captures/search-library/dark/phone-results.webp",
               "type": "image",
               "file": "search-library/dark/phone-results.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8033,8 +8061,8 @@
               "src": "captures/search-library/dark/phone-suggestions.webp",
               "type": "image",
               "file": "search-library/dark/phone-suggestions.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8042,8 +8070,8 @@
               "src": "captures/search-library/dark/phone-suggestions.webp",
               "type": "image",
               "file": "search-library/dark/phone-suggestions.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -8055,8 +8083,8 @@
               "src": "captures/search-library/light/phone-empty.webp",
               "type": "image",
               "file": "search-library/light/phone-empty.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8064,8 +8092,8 @@
               "src": "captures/search-library/light/phone-results.webp",
               "type": "image",
               "file": "search-library/light/phone-results.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8073,8 +8101,8 @@
               "src": "captures/search-library/light/phone-suggestions.webp",
               "type": "image",
               "file": "search-library/light/phone-suggestions.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -8082,8 +8110,8 @@
               "src": "captures/search-library/light/phone-suggestions.webp",
               "type": "image",
               "file": "search-library/light/phone-suggestions.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -13351,8 +13379,8 @@
             "src": "captures/settings-thumbnail-badges/light/phone-default.webp",
             "type": "image",
             "file": "settings-thumbnail-badges/light/phone-default.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -13360,22 +13388,44 @@
             "src": "captures/settings-thumbnail-badges/light/phone-resolution.webp",
             "type": "image",
             "file": "settings-thumbnail-badges/light/phone-resolution.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
         }
       },
       "themes": {
+        "dark": {
+          "phone": {
+            "default": {
+              "src": "captures/settings-thumbnail-badges/dark/phone-default.webp",
+              "type": "image",
+              "file": "settings-thumbnail-badges/dark/phone-default.webp",
+              "width": 1080,
+              "height": 2400,
+              "widthDp": 412,
+              "heightDp": 915
+            },
+            "resolution": {
+              "src": "captures/settings-thumbnail-badges/dark/phone-resolution.webp",
+              "type": "image",
+              "file": "settings-thumbnail-badges/dark/phone-resolution.webp",
+              "width": 1080,
+              "height": 2400,
+              "widthDp": 412,
+              "heightDp": 915
+            }
+          }
+        },
         "light": {
           "phone": {
             "default": {
               "src": "captures/settings-thumbnail-badges/light/phone-default.webp",
               "type": "image",
               "file": "settings-thumbnail-badges/light/phone-default.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -13383,8 +13433,8 @@
               "src": "captures/settings-thumbnail-badges/light/phone-resolution.webp",
               "type": "image",
               "file": "settings-thumbnail-badges/light/phone-resolution.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -15220,8 +15270,8 @@
             "src": "captures/timeline-filters/light/phone-open.webp",
             "type": "image",
             "file": "timeline-filters/light/phone-open.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           },
@@ -15229,8 +15279,8 @@
             "src": "captures/timeline-filters/light/phone-open.webp",
             "type": "image",
             "file": "timeline-filters/light/phone-open.webp",
-            "width": 1079,
-            "height": 2396,
+            "width": 1080,
+            "height": 2400,
             "widthDp": 412,
             "heightDp": 915
           }
@@ -15243,8 +15293,8 @@
               "src": "captures/timeline-filters/dark/phone-open.webp",
               "type": "image",
               "file": "timeline-filters/dark/phone-open.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -15252,8 +15302,8 @@
               "src": "captures/timeline-filters/dark/phone-open.webp",
               "type": "image",
               "file": "timeline-filters/dark/phone-open.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }
@@ -15265,8 +15315,8 @@
               "src": "captures/timeline-filters/light/phone-open.webp",
               "type": "image",
               "file": "timeline-filters/light/phone-open.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             },
@@ -15274,8 +15324,8 @@
               "src": "captures/timeline-filters/light/phone-open.webp",
               "type": "image",
               "file": "timeline-filters/light/phone-open.webp",
-              "width": 1079,
-              "height": 2396,
+              "width": 1080,
+              "height": 2400,
               "widthDp": 412,
               "heightDp": 915
             }

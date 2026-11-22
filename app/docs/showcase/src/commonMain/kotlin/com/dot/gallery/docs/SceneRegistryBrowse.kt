@@ -28,7 +28,7 @@ val browseScenes: List<DocsScene> = listOf(
         id = "browse-albums",
         title = "Albums",
         pathTrace = listOf("Albums"),
-        states = listOf("folders", "pinned", "collections"),
+        states = listOf("folders", "pinned", "collections", "labels-on-cover"),
         handlesContentPadding = true,
     ) { state -> DocsAlbumsScene(state) },
     DocsScene(

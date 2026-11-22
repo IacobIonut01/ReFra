@@ -88,11 +88,17 @@ internal fun DocsSharedScopes(
     }
 }
 
-/** Seeds docs-only prefs synchronously so the opening frame is already right. */
+/**
+ * Seeds docs-only prefs synchronously so the opening frame is already right. Keyed on the store
+ * and the values: the host builds a new store when the theme changes without recomposing the
+ * scene from scratch, and keying on the pref keys alone left that new store unseeded.
+ */
 @Composable
 internal fun seedDocsPrefs(vararg pairs: Pair<com.dot.gallery.domain.settings.PrefKey<*>, *>) {
     val store = LocalSettingsStore.current as? MapSettingsStore ?: return
-    remember(*pairs.map { it.first }.toTypedArray()) { store.seed(*pairs) }
+    remember(store, *pairs.flatMap { listOf(it.first, it.second) }.toTypedArray()) {
+        store.seed(*pairs)
+    }
 }
 
 @Composable
@@ -107,6 +113,7 @@ fun DocsTimelineScene(state: String?) {
 
 @Composable
 fun DocsAlbumsScene(state: String?) {
+    seedDocsPrefs(SettingsKeys.albumLabelsOnCover to (state == "labels-on-cover"))
     DocsGalleryHost(DocsGalleryPage.LIBRARY, state)
 }
 
