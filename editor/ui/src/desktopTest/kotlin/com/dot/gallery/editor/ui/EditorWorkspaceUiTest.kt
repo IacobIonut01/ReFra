@@ -897,6 +897,37 @@ class EditorWorkspaceUiTest {
     }
 
     @Test
+    fun scrollingTheToolsListGrowsTheSheetUpTheWindow() =
+        runDesktopComposeUiTest(width = 412, height = 832) {
+        liveSession(widthDp = 412f, heightDp = 832f)
+        onNodeWithTag(TAG_CATALOGUE).performClick()
+        mainClock.advanceTimeBy(1_000)
+        waitForIdle()
+        val before = onNodeWithTag(TAG_CATALOGUE_CONTENT).getUnclippedBoundsInRoot()
+        assertEquals(480f, (before.bottom - before.top).value, 0.5f)
+
+        // Scrolling the rows lifts the sheet before they move.
+        onNodeWithTag(TAG_CATALOGUE_GRID).performTouchInput {
+            down(center)
+            moveBy(Offset(0f, -200f))
+            moveBy(Offset(0f, -200f))
+            up()
+        }
+        mainClock.advanceTimeBy(1_000)
+        waitForIdle()
+        val grown = onNodeWithTag(TAG_CATALOGUE_CONTENT).getUnclippedBoundsInRoot()
+        assertTrue(
+            (grown.bottom - grown.top).value > 560f,
+            "the sheet grew: ${grown.bottom - grown.top}"
+        )
+        assertEquals(832f, grown.bottom.value, 0.5f)
+        // It stops below the window's top edge.
+        val handle = onNodeWithTag(TAG_MODAL_DRAG_HANDLE, useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        assertTrue(handle.top.value >= 11.5f, "the handle stays on screen: ${handle.top}")
+    }
+
+    @Test
     fun catalogueListsToolsAsFullWidthRowsUnderSectionHeaders() =
         runDesktopComposeUiTest(width = 412, height = 832) {
         liveSession(widthDp = 412f, heightDp = 832f)

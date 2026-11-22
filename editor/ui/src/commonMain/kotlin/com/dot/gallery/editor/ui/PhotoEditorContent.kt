@@ -46,6 +46,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
@@ -59,6 +60,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -1438,11 +1440,26 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
     // the media viewer's bottom bar. Progress is measured
     // from the resting anchor (height - the 1 dp peek), so a parked
     // sheet is exactly 0 — an invisible scrim must never eat input.
-    val toolsSheetHeightPx = with(density) {
-        (32.dp + EditorV2Layout.PhoneToolsSheetContent).toPx()
-    }
+    val sheetHandlePx = with(density) { 32.dp.toPx() }
+    val sheetBaseBodyPx = with(density) { EditorV2Layout.PhoneToolsSheetContent.toPx() }
+    val sheetTopClearancePx = with(density) { (topInset + 12.dp).toPx() }
+    // The body opens at the fixed 480 dp; once the list is scrolled it
+    // grows up to the window's top inset so more tools fit.
+    val toolsSheetBody = remember { GrowingSheetBody(sheetBaseBodyPx) }
     val sheetPeekPx = with(density) { 1.dp.toPx() }
     var fieldHeightPx by remember { mutableIntStateOf(0) }
+    val sheetMaxBodyPx = if (fieldHeightPx > 0) {
+        fieldHeightPx - sheetHandlePx - sheetTopClearancePx
+    } else {
+        sheetBaseBodyPx
+    }
+    SideEffect { toolsSheetBody.updateLimits(sheetBaseBodyPx, sheetMaxBodyPx) }
+    val toolsSheetBodyPx by animateFloatAsState(
+        targetValue = toolsSheetBody.targetPx,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+        label = "toolsSheetBody"
+    )
+    val toolsSheetHeightPx = sheetHandlePx + toolsSheetBodyPx
     val sheetProgress: () -> Float = {
         val offset = toolsSheetState.offsetOrNull
         if (fieldHeightPx <= 0 || toolsSheetHeightPx <= 0f || offset == null) {
@@ -1458,6 +1475,10 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
         derivedStateOf {
             args.workspace.catalogueOpen || sheetProgress() > 0f
         }
+    }
+    // A closed sheet opens at its base height again.
+    LaunchedEffect(toolsSheetVisible) {
+        if (!toolsSheetVisible) toolsSheetBody.reset()
     }
     EditorSheetLayout(
         state = toolsSheetState,
@@ -1502,7 +1523,7 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(EditorV2Layout.PhoneToolsSheetContent)
+                        .height(with(density) { toolsSheetBodyPx.toDp() })
                         .testTag(TAG_CATALOGUE_CONTENT)
                 ) {
                     if (toolsSheetVisible) {
@@ -1533,7 +1554,8 @@ private fun PhotoWorkspaceCompact(args: PhotoCompactArgs) {
                             },
                             showDragHandle = false,
                             extraCells = photoPhoneCatalogueExtras(args),
-                            bottomChrome = EditorV2Layout.PhoneToolbarRegion
+                            bottomChrome = EditorV2Layout.PhoneToolbarRegion,
+                            onScrolledFromTop = toolsSheetBody::onScrolledFromTop
                         )
                     }
                 }

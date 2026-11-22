@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -29,10 +30,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -312,8 +316,17 @@ internal fun <S, A> EditorToolCatalogueSheet(
     bottomChrome: Dp = 0.dp,
     // The filter chips after All, and each tool's one-line description.
     chips: List<CatalogueSection> = PHOTO_CATALOGUE_CHIPS,
-    describe: (EditorToolId) -> StringResource? = ::photoToolDescription
+    describe: (EditorToolId) -> StringResource? = ::photoToolDescription,
+    // Told whether the list has scrolled away from its first row, so a
+    // host sheet can grow while the user browses.
+    onScrolledFromTop: ((Boolean) -> Unit)? = null
 ) {
+    val listState = rememberLazyListState()
+    val latestOnScrolled by rememberUpdatedState(onScrolledFromTop)
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.canScrollBackward }
+            .collect { scrolled -> latestOnScrolled?.invoke(scrolled) }
+    }
     var query by rememberSaveable { mutableStateOf("") }
     var section by rememberSaveable { mutableStateOf(initialGroup?.let(::groupSection)) }
     val haptics = LocalHapticFeedback.current
@@ -500,6 +513,7 @@ internal fun <S, A> EditorToolCatalogueSheet(
         }
         val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
