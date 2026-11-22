@@ -1,20 +1,25 @@
 ---
 title: General settings
-summary: Trash behavior, deletion scope, and vibrations.
+summary: The launch screen, the search keyboard, trash behavior, deletion scope, and vibrations.
 area: customize
 path:
   - Settings
   - General
-related: [trash, security, appearance]
+related: [trash, security, appearance, main-navigation]
 scenes: [settings-general]
 order: 4
 ---
 
-**Settings › General** holds the options that do not belong to a single screen: trash behavior, deletion scope, and feedback. Secure mode and the vault encrypt policy live under [Security & privacy](/ReFra/features/security); the app icon and name live under [Appearance](/ReFra/features/appearance).
+**Settings › General** holds the options that do not belong to a single screen: where the app starts, how search opens, trash behavior, deletion scope, and feedback. Secure mode and the vault encrypt policy live under [Security & privacy](/ReFra/features/security); the app icon and name live under [Appearance](/ReFra/features/appearance).
+
+## Startup and search
+
+<PreviewCollection feature="general-settings" section="startup-and-search" />
+
+- **Set default screen**: which screen opens when you start ReFra; each choice shows a one-line description underneath. **Use last opened screen** returns to the screen you were on when the app closed. **Launch on Timeline** or **Launch on Library** always starts there instead.
+- **Open keyboard on search**: the keyboard opens by itself when you enter search. Turn it off to keep the suggestions visible until you tap the field.
 
 ## Trash
-
-<PreviewCollection feature="general-settings" section="trash" />
 
 - **Use trash can**: when on, supported deleted photos and videos move to Trash so they can be restored. Android or your media provider controls how long they stay. When off, deletion is immediate and irreversible; the switch says so itself.
 - **Require confirmation on trash**: adds a dialog before items move to the trash. It can only be enabled while **Use trash can** is on; the summary explains that when the row is unavailable.
@@ -24,6 +29,13 @@ order: 4
 ## Other
 
 - **Allow vibrations**: haptic feedback on actions and gestures such as long-press selection and pinch transitions.
+
+## Example: always start in Library
+
+1. Open **Settings › General**.
+2. Tap **Set default screen** and choose **Launch on Library**.
+3. Close and reopen ReFra. It starts on Library, with your shortcuts and albums, instead of resuming where you left off.
+4. To return to resume behavior, choose **Use last opened screen**.
 
 ## Example: quieter deletion for a backed-up library
 

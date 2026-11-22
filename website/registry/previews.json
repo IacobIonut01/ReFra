@@ -9,20 +9,12 @@
         "section": "theme"
       }
     ],
-    "navigation": [
-      {
-        "scene": "settings-navigation",
-        "title": "Navigation options",
-        "caption": "Choose a launch screen and change how the bars behave.",
-        "section": "options"
-      }
-    ],
     "general-settings": [
       {
         "scene": "settings-general",
         "title": "General settings",
-        "caption": "See the trash, app identity, and vault options.",
-        "section": "trash"
+        "caption": "See the launch screen, search keyboard, and trash options.",
+        "section": "startup-and-search"
       }
     ],
     "timeline-albums": [
@@ -1469,9 +1461,9 @@
         "section": "alternatives-to-gestures"
       },
       {
-        "scene": "settings-navigation",
+        "scene": "settings-timeline-albums",
         "title": "Text labels",
-        "caption": "Navigation settings include text labels for selection actions.",
+        "caption": "Timeline & albums settings include text labels for selection actions.",
         "section": "knowing-what-a-control-does"
       }
     ],
