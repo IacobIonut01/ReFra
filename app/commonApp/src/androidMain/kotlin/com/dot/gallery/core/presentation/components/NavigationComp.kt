@@ -97,6 +97,8 @@ import com.dot.gallery.app.presentation.help.TutorialCategoryScreen
 import com.dot.gallery.app.presentation.help.TutorialDetailScreen
 import com.dot.gallery.app.presentation.help.WhatsNewScreen
 import com.dot.gallery.app.presentation.ignored.IgnoredScreen
+import com.dot.gallery.app.presentation.duplicates.DuplicatesScreen
+import com.dot.gallery.app.presentation.duplicates.DuplicateSettingsScreen
 import com.dot.gallery.app.presentation.library.LibraryScreen
 import com.dot.gallery.app.presentation.location.LocationTimelineScreen
 import com.dot.gallery.app.presentation.search.SearchScreen
@@ -963,6 +965,14 @@ fun NavigationComp(
                 IgnoredScreen(
                     albumsState = albumsState()
                 )
+            }
+
+            composable(route = Screen.DuplicatesScreen()) {
+                DuplicatesScreen()
+            }
+
+            composable(route = Screen.DuplicateSettingsScreen()) {
+                DuplicateSettingsScreen()
             }
 
             composable(

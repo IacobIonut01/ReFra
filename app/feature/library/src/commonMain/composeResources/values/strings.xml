@@ -58,4 +58,9 @@
     <string name="favorites_info_title">Your Favorites</string>
     <string name="favorites_info_summary">Long press on any photo or video to select it, then tap the heart icon to add it to your favorites. Items added here are a shortcut and won't be removed from their original album.</string>
     <string name="unknown_location">Unknown Location</string>
+    <string name="duplicates">Duplicates</string>
+    <plurals name="library_duplicates_summary">
+        <item quantity="one">%1$d set · %2$s</item>
+        <item quantity="other">%1$d sets · %2$s</item>
+    </plurals>
 </resources>

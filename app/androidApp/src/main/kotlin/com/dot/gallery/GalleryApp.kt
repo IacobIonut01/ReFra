@@ -59,6 +59,7 @@ import com.dot.gallery.core.decoder.supportJp2Decoder
 import com.dot.gallery.core.decoder.supportTiffDecoder
 import com.dot.gallery.core.decoder.supportRawDecoder
 import com.dot.gallery.core.workers.enqueueCaptureTimeIndex
+import com.dot.gallery.core.workers.enqueueDuplicateHash
 import com.dot.gallery.core.workers.enqueueMetadataLocationRepair
 import com.dot.gallery.core.workers.enqueueRedactedLocationRepair
 import com.dot.gallery.data.entity.SmartScanFeature
@@ -317,6 +318,7 @@ class GalleryApp : Application(), SingletonSketch.Factory, ComponentOwner {
             startupGate.awaitFirstContent()
             NetworkConstraintGuard.rearm()
             scheduler.enqueueCaptureTimeIndex()
+            scheduler.enqueueDuplicateHash()
             scheduler.enqueueMetadataLocationRepair()
             scheduler.enqueueRedactedLocationRepair()
             metadataSanitizer.recoverPendingTransactions()

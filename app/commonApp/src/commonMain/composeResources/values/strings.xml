@@ -1147,5 +1147,73 @@
     <string name="handover_disabled_summary">Run search inference on your own server</string>
     <!-- Help preview: kind label on the sample code chip -->
     <string name="help_preview_code_kind">Link</string>
+    <!-- Duplicates: exact copies of local photos and videos -->
+    <string name="duplicates_title">Duplicates</string>
+    <string name="duplicates_settings">Duplicate settings</string>
+    <string name="duplicates_check_again">Check again</string>
+    <string name="duplicates_checking">Checking…</string>
+    <string name="duplicates_checking_summary">Looking for files that are exact copies of each other. Only files that share a size with another file are read.</string>
+    <string name="duplicates_checking_progress">%1$s of %2$s items checked</string>
+    <string name="duplicates_found_so_far">Found so far</string>
+    <plurals name="duplicates_summary">
+        <item quantity="one">%2$d extra copy in %1$d set of identical files. One copy of each set stays; the others can go to the trash.</item>
+        <item quantity="other">%2$d extra copies in %1$d sets of identical files. One copy of each set stays; the others can go to the trash.</item>
+    </plurals>
+    <string name="duplicates_last_checked">%1$s items checked %2$s</string>
+    <string name="duplicates_just_now">just now</string>
+    <string name="duplicates_none_title">No duplicates</string>
+    <string name="duplicates_none_summary">Every photo and video on this phone is a single copy. New items are checked as they arrive.</string>
+    <string name="duplicates_none_some_skipped">Nothing else on this phone has an exact copy. Some large videos were left out.</string>
+    <string name="duplicates_not_checked">Not checked</string>
+    <plurals name="duplicates_large_files">
+        <item quantity="one">%1$d file over 2 GB</item>
+        <item quantity="other">%1$d files over 2 GB</item>
+    </plurals>
+    <string name="duplicates_large_files_summary">Large files are skipped to save battery. Tap to check them once.</string>
+    <string name="duplicates_filter_all">All %1$d</string>
+    <string name="duplicates_filter_photos">Photos</string>
+    <string name="duplicates_filter_videos">Videos</string>
+    <string name="duplicates_set_header">%1$d copies · %2$s each</string>
+    <string name="duplicates_set_folders">Kept in %1$s · also in %2$s</string>
+    <string name="duplicates_set_same_folder">All in %1$s</string>
+    <string name="duplicates_storage_root">Main storage</string>
+    <string name="duplicates_keep">Keep</string>
+    <string name="duplicates_copy_selected">Copy %1$d of %2$d, %3$s, selected</string>
+    <string name="duplicates_copy_not_selected">Copy %1$d of %2$d, %3$s, not selected</string>
+    <string name="duplicates_copy_kept">Copy %1$d of %2$d, %3$s, kept</string>
+    <plurals name="duplicates_move_to_trash">
+        <item quantity="one">Move %1$d copy to trash</item>
+        <item quantity="other">Move %1$d copies to trash</item>
+    </plurals>
+    <plurals name="duplicates_delete">
+        <item quantity="one">Delete %1$d copy</item>
+        <item quantity="other">Delete %1$d copies</item>
+    </plurals>
+    <plurals name="duplicates_confirm_title">
+        <item quantity="one">Move %1$d copy to the trash?</item>
+        <item quantity="other">Move %1$d copies to the trash?</item>
+    </plurals>
+    <string name="duplicates_confirm_summary">The copy marked Keep in each set stays where it is. You can restore anything from the trash for 30 days.</string>
+    <plurals name="duplicates_confirm_delete_title">
+        <item quantity="one">Delete %1$d copy for good?</item>
+        <item quantity="other">Delete %1$d copies for good?</item>
+    </plurals>
+    <string name="duplicates_confirm_delete_summary">This phone has no trash, so deleted copies can't be restored. The copy marked Keep in each set stays where it is.</string>
+    <string name="duplicates_confirm_details">%1$s · %2$d sets of exact copies</string>
+    <string name="duplicates_confirm_action">Move to trash</string>
+    <string name="duplicates_confirm_delete_action">Delete</string>
+    <string name="duplicates_keep_folders">Keep copies in</string>
+    <string name="duplicates_remove_folders">Prefer to remove copies in</string>
+    <string name="duplicates_add_folder">Add folder</string>
+    <string name="duplicates_remove_folder">Remove %1$s</string>
+    <string name="duplicates_check_large">Check large files</string>
+    <string name="duplicates_check_large_summary">Include videos over 2 GB. Uses more battery.</string>
+    <string name="duplicates_reset">Reset to defaults</string>
+    <string name="duplicates_reset_summary">Restore the default folders and skip large files again</string>
+    <string name="duplicates_checking_header">Checking</string>
+    <string name="duplicates_keep_folders_summary">The copy in one of these folders is suggested to keep.</string>
+    <string name="duplicates_remove_folders_summary">Copies in these folders are suggested for the trash first.</string>
+    <string name="duplicates_copy_position">Copy %1$d of %2$d</string>
+    <string name="duplicates_dont_remove">Don't remove</string>
+    <string name="duplicates_keep_this_copy">Keep this copy</string>
 </resources>
-

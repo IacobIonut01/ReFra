@@ -1,0 +1,47 @@
+---
+title: Duplicates
+summary: Find photos and videos that are exact copies of each other, choose which copy stays, and move the rest to the trash.
+area: organize-secure
+path:
+  - Library
+  - Duplicates
+related: [library, trash, manage-media]
+scenes: []
+order: 6
+---
+
+Duplicates finds files on this phone that are byte-for-byte identical, such as a photo saved again from a chat or downloaded twice. Each set of copies suggests one copy to keep, and nothing leaves the phone until you confirm. Open **Library** and tap the **Duplicates** tile; the tile shows how many sets were found.
+
+## How copies are found
+
+- ReFra checks your library in the background, on the phone, after the app starts and whenever you open Duplicates. Nothing is uploaded.
+- Only files that are exactly the same size as another file are read. A quick check of the start and end of each file comes first, and a full check only when that still matches, so later checks read almost nothing.
+- Files over 2 GB are skipped unless **Check large files** is on in **Duplicate settings**. When some were left out, a **Not checked** row says how many; tap it to check them once.
+- Only media on this phone is checked. Vault items, the private folder and cloud media are left out. To remove local copies that are already backed up, see [free up space](/ReFra/features/cloud-free-up-space).
+
+## Review the sets
+
+- The summary at the top shows how much space the extra copies take, how many sets there are, and when the library was last checked. While a check runs it shows its progress, and sets appear as they are found.
+- **All**, **Photos** and **Videos** filter the sets.
+- Each set shows how many copies there are, the size of each, and the folders they are in. The suggested copy wears a **Keep** badge; the other copies start selected.
+- Tap the round check on a copy to leave it alone, or to select it again.
+- Tap a photo to see the copies full screen. Swipe between them, tap **Keep this copy** to keep the one shown instead, or **Don't remove** to leave it alone.
+
+## Which copy is suggested
+
+In order, the suggested copy is:
+
+1. A favourite.
+2. A copy in a **Keep copies in** folder that is not also in a remove folder. The defaults are DCIM/Camera and Pictures.
+3. A copy outside the **Prefer to remove copies in** folders. The defaults are Download, WhatsApp Images and Screenshots.
+4. The copy added to the phone first.
+
+Change the folder lists in **Duplicate settings**: tap the tune button at the top of Duplicates. Tap a folder to remove it, or **Add folder** to pick one. **Reset to defaults** restores the default folders and turns **Check large files** off again.
+
+## Move copies to the trash
+
+1. Tap **Move to trash** at the bottom. It counts only the selected copies.
+2. A sheet shows how many copies, their size and how many sets they come from. Tap **Move to trash**.
+3. Android asks to confirm; the copies go to the [trash](/ReFra/features/trash), where you can restore them for 30 days.
+
+On a phone without a system trash, the button reads **Delete** and the copies are deleted for good after the confirmation.

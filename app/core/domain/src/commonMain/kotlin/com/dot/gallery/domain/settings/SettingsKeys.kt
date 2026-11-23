@@ -254,6 +254,26 @@ object SettingsKeys {
     val hiddenSections = PrefKey.stringSet("library_hidden_sections")
     val libraryShownShortcuts = PrefKey.stringSet("library_shown_shortcuts")
 
+    // Duplicates
+    /** Folders whose copy of a duplicate set is kept first (relative path segments). */
+    val duplicateKeepFolders = PrefKey.stringSet(
+        "duplicate_keep_folders",
+        default = setOf("DCIM/Camera", "Pictures"),
+    )
+    /** Folders whose copies are suggested for removal first. */
+    val duplicateRemoveFolders = PrefKey.stringSet(
+        "duplicate_remove_folders",
+        default = setOf("Download", "WhatsApp Images", "Screenshots"),
+    )
+    /** Also hash files over 2 GB when looking for duplicates. */
+    val duplicateCheckLargeFiles = PrefKey.bool("duplicate_check_large_files", default = false)
+    /** When the duplicate check last finished, in epoch millis (0: never). */
+    val duplicateLastCheckedMillis = PrefKey.long("duplicate_last_checked_millis", default = 0L)
+    /** Items the last duplicate check looked at. */
+    val duplicateCheckedCount = PrefKey.int("duplicate_checked_count", default = 0)
+    /** Large files the last duplicate check left out. */
+    val duplicateSkippedLarge = PrefKey.int("duplicate_skipped_large", default = 0)
+
     // Search
     /** Mirrors `Settings.Search.HISTORY_V2` — JSON-encoded list of [SearchHistory]. */
     val searchHistory = PrefKey.serializable(

@@ -137,6 +137,10 @@ sealed class Screen(val route: String) {
 
     data object IgnoredScreen : Screen("ignored_screen")
 
+    data object DuplicatesScreen : Screen("duplicates_screen")
+
+    data object DuplicateSettingsScreen : Screen("duplicate_settings_screen")
+
     data object SetupScreen : Screen(Routes.SETUP)
 
     data object VaultScreen : Screen("vault_screen")

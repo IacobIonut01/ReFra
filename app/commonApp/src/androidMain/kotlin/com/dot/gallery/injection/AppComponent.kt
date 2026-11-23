@@ -745,6 +745,9 @@ abstract class AppComponent(
     abstract val copyMediaViewModel: (savedStateHandle: SavedStateHandle) -> CopyMediaViewModel
     abstract val framePickerViewModel: (savedStateHandle: SavedStateHandle) -> FramePickerViewModel
     abstract val freeUpSpaceViewModel: (savedStateHandle: SavedStateHandle) -> FreeUpSpaceViewModel
+    abstract val duplicatesViewModel: (savedStateHandle: SavedStateHandle) -> com.dot.gallery.app.presentation.duplicates.DuplicatesViewModel
+    abstract val duplicateSettingsViewModel: (savedStateHandle: SavedStateHandle) -> com.dot.gallery.app.presentation.duplicates.DuplicateSettingsViewModel
+    abstract val duplicateSummaryViewModel: (savedStateHandle: SavedStateHandle) -> com.dot.gallery.app.presentation.duplicates.DuplicateSummaryViewModel
     abstract val personDetailViewModel: (savedStateHandle: SavedStateHandle) -> PersonDetailViewModel
     abstract val videoPlayerViewModelFactory: (savedStateHandle: SavedStateHandle, media: Media, dataSourceFactory: DataSource.Factory) -> VideoPlayerViewModel
     abstract val standaloneViewModel: (reviewMode: Boolean, isSecure: Boolean, dataList: List<Uri>) -> StandaloneViewModel
@@ -767,6 +770,7 @@ abstract class AppComponent(
     abstract val cloudUploadWorker: CloudUploadWorker
     abstract val freeUpSpaceWorker: FreeUpSpaceWorker
     abstract val captureTimeIndexWorker: CaptureTimeIndexWorker
+    abstract val duplicateHashWorker: com.dot.gallery.core.workers.DuplicateHashWorker
     abstract val categoryWorker: CategoryWorker
     abstract val classifierWorker: ClassifierWorker
     abstract val databaseEncryptionWorker: DatabaseEncryptionWorker

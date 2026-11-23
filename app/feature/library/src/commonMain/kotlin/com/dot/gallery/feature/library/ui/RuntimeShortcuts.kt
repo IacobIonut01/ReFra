@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FolderOff
@@ -38,6 +39,8 @@ import com.dot.gallery.feature.library.generated.resources.library_trash_next_ex
 import com.dot.gallery.feature.library.generated.resources.library_vault_count
 import com.dot.gallery.feature.library.generated.resources.library_vault_locked
 import com.dot.gallery.feature.library.generated.resources.categories
+import com.dot.gallery.feature.library.generated.resources.duplicates
+import com.dot.gallery.feature.library.generated.resources.library_duplicates_summary
 import com.dot.gallery.feature.library.generated.resources.cloud_people
 import com.dot.gallery.feature.library.generated.resources.locations
 import com.dot.gallery.feature.library.generated.resources.cloud_accounts
@@ -75,6 +78,7 @@ fun rememberLibraryRuntimeShortcuts(
     explore: LibraryExploreData = LibraryExploreData(),
     shuffleSeed: Int = 0,
     reserved: Set<LibraryShortcut> = emptySet(),
+    duplicates: LibraryDuplicates? = null,
 ): Map<LibraryShortcut, RuntimeShortcut> {
     val privateFolderUri by rememberPreference(SettingsKeys.privateFolderUri)
     val colorScheme = MaterialTheme.colorScheme
@@ -259,6 +263,21 @@ fun rememberLibraryRuntimeShortcuts(
             previewMedia = explore.categoryThumbnails,
             previewStyle = ShortcutPreviewStyle.SPREAD,
         ).let { if (explore.categories) it else it.asLoadingPlaceholder() }
+    }
+    if (routes.duplicates.isNotEmpty()) {
+        map[LibraryShortcut.DUPLICATES] = RuntimeShortcut(
+            shortcut = LibraryShortcut.DUPLICATES,
+            title = stringResource(Res.string.duplicates),
+            icon = Icons.Outlined.ContentCopy,
+            contentColor = colorScheme.tertiary,
+            useIndicator = true,
+            indicatorCounter = duplicates?.sets ?: 0,
+            route = routes.duplicates,
+            available = true,
+            subtitle = duplicates?.takeIf { it.sets > 0 }?.let {
+                pluralStringResource(Res.plurals.library_duplicates_summary, it.sets, it.sets, it.size)
+            },
+        )
     }
     return map
 }

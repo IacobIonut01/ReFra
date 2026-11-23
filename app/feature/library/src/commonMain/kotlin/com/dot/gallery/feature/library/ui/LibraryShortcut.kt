@@ -25,7 +25,8 @@ enum class LibraryShortcut(val id: String) {
     CLOUD_ACCOUNTS("cloud_accounts"),
     LOCATIONS("locations"),
     PEOPLE("people"),
-    CATEGORIES("categories");
+    CATEGORIES("categories"),
+    DUPLICATES("duplicates");
 
     /** Locations, People and Categories, which used to be fixed cards below the shortcuts. */
     val isExplore: Boolean get() = this == LOCATIONS || this == PEOPLE || this == CATEGORIES

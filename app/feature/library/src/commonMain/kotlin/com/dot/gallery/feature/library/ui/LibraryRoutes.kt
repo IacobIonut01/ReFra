@@ -30,4 +30,6 @@ data class LibraryRoutes(
     val cloudSharedLinks: String,
     val cloudBackup: String,
     val cloudAccounts: String,
+    /** Exact duplicates; empty where the host has no Duplicates screen, which hides the tile. */
+    val duplicates: String = "",
 )

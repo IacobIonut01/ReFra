@@ -28,4 +28,6 @@ data class LibraryState(
      * [snapshot], so a locked list does not leak its size through the startup cache.
      */
     val vaultCount: Int? = null,
+    /** The Duplicates tile's summary; null while it is unknown. */
+    val duplicates: LibraryDuplicates? = null,
 )

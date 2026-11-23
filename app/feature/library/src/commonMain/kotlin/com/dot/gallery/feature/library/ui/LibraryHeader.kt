@@ -111,6 +111,7 @@ internal fun LibraryShortcuts(
         explore = libraryExploreData(state, noClassification),
         shuffleSeed = shuffleSeed,
         reserved = reserved,
+        duplicates = state.duplicates,
     )
     var shortcutsLayout by rememberPreference(libraryShortcutsLayoutKey)
     val showAllShortcuts by rememberPreference(SettingsKeys.showAllLibraryShortcuts)

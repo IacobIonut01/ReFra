@@ -59,6 +59,7 @@ import com.dot.gallery.domain.model.LockedAlbum
 import com.dot.gallery.domain.model.ImageEmbedding
 import com.dot.gallery.domain.model.MediaCategory
 import com.dot.gallery.data.entity.MediaCaptureTimeEntity
+import com.dot.gallery.data.entity.MediaContentHashEntity
 import com.dot.gallery.data.entity.MediaMetadataCore
 import com.dot.gallery.data.entity.MediaMetadataFlags
 import com.dot.gallery.data.entity.MediaMetadataVideo
@@ -82,6 +83,7 @@ import com.dot.gallery.data.dao.EditHistoryDao
 import com.dot.gallery.data.dao.ImageEmbeddingDao
 import com.dot.gallery.data.dao.LockedAlbumDao
 import com.dot.gallery.data.dao.MediaCaptureTimeDao
+import com.dot.gallery.data.dao.MediaContentHashDao
 import com.dot.gallery.data.dao.MediaDao
 import com.dot.gallery.data.entity.MediaFeatureStateEntity
 import com.dot.gallery.data.dao.MergedSubfolderDao
@@ -145,10 +147,11 @@ import com.dot.gallery.data.Converters
         SmartScanPhaseEntity::class,
         MediaFeatureStateEntity::class,
         MediaCaptureTimeEntity::class,
+        MediaContentHashEntity::class,
         CloudTagEntity::class,
         CloudMediaTagEntity::class
     ],
-    version = 58,
+    version = 59,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -211,6 +214,7 @@ import com.dot.gallery.data.Converters
         AutoMigration(from = 54, to = 55), // collection_excluded_media
         AutoMigration(from = 55, to = 56), // categories.coverMediaId (user-picked category cover)
         AutoMigration(from = 57, to = 58), // smart_scan_runs.fullRefreshFeatures (per-feature full refresh)
+        AutoMigration(from = 58, to = 59), // media_content_hash (exact duplicate detection)
     ]
 )
 @ColumnTypeConverters(Converters::class, CloudConverters::class, SmartScanConverters::class)
@@ -226,6 +230,8 @@ abstract class InternalDatabase : RoomDatabase() {
     abstract fun getMediaDao(): MediaDao
 
     abstract fun getMediaCaptureTimeDao(): MediaCaptureTimeDao
+
+    abstract fun getMediaContentHashDao(): MediaContentHashDao
 
     abstract fun getClassifierDao(): ClassifierDao
 

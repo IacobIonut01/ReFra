@@ -59,7 +59,10 @@ import com.dot.gallery.feature.library.ui.LibraryActions
 import com.dot.gallery.feature.library.ui.LibraryEditContent
 import com.dot.gallery.feature.library.ui.LibraryHeader
 import com.dot.gallery.feature.library.ui.LibraryHeaderLayout
+import com.dot.gallery.feature.library.ui.LibraryDuplicates
 import com.dot.gallery.feature.library.ui.LibraryRoutes
+import com.dot.gallery.app.presentation.duplicates.DuplicateSummaryViewModel
+import com.dot.gallery.feature.albums.ui.util.formatSizeShort
 import com.dot.gallery.feature.library.ui.LibraryState
 import com.dot.gallery.feature.library.ui.pendingShortcuts
 import com.dot.gallery.feature.library.ui.rememberLibrarySections
@@ -107,6 +110,11 @@ fun LibraryScreen(
         .collectAsStateWithLifecycle(GateMode.DEVICE)
     val vaultCount by viewModel.vaultCount.collectAsStateWithLifecycle()
     val shownVaultCount = vaultCount.takeIf { vaultGateMode == GateMode.NONE }
+    val duplicateSummary by injectViewModel<DuplicateSummaryViewModel> { duplicateSummaryViewModel(it) }
+        .summary.collectAsStateWithLifecycle()
+    val duplicates = remember(duplicateSummary) {
+        duplicateSummary?.let { LibraryDuplicates(it.sets, formatSizeShort(it.extraBytes)) }
+    }
 
     LifecycleStartEffect(Unit) {
         viewModel.onVisible()
@@ -129,7 +137,7 @@ fun LibraryScreen(
     val actions = remember(eventHandler) {
         LibraryActions(onNavigate = { route -> eventHandler.navigate(route) })
     }
-    val state = remember(snapshot, modelStatus, shownVaultCount) {
+    val state = remember(snapshot, modelStatus, shownVaultCount, duplicates) {
         LibraryState(
             snapshot = snapshot,
             modelStatus = modelStatus,
@@ -138,6 +146,7 @@ fun LibraryScreen(
             supportsTrash = SdkCompat.supportsTrash,
             supportsFavorites = SdkCompat.supportsFavorites,
             vaultCount = shownVaultCount,
+            duplicates = duplicates,
         )
     }
     val routes = rememberLibraryRoutes()
@@ -288,5 +297,6 @@ private fun rememberLibraryRoutes(): LibraryRoutes = remember {
         cloudSharedLinks = Screen.SharedLinksScreen.route,
         cloudBackup = Screen.CloudBackupDashboardScreen.route,
         cloudAccounts = Screen.CloudAccountsScreen.route,
+        duplicates = Screen.DuplicatesScreen.route,
     )
 }
