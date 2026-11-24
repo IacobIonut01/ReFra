@@ -73,7 +73,7 @@ kotlin {
             // platform/OpenCV/camera stack out; javacpp and ffmpeg bases plus
             // the needed native classifiers are pinned explicitly. These are
             // `api`: public signatures surface AVFrame/Buffer types.
-            api("org.bytedeco:javacv:1.5.13") { isTransitive = false }
+            api("org.bytedeco:javacv:1.5.14") { isTransitive = false }
             api("org.bytedeco:javacpp:1.5.13")
             api("org.bytedeco:ffmpeg:8.0.1-1.5.13")
         }
