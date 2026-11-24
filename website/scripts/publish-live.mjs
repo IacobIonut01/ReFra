@@ -131,14 +131,22 @@ async function main() {
     // Like check-ui.mjs: the bundled Chromium first, an installed Chrome when it is missing.
     // GPU-less CI runners need --enable-unsafe-swiftshader or Chrome refuses the
     // software WebGL context Skiko renders through and the bundle never boots.
-    const launchArgs = ['--enable-unsafe-swiftshader'];
+    // --lang pins the browser locale: with the runner's LANG=C.UTF-8 Chromium
+    // reports navigator.languages tags Intl.Locale rejects ("Incorrect locale
+    // information provided") and the wasm bundle dies mid-composition.
+    const launchArgs = ['--enable-unsafe-swiftshader', '--lang=en-US'];
     try {
       browser = await chromium.launch({ args: launchArgs });
     } catch (err) {
       if (!/executable/i.test(String(err))) throw err;
       browser = await chromium.launch({ channel: 'chrome', args: launchArgs });
     }
-    const page = await browser.newPage({ viewport: { width: PROBE_W, height: PROBE_H } });
+    const page = await browser.newPage({
+      viewport: { width: PROBE_W, height: PROBE_H },
+      // Context locale pins navigator.language/languages too, so the fix holds
+      // for the installed-Chrome fallback path.
+      locale: 'en-US',
+    });
     page.on('console', (m) => console.log(`publish-live: [console.${m.type()}] ${m.text().slice(0, 400)}`));
     page.on('pageerror', (e) => console.log(`publish-live: [pageerror] ${String(e).slice(0, 600)}`));
     page.on('requestfailed', (r) => console.log(`publish-live: [requestfailed] ${r.url()} ${r.failure()?.errorText ?? ''}`));

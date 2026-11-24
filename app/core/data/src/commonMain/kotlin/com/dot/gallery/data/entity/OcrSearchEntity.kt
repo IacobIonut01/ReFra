@@ -15,7 +15,9 @@ import androidx.room3.PrimaryKey
  * Full-text index over [OcrResultEntity.normalizedText]. `rowid` is the media id. [searchTokens]
  * holds overlapping bigrams for scripts written without spaces (CJK, Thai), which unicode61 cannot split.
  */
-@Fts4(tokenizer = FtsOptions.TOKENIZER_UNICODE61)
+// Explicit Any::class: wasmJs KSP cannot read Fts4's default contentEntity value
+// ("Cannot find external content entity class"); spelling it out keeps standalone FTS.
+@Fts4(tokenizer = FtsOptions.TOKENIZER_UNICODE61, contentEntity = Any::class)
 @Entity(tableName = "ocr_search")
 data class OcrSearchEntity(
     @PrimaryKey
