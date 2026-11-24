@@ -30,7 +30,9 @@ jobs:
   verify:
     name: Build and check documentation
     if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest moved to 26.04, which playwright install --with-deps
+    # does not support yet; stay on the latest LTS until it does.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
@@ -55,7 +57,9 @@ jobs:
   deploy_pages:
     name: Deploy documentation to GitHub Pages
     if: ${{ (github.event_name != 'workflow_run' && github.event_name != 'pull_request') || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest moved to 26.04, which playwright install --with-deps
+    # does not support yet; stay on the latest LTS until it does.
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
       contents: read
