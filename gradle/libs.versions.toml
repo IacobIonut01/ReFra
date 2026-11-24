@@ -272,7 +272,7 @@ cmp-components-ui-tooling-preview = { module = "org.jetbrains.compose.components
 cmp-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composeMultiplatform" }
 # API surface of cmp-ui-backhandler is implementation-scoped there; the editor
 # uses NavigationEventHandler directly, so it needs its own reference.
-androidx-navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version = "1.1.1" }
+androidx-navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version = "1.2.0" }
 # CMP fork of androidx navigation-compose — the androidx artifact ships no wasmJs
 # variant; this one delegates its Android target to real androidx.navigation.
 cmp-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "cmpNavigation" }
