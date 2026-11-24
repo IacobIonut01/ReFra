@@ -22,6 +22,7 @@ import dev.brewkits.kmpworkmanager.background.domain.TaskRequest
 import dev.brewkits.kmpworkmanager.background.domain.TaskState
 import dev.brewkits.kmpworkmanager.background.domain.TaskTrigger
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 /**
  * Offline-variant safety net for WorkManager's network constraint tracking.
@@ -89,8 +90,22 @@ object NetworkConstraintGuard {
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
 
+    /**
+     * WorkManager's database files, live one first. On API 23+ androidx.work keeps the live
+     * database in the no-backup directory (WorkDatabasePathHelper.getDatabasePath); a copy
+     * left at the legacy databases/ path is moved over it by ForceStopRunnable at startup,
+     * so both must be clean.
+     */
+    internal fun workDatabaseFiles(context: Context): List<File> = listOf(
+        File(context.noBackupFilesDir, WORK_MANAGER_DB),
+        context.getDatabasePath(WORK_MANAGER_DB),
+    )
+
     private fun sanitizeWorkDatabase(context: Context) {
-        val dbFile = context.getDatabasePath(WORK_MANAGER_DB)
+        workDatabaseFiles(context).forEach(::sanitizeWorkDatabase)
+    }
+
+    internal fun sanitizeWorkDatabase(dbFile: File) {
         if (!dbFile.exists()) return
         runCatching {
             SQLiteDatabase.openDatabase(
@@ -120,7 +135,8 @@ object NetworkConstraintGuard {
             printError(
                 "worker.network-guard",
                 "workdb network-constraint sanitization failed",
-                it
+                it,
+                ctx = mapOf("path" to dbFile.path)
             )
         }
     }
