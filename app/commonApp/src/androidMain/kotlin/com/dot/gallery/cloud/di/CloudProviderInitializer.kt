@@ -384,6 +384,11 @@ class CloudProviderInitializer @Inject constructor(
         reconfigureScope.launch { reconfigureAccount(configId) }
     }
 
+    /** Re-resolve all auto-switching providers without tying authentication to a UI lifecycle. */
+    fun reconfigureActiveProvidersAsync() {
+        reconfigureScope.launch { reconfigureActiveProviders() }
+    }
+
     suspend fun applyRestoredAccount(configId: Long) {
         val entity = configDao.getById(configId) ?: return
         CloudRuntimeSettings.apply(entity.toCloudServerConfig())
@@ -490,6 +495,7 @@ class CloudProviderInitializer @Inject constructor(
                     registry.updateConnectionState(entity.id, ConnectionState.CONNECTED)
                     configDao.updateLastConnected(entity.id, System.currentTimeMillis())
                     cloudRepository.notifyProviderConnected(entity.providerType, ConnectionState.CONNECTED)
+                    prefetchProviderData(provider, entity.displayName.ifBlank { entity.providerType.displayName }, entity.id)
                     printDebug("CloudProviderInitializer: Reconfigured ${entity.providerType} #${entity.id} -> ${resolved.serverUrl}")
                 } catch (e: CancellationException) {
                     throw e

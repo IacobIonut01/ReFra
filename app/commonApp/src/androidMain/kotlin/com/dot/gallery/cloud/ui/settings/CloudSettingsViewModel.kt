@@ -98,7 +98,7 @@ class CloudSettingsViewModel @Inject constructor(
 
     /** Re-applies effective URLs after SSID readability changes. */
     fun reapplyEffectiveUrl() {
-        viewModelScope.launch(Dispatchers.IO) { providerInitializer.reconfigureActiveProviders() }
+        providerInitializer.reconfigureActiveProvidersAsync()
     }
 
     fun updateConfig(transform: CloudServerConfigEntity.() -> CloudServerConfigEntity) {

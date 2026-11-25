@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.core.presentation.util.currentWifiSsid
+import com.dot.gallery.core.presentation.util.isOnLocalNetwork
 import com.dot.gallery.core.presentation.util.isWifiConnected
 
 
@@ -115,7 +116,8 @@ fun rememberWifiSsidAccessState(
     }
     val ssidUnreadable = remember(targetSsid, switchingConfigured, refreshTick.intValue, context) {
         switchingConfigured && targetSsid.isNotBlank() &&
-            context.isWifiConnected() && context.currentWifiSsid() == null
+            context.isOnLocalNetwork() && context.isWifiConnected() &&
+            context.currentWifiSsid() == null
     }
     var wasUnreadable by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(ssidUnreadable) {
