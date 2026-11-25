@@ -21,6 +21,7 @@ import java.util.zip.ZipOutputStream
 import com.dot.gallery.core.logging.LogEntry
 import com.dot.gallery.core.util.or
 import com.dot.gallery.core.AppIdentity
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 
 
 /**
@@ -95,7 +96,7 @@ object LogExporter {
     }
 
     /**
-     * Writes `refra-diagnostics-<ts>.zip` into `cacheDir/share/` containing
+     * Writes `refra-diagnostics-<ts>.zip` into `cacheDir/share/logs/` containing
      * `device-info.txt`, `logs.jsonl` (already-sanitized entries) and any
      * crash logs. Old bundles are swept before writing.
      */
@@ -104,8 +105,13 @@ object LogExporter {
         entries: List<LogEntry>,
         crashFiles: List<File> = emptyList(),
     ): File {
-        val dir = File(context.cacheDir, "share").apply { mkdirs() }
+        val dir = FileProviderShareDirs.cache(context, FileProviderShareDirs.LOGS_DIRECTORY)
         dir.listFiles()?.forEach { it.delete() }
+        File(context.cacheDir, FileProviderShareDirs.ROOT_DIRECTORY).listFiles()?.forEach { file ->
+            if (file.isFile && file.name.startsWith("refra-diagnostics-") && file.name.endsWith(".zip")) {
+                file.delete()
+            }
+        }
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
         val out = File(dir, "refra-diagnostics-$stamp.zip")
         ZipOutputStream(BufferedOutputStream(FileOutputStream(out))).use { zip ->

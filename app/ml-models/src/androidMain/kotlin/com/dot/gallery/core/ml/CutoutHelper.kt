@@ -34,6 +34,7 @@ import com.dot.gallery.core.util.SafeExif
 import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.ext.saveImage
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 import com.dot.gallery.core.presentation.util.resolveShareableUri
 import ai.onnxruntime.providers.NNAPIFlags
 import java.util.EnumSet
@@ -664,9 +665,15 @@ object CutoutHelper {
 
     private fun cleanLegacyCacheFiles(context: Context, excludeFile: File? = null) {
         try {
-            context.cacheDir.listFiles()?.forEach { file ->
-                if (file.name.startsWith("cutout_") && file.name.endsWith(".png") && file != excludeFile) {
-                    file.delete()
+            val directories = listOf(
+                context.cacheDir,
+                FileProviderShareDirs.cache(context, FileProviderShareDirs.CUTOUT_DIRECTORY),
+            )
+            directories.forEach { directory ->
+                directory.listFiles()?.forEach { file ->
+                    if (file.isFile && file.name.startsWith("cutout_") && file.name.endsWith(".png") && file != excludeFile) {
+                        file.delete()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -679,7 +686,10 @@ object CutoutHelper {
      */
     suspend fun copyToClipboard(context: Context, bitmap: Bitmap) = withContext(Dispatchers.IO) {
         try {
-            val cacheFile = File(context.cacheDir, "cutout_${System.currentTimeMillis()}.png")
+            val cacheFile = File(
+                FileProviderShareDirs.cache(context, FileProviderShareDirs.CUTOUT_DIRECTORY),
+                "cutout_${System.currentTimeMillis()}.png",
+            )
             FileOutputStream(cacheFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
@@ -709,7 +719,10 @@ object CutoutHelper {
      */
     suspend fun shareCutout(context: Context, bitmap: Bitmap) = withContext(Dispatchers.IO) {
         try {
-            val cacheFile = File(context.cacheDir, "cutout_${System.currentTimeMillis()}.png")
+            val cacheFile = File(
+                FileProviderShareDirs.cache(context, FileProviderShareDirs.CUTOUT_DIRECTORY),
+                "cutout_${System.currentTimeMillis()}.png",
+            )
             FileOutputStream(cacheFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }

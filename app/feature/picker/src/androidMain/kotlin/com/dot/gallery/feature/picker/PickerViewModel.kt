@@ -50,6 +50,7 @@ import com.dot.gallery.domain.util.isEncrypted
 import com.dot.gallery.domain.util.isImage
 import com.dot.gallery.domain.util.isVideo
 import com.dot.gallery.domain.uri.path
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 import com.dot.gallery.core.presentation.util.createDecryptedTempFile
 import com.dot.gallery.domain.util.mapMediaToItem
 import com.dot.gallery.domain.date.getDate
@@ -81,12 +82,18 @@ open class PickerViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 val cutoff = System.currentTimeMillis() - SHARE_TEMP_TTL_MS
-                context.cacheDir.listFiles()?.forEach { file ->
-                    val name = file.name
-                    if ((name.startsWith("shared_") || name.startsWith("cloud_share_")) &&
-                        file.isFile && file.lastModified() < cutoff
-                    ) {
-                        file.delete()
+                val directories = listOf(
+                    context.cacheDir,
+                    FileProviderShareDirs.cache(context, FileProviderShareDirs.MEDIA_DIRECTORY),
+                )
+                directories.forEach { directory ->
+                    directory.listFiles()?.forEach { file ->
+                        val name = file.name
+                        if ((name.startsWith("shared_") || name.startsWith("cloud_share_")) &&
+                            file.isFile && file.lastModified() < cutoff
+                        ) {
+                            file.delete()
+                        }
                     }
                 }
             }

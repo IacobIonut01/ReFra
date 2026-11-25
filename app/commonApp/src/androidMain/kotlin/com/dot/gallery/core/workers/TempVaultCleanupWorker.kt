@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import com.dot.gallery.cloud.core.matches
 import com.dot.gallery.core.metrics.MetricsCollector
 import com.dot.gallery.core.logging.printDebug
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 import me.tatarka.inject.annotations.Inject
 
 
@@ -50,12 +51,19 @@ class TempVaultCleanupWorker @Inject constructor(
                         if (f.delete()) deletedCount++
                     }
                 }
-                // Also clean any leftover managed files from filesDir (legacy location before fix).
+                // Also clean any leftover managed files from filesDir (legacy location before fix)
+                // and from the narrowed FileProvider share directories.
                 val filesDir = appContext.filesDir
                 if (filesDir != null) {
-                    filesDir.listFiles()?.forEach { f ->
-                        if (isManagedDecryptedTempFile(f) && f.lastModified() < cutoff) {
-                            if (f.delete()) deletedCount++
+                    listOf(
+                        filesDir,
+                        FileProviderShareDirs.cache(appContext, FileProviderShareDirs.MEDIA_DIRECTORY),
+                        FileProviderShareDirs.files(filesDir, FileProviderShareDirs.MEDIA_DIRECTORY),
+                    ).forEach { directory ->
+                        directory.listFiles()?.forEach { f ->
+                            if (isManagedDecryptedTempFile(f) && f.lastModified() < cutoff) {
+                                if (f.delete()) deletedCount++
+                            }
                         }
                     }
                 }
