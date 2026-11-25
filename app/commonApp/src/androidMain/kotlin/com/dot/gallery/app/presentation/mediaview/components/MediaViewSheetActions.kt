@@ -24,6 +24,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.cloud.ui.CloudSelectionViewModel
 import com.dot.gallery.core.LocalMediaHandler
+import com.dot.gallery.core.presentation.util.Screen
+import com.dot.gallery.core.rememberMediaViewerNavigate
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.core.util.SdkCompat
@@ -70,7 +72,6 @@ import com.dot.gallery.generated.resources.downloading
 import com.dot.gallery.generated.resources.motion_photo_export_failed
 import com.dot.gallery.generated.resources.motion_photo_export_success
 import com.dot.gallery.generated.resources.motion_photo_exporting
-import com.dot.gallery.generated.resources.vault_create_first
 import com.dot.gallery.generated.resources.vault_hide_in_progress
 
 /**
@@ -119,7 +120,7 @@ fun <T : Media> MediaViewSheetActions(
     val exportingText = stringResource(Res.string.motion_photo_exporting)
     val exportSuccessText = stringResource(Res.string.motion_photo_export_success)
     val exportFailedText = stringResource(Res.string.motion_photo_export_failed)
-    val createFirstText = stringResource(Res.string.vault_create_first)
+    val navigateToVault = rememberMediaViewerNavigate()
     val hidingText = stringResource(Res.string.vault_hide_in_progress)
 
     FeatureMediaViewSheetActions(
@@ -154,7 +155,7 @@ fun <T : Media> MediaViewSheetActions(
             }
         },
         onHideNoVaults = {
-            Toast.makeText(context, createFirstText, Toast.LENGTH_SHORT).show()
+            navigateToVault(Screen.VaultScreen())
         },
         onOpenAs = {
             scope.launch {

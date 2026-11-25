@@ -15,6 +15,7 @@ import com.dot.gallery.core.decryption.VaultDecryptStore
 import com.dot.gallery.domain.model.AlbumState
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.UriMedia
+import com.dot.gallery.domain.util.vaultRestoreRelativePath
 import com.dot.gallery.data.model.MediaMetadataState
 import com.dot.gallery.domain.model.MediaState
 import com.dot.gallery.domain.model.Vault
@@ -34,7 +35,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import android.os.Environment
+import com.dot.gallery.core.util.SdkCompat
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
@@ -288,10 +289,11 @@ open class VaultViewModel @Inject constructor(
                 uniqueKey = "restore_${vault.uuid}_${media.id}_${System.currentTimeMillis()}"
             )
             if (outcome is VaultOpOutcome.Succeeded) {
-                val restoredPath = if (media.mimeType.startsWith("video"))
-                    Environment.DIRECTORY_MOVIES + "/Restored"
-                else
-                    Environment.DIRECTORY_PICTURES + "/Restored"
+                val restoredPath = vaultRestoreRelativePath(
+                    mimeType = media.mimeType,
+                    originalRelativePath = media.relativePath,
+                    hasAllFilesAccess = SdkCompat.hasFullFileAccess
+                )
                 _userMessage.emit(
                     getString(Res.string.vault_restored_to, 1, restoredPath)
                 )

@@ -178,6 +178,7 @@ import com.dot.gallery.data.entity.applyTo
 import com.dot.gallery.domain.util.MediaStoreWriteCollection
 import com.dot.gallery.domain.util.mediaStoreWriteCollection
 import com.dot.gallery.domain.util.resolveMediaStoreVolume
+import com.dot.gallery.domain.util.vaultRestoreRelativePath
 import com.dot.gallery.domain.util.isRawFile
 import com.dot.gallery.data.entity.metadataParsingPolicy
 import com.dot.gallery.core.logging.printDebug
@@ -1253,6 +1254,11 @@ class MediaRepositoryImpl(
                 return@withContext try {
                     val encFile = vault.mediaFile(media.id)
                     val restored: Boolean
+                    val restoreDir = vaultRestoreRelativePath(
+                        mimeType = media.mimeType,
+                        originalRelativePath = media.relativePath,
+                        hasAllFilesAccess = SdkCompat.hasFullFileAccess
+                    )
                     if (isPortableFile(encFile)) {
                         // Portable format: stream-decrypt directly to MediaStore
                         restored = if (media.isRawFile) {
@@ -1260,7 +1266,7 @@ class MediaRepositoryImpl(
                                 writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
                                 displayName = media.label,
                                 mimeType = media.mimeType,
-                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         } else if (media.isImage) {
                             // Images need bitmap decode/re-encode for format compatibility
@@ -1268,14 +1274,14 @@ class MediaRepositoryImpl(
                                 writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
                                 displayName = media.label,
                                 mimeType = media.mimeType,
-                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         } else {
                             contentResolver.saveVideoStream(
                                 writeBlock = { out -> decryptPortableStream(vault, encFile, out) },
                                 displayName = media.label,
                                 mimeType = media.compatibleMimeType(),
-                                relativePath = Environment.DIRECTORY_MOVIES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         }
                     } else {
@@ -1286,7 +1292,7 @@ class MediaRepositoryImpl(
                                 data = encryptedMedia.bytes,
                                 displayName = media.label,
                                 mimeType = media.mimeType,
-                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         } else if (media.isImage) {
                             contentResolver.saveImage(
@@ -1298,14 +1304,14 @@ class MediaRepositoryImpl(
                                 displayName = media.label,
                                 mimeType = media.compatibleMimeType(),
                                 format = media.compatibleBitmapFormat(),
-                                relativePath = Environment.DIRECTORY_PICTURES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         } else {
                             contentResolver.saveVideo(
                                 data = encryptedMedia.bytes,
                                 displayName = media.label,
                                 mimeType = media.compatibleMimeType(),
-                                relativePath = Environment.DIRECTORY_MOVIES + "/Restored"
+                                relativePath = restoreDir
                             ) != null
                         }
                     }
