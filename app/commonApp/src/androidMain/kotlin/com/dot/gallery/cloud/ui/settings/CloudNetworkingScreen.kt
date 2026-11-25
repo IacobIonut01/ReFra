@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.cloud.ui.rememberWifiSsidAccessState
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.generated.resources.Res
 import com.dot.gallery.generated.resources.cloud_networking
@@ -24,17 +25,24 @@ fun CloudNetworkingScreen(configId: Long) {
 
     LaunchedEffect(configId) { settingsVm.loadConfig(configId) }
     val loaded = config
+    val wifiAccess = rememberWifiSsidAccessState(
+        targetSsid = loaded?.localWifiSsid.orEmpty(),
+        switchingConfigured = loaded?.let {
+            it.autoUrlSwitch && it.localServerUrl.isNotBlank()
+        } == true,
+    )
     if (loaded == null) {
         AccountSettingsStateScreen(stringResource(Res.string.cloud_networking), loadState)
         return
     }
-    val effectiveUrl = remember(loaded) { settingsVm.effectiveUrl() }
-    val localActive = remember(loaded) { settingsVm.isLocalActive() }
+    val effectiveUrl = remember(loaded, wifiAccess.ssidUnreadable) { settingsVm.effectiveUrl() }
+    val localActive = remember(loaded, wifiAccess.ssidUnreadable) { settingsVm.isLocalActive() }
 
     CloudNetworkingContent(
         config = loaded,
         effectiveUrl = effectiveUrl?.ifBlank { null } ?: loaded.serverUrl,
         localActive = localActive,
         onUpdateConfig = { transform -> settingsVm.updateConfig(transform) },
+        wifiAccess = wifiAccess,
     )
 }

@@ -709,6 +709,8 @@
     <string name="cloud_net_wifi_manual_hint">Enter Wi-Fi name</string>
     <string name="cloud_net_wifi_disable">Disable switching</string>
     <string name="cloud_net_wifi_blank_summary">No network — switching disabled</string>
+    <string name="wifi_ssid_unverified_title">Wi-Fi name can’t be verified</string>
+    <string name="wifi_ssid_unverified_summary">Using the remote URL until ReFra can read the network name. Tap to allow location access or turn on Location.</string>
     <string name="setup_grant_permissions">Grant Permissions</string>
     <string name="permission_local_network_title">Direct local network access</string>
     <string name="setup_reason_local_network">Optional. Grant this only when ReFra connects directly to a server on your current network.</string>

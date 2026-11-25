@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import com.dot.gallery.cloud.ui.WifiSsidAccessState
 import com.dot.gallery.cloud.ui.WifiSsidPickerSheet
 import com.dot.gallery.cloud.ui.components.CloudNote
 import com.dot.gallery.cloud.ui.components.CloudPage
@@ -74,6 +76,8 @@ import com.dot.gallery.generated.resources.cloud_net_not_configured
 import com.dot.gallery.generated.resources.cloud_net_switching
 import com.dot.gallery.generated.resources.cloud_net_wifi_blank_summary
 import com.dot.gallery.generated.resources.cloud_net_wifi_name
+import com.dot.gallery.generated.resources.wifi_ssid_unverified_summary
+import com.dot.gallery.generated.resources.wifi_ssid_unverified_title
 import com.dot.gallery.generated.resources.cloud_networking
 
 /** Test tags of the Local and External tiles in the summary card. */
@@ -104,6 +108,7 @@ fun CloudNetworkingContent(
     effectiveUrl: String,
     localActive: Boolean,
     onUpdateConfig: (CloudServerConfigEntity.() -> CloudServerConfigEntity) -> Unit,
+    wifiAccess: WifiSsidAccessState? = null,
 ) {
     val autoUrlSwitch = config.autoUrlSwitch
     val wifiSsid = config.localWifiSsid
@@ -117,6 +122,7 @@ fun CloudNetworkingContent(
 
     var showLocalUrlDialog by remember { mutableStateOf(false) }
     var showAddExternalDialog by remember { mutableStateOf(false) }
+    val showWifiSsidWarning = wifiAccess?.ssidUnreadable == true
     val switchingHeader = stringResource(Res.string.cloud_net_switching)
     val autoUrlTitle = stringResource(Res.string.cloud_net_auto_url)
     val autoUrlSummary = stringResource(Res.string.cloud_net_auto_url_summary)
@@ -128,6 +134,8 @@ fun CloudNetworkingContent(
     val externalHeader = stringResource(Res.string.cloud_net_external)
     val addExternalTitle = stringResource(Res.string.cloud_net_add_external)
     val noExternalSummary = stringResource(Res.string.cloud_net_no_external)
+    val wifiUnverifiedTitle = stringResource(Res.string.wifi_ssid_unverified_title)
+    val wifiUnverifiedSummary = stringResource(Res.string.wifi_ssid_unverified_summary)
     val resourceStrings = listOf(
         switchingHeader,
         autoUrlTitle,
@@ -140,6 +148,8 @@ fun CloudNetworkingContent(
         externalHeader,
         addExternalTitle,
         noExternalSummary,
+        wifiUnverifiedTitle,
+        wifiUnverifiedSummary,
     )
 
     // Each row carries its own list key, since two external URLs may share a title.
@@ -148,6 +158,7 @@ fun CloudNetworkingContent(
         wifiSsid,
         localUrl,
         externalUrls,
+        showWifiSsidWarning,
         resourceStrings,
     ) {
         buildList {
@@ -173,6 +184,17 @@ fun CloudNetworkingContent(
                         screenPosition = Position.Top
                     )
                 )
+                if (showWifiSsidWarning) {
+                    add(
+                        "wifi_unverified" to SettingsEntity.Preference(
+                            icon = Icons.Outlined.Warning,
+                            title = wifiUnverifiedTitle,
+                            summary = wifiUnverifiedSummary,
+                            onClick = wifiAccess.requestAccess,
+                            screenPosition = Position.Middle
+                        )
+                    )
+                }
                 add(
                     "local_url" to SettingsEntity.Preference(
                         icon = Icons.Outlined.Router,

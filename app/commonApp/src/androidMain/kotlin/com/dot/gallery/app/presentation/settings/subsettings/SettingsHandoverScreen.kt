@@ -8,6 +8,7 @@ package com.dot.gallery.app.presentation.settings.subsettings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dot.gallery.cloud.ui.rememberWifiSsidAccessState
 import com.dot.gallery.injection.injectViewModel
 
 @Composable
@@ -27,6 +28,10 @@ fun SettingsHandoverScreen(
     val status by viewModel.status.collectAsStateWithLifecycle()
     val knownEngines by viewModel.knownEngines.collectAsStateWithLifecycle()
     val probe by viewModel.probe.collectAsStateWithLifecycle()
+    val wifiAccess = rememberWifiSsidAccessState(
+        targetSsid = wifiSsid,
+        switchingConfigured = autoSwitch && localUrl.isNotBlank(),
+    )
 
     HandoverSettingsContent(
         state = HandoverSettingsState(
@@ -44,6 +49,7 @@ fun SettingsHandoverScreen(
             knownEngines = knownEngines,
             probe = probe,
         ),
+        wifiAccess = wifiAccess,
         actions = HandoverSettingsActions(
             onEnabledChange = viewModel::setEnabled,
             onAutoSwitchChange = viewModel::setAutoUrlSwitch,
