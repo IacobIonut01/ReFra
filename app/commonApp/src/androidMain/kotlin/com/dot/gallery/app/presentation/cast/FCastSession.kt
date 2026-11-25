@@ -386,7 +386,9 @@ class FCastSession @Inject constructor(
                 }
 
                 startReceiver()
-                startHttpServer(sock.inetAddress)
+                // Media URLs are IPv4-only, so an IPv6 control address cannot be matched
+                // against the receiver's media requests; rely on the random token then.
+                startHttpServer(sock.inetAddress.takeIf { it is Inet4Address })
 
                 printDebug("FCast: Connected to ${device.name}")
             } catch (e: SecurityException) {
@@ -535,7 +537,7 @@ class FCastSession @Inject constructor(
     }
 
 
-    private fun startHttpServer(receiverAddress: InetAddress) {
+    private fun startHttpServer(receiverAddress: InetAddress?) {
         stopHttpServer()
         deleteStaleCastFiles()
         try {

@@ -22,13 +22,13 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Lightweight HTTP server that serves local media files to the connected FCast receiver.
  *
- * Only [receiverAddress] may fetch media, and each item is served at /media/{token} with a
- * random 128-bit token. Only the most recently registered item is kept; registering a new
+ * Each item is served at /media/{token} with a random 128-bit token. When [receiverAddress]
+ * is set, only that address may fetch media. Only the most recently registered item is kept; registering a new
  * item or stopping the server releases the previous one and deletes any owned temp file.
  */
 class LocalMediaHttpServer(
     private val context: Context,
-    private val receiverAddress: InetAddress,
+    private val receiverAddress: InetAddress?,
     port: Int = 0 // 0 = auto-assign
 ) : NanoHTTPD(port) {
 
@@ -104,10 +104,11 @@ class LocalMediaHttpServer(
     }
 
     private fun isReceiver(remoteIp: String?): Boolean {
+        val allowed = receiverAddress ?: return true
         if (remoteIp.isNullOrBlank()) return false
         return try {
             val remote = InetAddress.getByName(remoteIp.substringBefore('%'))
-            remote.address.contentEquals(receiverAddress.address)
+            remote.address.contentEquals(allowed.address)
         } catch (_: Exception) {
             false
         }
