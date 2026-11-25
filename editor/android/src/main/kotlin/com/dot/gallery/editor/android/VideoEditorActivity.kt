@@ -72,6 +72,8 @@ open class VideoEditorActivity : ComponentActivity() {
     protected open fun acceptedActions(): Set<String> =
         setOf(VideoEditorIntents.ACTION_EDIT, Intent.ACTION_EDIT)
 
+    protected open fun allowsOwnProviderUris(): Boolean = false
+
     /** The editor chrome; hosts wrap their own theme around [content]. */
     @Composable
     protected open fun EditorHostTheme(content: @Composable () -> Unit) {
@@ -279,20 +281,25 @@ open class VideoEditorActivity : ComponentActivity() {
         super.onStop()
     }
 
-    private fun validateRequest(): String? = when {
-        intent.action !in acceptedActions() ->
-            "Unsupported action"
-        intent.hasExtra(MediaStore.EXTRA_OUTPUT) ->
-            "Saving into EXTRA_OUTPUT is not supported; read the returned copy"
-        intent.data == null ->
-            "No video to edit"
-        intent.data?.scheme != "content" ->
-            "Only shared content videos can be edited"
-        // Without the grant flag the caller never delegated read access —
-        // fail before the session touches the URI at all.
-        intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION == 0 ->
-            "Read access to the video was not granted"
-        else -> null
+    private fun validateRequest(): String? {
+        val source = intent.data
+        return when {
+            intent.action !in acceptedActions() ->
+                "Unsupported action"
+            intent.hasExtra(MediaStore.EXTRA_OUTPUT) ->
+                "Saving into EXTRA_OUTPUT is not supported; read the returned copy"
+            source == null ->
+                "No video to edit"
+            source.scheme != "content" ->
+                "Only shared content videos can be edited"
+            !allowsOwnProviderUris() && EditorProviderGuard.isOwnProviderUri(this, source) ->
+                "Videos from this app cannot be edited through the external editor"
+            // Without the grant flag the caller never delegated read access —
+            // fail before the session touches the URI at all.
+            intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION == 0 ->
+                "Read access to the video was not granted"
+            else -> null
+        }
     }
 
     private fun finishWithResult() {

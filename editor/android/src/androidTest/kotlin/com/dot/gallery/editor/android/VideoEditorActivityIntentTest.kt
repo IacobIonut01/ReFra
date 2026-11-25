@@ -284,6 +284,29 @@ class VideoEditorActivityIntentTest {
     }
 
     @Test
+    fun ownProviderUriIsRejectedBeforeOpen() {
+        val name = "own-provider-private.mp4"
+        PipeContentProvider.payloads[name] = fixtureFile!!.readBytes()
+        try {
+            val source = PipeContentProvider.uri(name)
+            val intent = Intent(context, VideoEditorActivity::class.java)
+                .setAction(VideoEditorIntents.ACTION_EDIT)
+                .setDataAndType(source, "video/mp4")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            ActivityScenario.launchActivityForResult<VideoEditorActivity>(intent)
+                .use { scenario ->
+                    val result = awaitFinished(scenario, 5_000)
+                    assertEquals(VideoEditorIntents.RESULT_ERROR, result.resultCode)
+                    assertEquals(0, PipeContentProvider.openCount(name))
+                }
+        } finally {
+            PipeContentProvider.payloads.remove(name)
+            PipeContentProvider.openCounts.remove(name)
+            PipeContentProvider.bytesWritten.remove(name)
+        }
+    }
+
+    @Test
     fun plantedSourceAndCutExtrasCannotHijackTheOpen() {
         // A "private" file the content:// caller cannot legitimately point
         // the editor at: if a planted SavedStateHandle extra won, the clip

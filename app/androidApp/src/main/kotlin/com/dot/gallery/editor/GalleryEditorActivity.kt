@@ -1,5 +1,6 @@
 package com.dot.gallery.editor
 
+import android.content.ComponentName
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -27,7 +28,7 @@ import com.dot.gallery.ui.theme.GalleryTheme
  * logged through the app's diagnostics pipeline. The legacy in-app editor
  * stays untouched; migrating it is a later milestone.
  */
-class GalleryEditorActivity : EditorActivity() {
+open class GalleryEditorActivity : EditorActivity() {
 
     @Composable
     override fun EditorHostTheme(content: @Composable () -> Unit) {
@@ -57,6 +58,9 @@ class GalleryEditorActivity : EditorActivity() {
 
     override fun editorHostTools(): EditorHostTools =
         galleryEditorHostTools(this, ::openInExternalEditor)
+
+    override fun externalEditorExcludedComponents(): Array<ComponentName> =
+        arrayOf(ComponentName(this, GalleryEditorActivity::class.java))
 
     override fun reportError(error: Throwable) {
         printError(TAG, "Photo editor error", error)

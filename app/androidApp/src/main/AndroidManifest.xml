@@ -306,6 +306,18 @@
         </activity>
 
         <activity
+            android:name="com.dot.gallery.editor.GalleryInternalEditorActivity"
+            android:exported="false"
+            android:label="@string/editor_photo_activity_label"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
+            android:name="com.dot.gallery.editor.GalleryInternalVideoEditorActivity"
+            android:exported="false"
+            android:label="@string/editor_video_activity_label"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
             android:name="com.dot.gallery.app.presentation.standalone.StandaloneActivity"
             android:exported="true"
             android:launchMode="singleTask"
