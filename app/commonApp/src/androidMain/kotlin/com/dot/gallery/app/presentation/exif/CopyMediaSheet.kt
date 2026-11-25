@@ -85,7 +85,7 @@ fun <T : Media> CopyMediaSheet(
     }
 
     val securitySheetState = rememberAppBottomSheetState()
-    var pendingLockedAlbum by remember { mutableStateOf<Album?>(null) }
+    var pendingLockedMove by remember { mutableStateOf<(() -> Unit)?>(null) }
     var operationDestination by remember { mutableStateOf<Album?>(null) }
     val mutex = Mutex()
     val cloudCopySucceeded = cloudCopyState.finished && cloudCopyState.succeeded
@@ -180,11 +180,11 @@ fun <T : Media> CopyMediaSheet(
         title = stringResource(Res.string.biometric_authentication),
         subtitle = stringResource(Res.string.unlock_album_biometric_subtitle),
         onSuccess = {
-            pendingLockedAlbum?.let(::copyToAlbum)
-            pendingLockedAlbum = null
+            pendingLockedMove?.invoke()
+            pendingLockedMove = null
         },
         onFailed = {
-            pendingLockedAlbum = null
+            pendingLockedMove = null
         }
     )
 
@@ -235,7 +235,7 @@ fun <T : Media> CopyMediaSheet(
                 if (!biometricState.isSupported) {
                     scope.launch { securitySheetState.show() }
                 } else {
-                    pendingLockedAlbum = album
+                    pendingLockedMove = { copyToAlbum(album) }
                     biometricState.authenticate()
                 }
             } else {

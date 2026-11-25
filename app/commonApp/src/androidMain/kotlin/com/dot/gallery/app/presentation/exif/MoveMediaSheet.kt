@@ -147,7 +147,7 @@ fun <T : Media> MoveMediaSheet(
     }
 
     val securitySheetState = rememberAppBottomSheetState()
-    var pendingLockedAlbum by remember { mutableStateOf<Album?>(null) }
+    var pendingLockedMove by remember { mutableStateOf<(() -> Unit)?>(null) }
     val sources = mediaList.filter { !it.isCloud }.map {
         AlbumDestinationSource(it.mediaStoreVolumeName, it.relativePath, it.mimeType)
     }
@@ -493,11 +493,11 @@ fun <T : Media> MoveMediaSheet(
         title = stringResource(Res.string.biometric_authentication),
         subtitle = stringResource(Res.string.unlock_album_biometric_subtitle),
         onSuccess = {
-            pendingLockedAlbum?.let(::startMove)
-            pendingLockedAlbum = null
+            pendingLockedMove?.invoke()
+            pendingLockedMove = null
         },
         onFailed = {
-            pendingLockedAlbum = null
+            pendingLockedMove = null
         }
     )
 
@@ -535,7 +535,7 @@ fun <T : Media> MoveMediaSheet(
                 if (!biometricState.isSupported) {
                     scope.launch { securitySheetState.show() }
                 } else {
-                    pendingLockedAlbum = album
+                    pendingLockedMove = { startMove(album) }
                     biometricState.authenticate()
                 }
             } else {
