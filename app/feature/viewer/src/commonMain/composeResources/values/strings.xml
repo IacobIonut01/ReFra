@@ -178,4 +178,6 @@
     <string name="text_needs_pack_note">Nothing is downloaded until you pick a pack</string>
     <string name="text_needs_pack_body_offline">Add the pack files for the languages you read. They are checked against the list of known models and stay on this device.</string>
     <string name="text_learn_more">Learn more</string>
+    <string name="panorama_show_flat">Show flat view</string>
+    <string name="panorama_show_360">Show 360° view</string>
 </resources>

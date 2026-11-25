@@ -11,17 +11,36 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Panorama
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import com.dot.gallery.feature.viewer.generated.resources.Res
+import com.dot.gallery.feature.viewer.generated.resources.panorama_show_360
+import com.dot.gallery.feature.viewer.generated.resources.panorama_show_flat
+import org.jetbrains.compose.resources.stringResource
 import androidx.media3.exoplayer.ExoPlayer
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.model.Vault
@@ -100,6 +119,8 @@ fun <T : Media> MediaPreviewComponent(
     val animationsEnabled = LocalMediaViewerVisualPolicy.current.animationsEnabled
     val enter = if (animationsEnabled) fadeIn() else EnterTransition.None
     val exit = if (animationsEnabled) fadeOut() else ExitTransition.None
+    var panoramaFlat by rememberSaveable(media?.id) { mutableStateOf(false) }
+    val showPanorama = (isPanorama || isPhotosphere) && !panoramaFlat
     AnimatedVisibility(
         modifier = Modifier
             .fillMaxSize()
@@ -111,7 +132,7 @@ fun <T : Media> MediaPreviewComponent(
         Box(modifier = Modifier.fillMaxSize()) {
             // Non-translating blurred background: a sibling of the offset content box, so it
             // stays pinned to the screen while the media rides the dismiss drag offset.
-            if ((!media!!.isVideo || storyActive) && !isPanorama && !isPhotosphere && renderBackground) {
+            if ((!media!!.isVideo || storyActive) && !showPanorama && renderBackground) {
                 BlurredMediaBackground(
                     media = media,
                     uiEnabled = uiEnabled,
@@ -153,7 +174,7 @@ fun <T : Media> MediaPreviewComponent(
 
                 AnimatedVisibility(
                     modifier = Modifier.fillMaxSize(),
-                    visible = !media.isVideo && !isPanorama && !isPhotosphere,
+                    visible = !media.isVideo && !showPanorama,
                     enter = enter,
                     exit = exit
                 ) {
@@ -189,12 +210,7 @@ fun <T : Media> MediaPreviewComponent(
                     motionPhotoState?.let { MotionPhotoSurface(state = it) }
                 }
 
-                AnimatedVisibility(
-                    modifier = Modifier.fillMaxSize(),
-                    visible = !media.isVideo && !isMotionPhoto && (isPanorama || isPhotosphere),
-                    enter = enter,
-                    exit = exit
-                ) {
+                if (!media.isVideo && !isMotionPhoto && showPanorama) {
                     PanoramaImageViewer(
                         media = media,
                         isPhotosphere = isPhotosphere,
@@ -203,6 +219,27 @@ fun <T : Media> MediaPreviewComponent(
                         currentVault = currentVault,
                         captureBlur = uiEnabled
                     )
+                }
+            }
+
+            if (isPanorama || isPhotosphere) {
+                AnimatedVisibility(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(end = 16.dp, bottom = 92.dp),
+                    visible = uiEnabled,
+                    enter = enter,
+                    exit = exit
+                ) {
+                    FilledTonalIconButton(onClick = { panoramaFlat = !panoramaFlat }) {
+                        Icon(
+                            imageVector = if (showPanorama) Icons.Outlined.Image else Icons.Outlined.Panorama,
+                            contentDescription = stringResource(
+                                if (showPanorama) Res.string.panorama_show_flat else Res.string.panorama_show_360
+                            )
+                        )
+                    }
                 }
             }
         }
