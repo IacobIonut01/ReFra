@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import javax.inject.Inject
@@ -56,6 +57,8 @@ import com.dot.gallery.generated.resources.permission_local_network_title
 import com.dot.gallery.generated.resources.setup_reason_local_network
 import org.jetbrains.compose.resources.StringResource
 
+
+internal const val CAST_TEMP_FILE_PREFIX = "fcast_"
 
 data class FCastDevice(
     val name: String,
@@ -383,7 +386,7 @@ class FCastSession @Inject constructor(
                 }
 
                 startReceiver()
-                startHttpServer()
+                startHttpServer(sock.inetAddress)
 
                 printDebug("FCast: Connected to ${device.name}")
             } catch (e: SecurityException) {
@@ -531,10 +534,11 @@ class FCastSession @Inject constructor(
     }
 
 
-    private fun startHttpServer() {
-        if (httpServer != null) return
+    private fun startHttpServer(receiverAddress: InetAddress) {
+        stopHttpServer()
+        deleteStaleCastFiles()
         try {
-            httpServer = LocalMediaHttpServer(context).also {
+            httpServer = LocalMediaHttpServer(context, receiverAddress).also {
                 it.start()
                 printDebug("FCast: HTTP server started on port ${it.listeningPort}")
             }
@@ -544,6 +548,13 @@ class FCastSession @Inject constructor(
                 it.copy(connectionError = "Failed to start media server: ${e.message}")
             }
         }
+    }
+
+    private fun deleteStaleCastFiles() {
+        context.cacheDir.listFiles { file -> file.name.startsWith(CAST_TEMP_FILE_PREFIX) }
+            ?.forEach { file ->
+                if (!file.delete()) printWarning("FCast: Failed to delete stale cast file ${file.name}")
+            }
     }
 
     private fun stopHttpServer() {
@@ -559,9 +570,7 @@ class FCastSession @Inject constructor(
 
         scope.launch {
             try {
-                val token = media.id.toString()
-                server.registerUri(
-                    token = token,
+                val token = server.registerUri(
                     uri = media.getUri(),
                     mimeType = media.mimeType,
                     size = media.size
@@ -594,14 +603,22 @@ class FCastSession @Inject constructor(
         }
     }
 
-    fun castFile(file: File, mimeType: String, label: String, mediaId: Long) {
-        val server = httpServer ?: return
-        val out = outputStream ?: return
+    /**
+     * Casts a local [file]. When [deleteWhenDone] is true the session takes ownership of the
+     * file and deletes it once it is no longer served or if it cannot be cast.
+     */
+    fun castFile(file: File, mimeType: String, label: String, mediaId: Long, deleteWhenDone: Boolean) {
+        val server = httpServer
+        val out = outputStream
+        if (server == null || out == null) {
+            if (deleteWhenDone) file.delete()
+            return
+        }
 
         scope.launch {
+            var token: String? = null
             try {
-                val token = mediaId.toString()
-                server.registerFile(token = token, file = file, mimeType = mimeType)
+                token = server.registerFile(file = file, mimeType = mimeType, deleteOnRelease = deleteWhenDone)
 
                 val url = server.getMediaUrl(token)
                     ?: throw IllegalStateException("Cannot determine LAN URL")
@@ -626,6 +643,7 @@ class FCastSession @Inject constructor(
                 printDebug("FCast: Casting $label → $url")
             } catch (e: Exception) {
                 printWarning("FCast: Cast file failed: ${e.message}")
+                if (token != null) server.unregister(token) else if (deleteWhenDone) file.delete()
             }
         }
     }
