@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileOpen
@@ -97,6 +98,7 @@ import com.dot.gallery.core.ui.settings.rememberPreference
 import com.dot.gallery.feature.albums.generated.resources.Res
 import com.dot.gallery.feature.albums.generated.resources.action_delete_permanently
 import com.dot.gallery.feature.albums.generated.resources.action_move_to_trash
+import com.dot.gallery.feature.albums.generated.resources.add_to_collection
 import com.dot.gallery.feature.albums.generated.resources.add_to_group
 import com.dot.gallery.feature.albums.generated.resources.add_to_ignored
 import com.dot.gallery.feature.albums.generated.resources.album_delete_confirm_summary
@@ -146,6 +148,7 @@ fun AlbumComponent(
     onToggleLockClick: ((Album) -> Unit)? = null,
     onDeleteAlbumThumbnailClick: ((Album) -> Unit)? = null,
     onAddToGroup: ((Album) -> Unit)? = null,
+    onAddToCollection: ((Album) -> Unit)? = null,
     onRemoveFromGroup: ((Album) -> Unit)? = null,
     onMoveToSection: ((Album) -> Unit)? = null,
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
@@ -180,6 +183,7 @@ fun AlbumComponent(
             onToggleLockClick = onToggleLockClick,
             onDeleteAlbumThumbnailClick = onDeleteAlbumThumbnailClick,
             onAddToGroup = onAddToGroup,
+            onAddToCollection = onAddToCollection,
             onRemoveFromGroup = onRemoveFromGroup,
             onMoveToSection = onMoveToSection,
             onToggleMergeSubfolders = onToggleMergeSubfolders,
@@ -323,6 +327,7 @@ fun AlbumRowComponent(
     onToggleIgnoreClick: ((Album) -> Unit)? = null,
     onToggleLockClick: ((Album) -> Unit)? = null,
     onAddToGroup: ((Album) -> Unit)? = null,
+    onAddToCollection: ((Album) -> Unit)? = null,
     onMoveToSection: ((Album) -> Unit)? = null,
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
     onMergeParentSubfolders: ((Album) -> Unit)? = null,
@@ -363,6 +368,7 @@ fun AlbumRowComponent(
             onToggleIgnoreClick = onToggleIgnoreClick,
             onToggleLockClick = onToggleLockClick,
             onAddToGroup = onAddToGroup,
+            onAddToCollection = onAddToCollection,
             onMoveToSection = onMoveToSection,
             onToggleMergeSubfolders = onToggleMergeSubfolders,
             onMergeParentSubfolders = onMergeParentSubfolders,
@@ -448,6 +454,7 @@ fun AlbumOptionSheet(
     onToggleLockClick: ((Album) -> Unit)? = null,
     onDeleteAlbumThumbnailClick: ((Album) -> Unit)? = null,
     onAddToGroup: ((Album) -> Unit)? = null,
+    onAddToCollection: ((Album) -> Unit)? = null,
     onRemoveFromGroup: ((Album) -> Unit)? = null,
     onMoveToSection: ((Album) -> Unit)? = null,
     onToggleMergeSubfolders: ((Album) -> Unit)? = null,
@@ -475,6 +482,7 @@ fun AlbumOptionSheet(
     val ignoredTitle = stringResource(Res.string.add_to_ignored)
     val lockTitle = stringResource(if (album.isLocked) Res.string.unlock_album else Res.string.lock_album)
     val addToGroupTitle = stringResource(Res.string.add_to_group)
+    val addToCollectionTitle = stringResource(Res.string.add_to_collection)
     val removeFromGroupTitle = stringResource(Res.string.remove_album_from_group)
     val moveToSectionTitle = stringResource(Res.string.move_to_section)
     val mergeSubfoldersTitle = stringResource(
@@ -537,6 +545,7 @@ fun AlbumOptionSheet(
         onToggleIgnoreClick,
         onToggleLockClick,
         onAddToGroup,
+        onAddToCollection,
         onRemoveFromGroup,
         onMoveToSection,
         onToggleMergeSubfolders,
@@ -632,6 +641,20 @@ fun AlbumOptionSheet(
                             scope.launch {
                                 appBottomSheetState.hide()
                                 onAddToGroup(album)
+                            }
+                        }
+                    )
+                )
+            }
+            if (onAddToCollection != null && !isCloudAlbum) {
+                add(
+                    OptionItem(
+                        icon = Icons.Outlined.Collections,
+                        text = addToCollectionTitle,
+                        onClick = {
+                            scope.launch {
+                                appBottomSheetState.hide()
+                                onAddToCollection(album)
                             }
                         }
                     )

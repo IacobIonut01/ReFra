@@ -89,4 +89,24 @@ class CollectionViewModel @Inject constructor(
             onCreated?.invoke(id)
         }
     }
+
+    fun addAlbumsToCollection(collectionId: Long, albumIds: List<Long>) {
+        viewModelScope.launch(IODispatcher) {
+            repository.addAlbumsToCollection(collectionId, albumIds)
+        }
+    }
+
+    fun createCollectionAndAddAlbums(
+        name: String,
+        albumIds: List<Long>,
+        onCreated: ((Long) -> Unit)? = null
+    ) {
+        viewModelScope.launch(IODispatcher) {
+            val id = repository.insertCollection(
+                Collection(label = name)
+            )
+            repository.addAlbumsToCollection(id, albumIds)
+            onCreated?.invoke(id)
+        }
+    }
 }

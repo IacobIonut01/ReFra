@@ -172,6 +172,7 @@ import com.dot.gallery.feature.albums.AlbumsViewModel
 import com.dot.gallery.feature.albums.ui.AlbumTimelineViewModel
 import com.dot.gallery.feature.classifier.CategoriesViewModel
 import com.dot.gallery.feature.classifier.CategoryViewModel
+import com.dot.gallery.feature.albums.ui.collections.AddToCollectionSheet
 import com.dot.gallery.feature.albums.ui.collections.CollectionViewModel
 import com.dot.gallery.feature.exif.MetadataViewViewModel
 import com.dot.gallery.feature.library.location.LocationsViewModel
@@ -460,6 +461,9 @@ fun NavigationComp(
                 var groupDialogGroupId by remember { mutableStateOf<Long?>(null) }
                 var groupDialogInitialName by remember { mutableStateOf("") }
                 var pendingGroupAlbum by remember { mutableStateOf<Album?>(null) }
+                var pendingCollectionAlbum by remember { mutableStateOf<Album?>(null) }
+                var showAlbumCollectionSheet by remember { mutableStateOf(false) }
+                val albumCollectionViewModel = injectViewModel<CollectionViewModel> {collectionViewModel}
                 val deleteGroupSheetState = rememberAppBottomSheetState()
                 var pendingDeleteGroupId by remember { mutableStateOf<Long?>(null) }
 
@@ -512,6 +516,26 @@ fun NavigationComp(
                 var collectionDialogInitialName by remember { mutableStateOf("") }
                 val deleteCollectionSheetState = rememberAppBottomSheetState()
                 var pendingDeleteCollectionId by remember { mutableStateOf<Long?>(null) }
+
+                AddToCollectionSheet(
+                    visible = showAlbumCollectionSheet,
+                    collections = albumsStateForGroups.collections,
+                    onDismiss = { showAlbumCollectionSheet = false },
+                    onCollectionSelected = { collectionId ->
+                        pendingCollectionAlbum?.let { album ->
+                            albumCollectionViewModel.addAlbumsToCollection(collectionId, listOf(album.id))
+                        }
+                        pendingCollectionAlbum = null
+                        showAlbumCollectionSheet = false
+                    },
+                    onCreateAndAdd = { name ->
+                        pendingCollectionAlbum?.let { album ->
+                            albumCollectionViewModel.createCollectionAndAddAlbums(name, listOf(album.id))
+                        }
+                        pendingCollectionAlbum = null
+                        showAlbumCollectionSheet = false
+                    },
+                )
 
                 CollectionSheet(
                     sheetState = collectionSheetState,
@@ -596,6 +620,10 @@ fun NavigationComp(
                         groupDialogMode = "addToGroup"
                         groupDialogInitialName = ""
                         scope.launch { groupSheetState.show() }
+                    },
+                    onAddToCollection = { album ->
+                        pendingCollectionAlbum = album
+                        showAlbumCollectionSheet = true
                     },
                     onToggleMergeSubfolders = albumsViewModel::toggleMergeSubfolders,
                     onMergeParentSubfolders = albumsViewModel::mergeParentSubfolders,
