@@ -30,12 +30,21 @@ internal object WallpaperUriPolicy {
         if (authority.isNullOrBlank()) return false
         if (callerIsSelf) return true
         if (ownProviderAuthority.isNullOrBlank()) return false
-        if (authority.equals(ownProviderAuthority, ignoreCase = true)) return false
+        if (isOwnProviderAuthority(authority, ownProviderAuthority)) return false
         return when (callerAccess) {
             CallerUriAccess.GRANTED -> true
             CallerUriAccess.DENIED -> false
             CallerUriAccess.UNKNOWN -> incomingHasReadGrant
         }
+    }
+
+    private fun isOwnProviderAuthority(authority: String, ownProviderAuthority: String): Boolean {
+        if (authority.equals(ownProviderAuthority, ignoreCase = true)) return true
+        val userId = authority.substringAfterLast('@').toIntOrNull() ?: return false
+        return userId >= 0 && authority.substringBeforeLast('@').equals(
+            ownProviderAuthority,
+            ignoreCase = true,
+        )
     }
 
     private const val CONTENT_SCHEME = "content"

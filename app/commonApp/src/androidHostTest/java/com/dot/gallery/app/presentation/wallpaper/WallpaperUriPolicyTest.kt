@@ -21,6 +21,20 @@ class WallpaperUriPolicyTest {
     }
 
     @Test
+    fun rejectsUserQualifiedOwnFileProviderForExternalCaller() {
+        assertFalse(
+            WallpaperUriPolicy.shouldForward(
+                scheme = "content",
+                authority = "$OWN_AUTHORITY@10",
+                ownProviderAuthority = OWN_AUTHORITY,
+                callerIsSelf = false,
+                callerAccess = CallerUriAccess.UNKNOWN,
+                incomingHasReadGrant = true,
+            )
+        )
+    }
+
+    @Test
     fun allowsOwnFileProviderForInternalLaunch() {
         assertTrue(
             WallpaperUriPolicy.shouldForward(

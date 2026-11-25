@@ -226,12 +226,18 @@ class VisualSearchLauncher @Inject constructor(
 
     /** Best-effort sweep of stale converted frames so the cache dir does not accumulate them. */
     private fun sweepTempDir(nowMs: Long = System.currentTimeMillis()) {
+        val legacyDir = File(context.cacheDir, LEGACY_TEMP_DIR_NAME)
+        legacyDir.listFiles()?.forEach { file ->
+            if (file.isFile) file.delete()
+        }
+        legacyDir.delete()
         tempDir().listFiles()?.forEach { file ->
             if (nowMs - file.lastModified() > MAX_TEMP_AGE_MS) file.delete()
         }
     }
 
     companion object {
+        private const val LEGACY_TEMP_DIR_NAME = "visual_search"
         private const val MAX_TEMP_AGE_MS = 24L * 60L * 60L * 1000L
         private val ENCODE_CONFIG = ImageReencoder.ReencodeConfig(lossyQuality = 95)
 

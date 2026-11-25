@@ -107,6 +107,11 @@ object LogExporter {
     ): File {
         val dir = FileProviderShareDirs.cache(context, FileProviderShareDirs.LOGS_DIRECTORY)
         dir.listFiles()?.forEach { it.delete() }
+        File(context.cacheDir, FileProviderShareDirs.ROOT_DIRECTORY).listFiles()?.forEach { file ->
+            if (file.isFile && file.name.startsWith("refra-diagnostics-") && file.name.endsWith(".zip")) {
+                file.delete()
+            }
+        }
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
         val out = File(dir, "refra-diagnostics-$stamp.zip")
         ZipOutputStream(BufferedOutputStream(FileOutputStream(out))).use { zip ->
