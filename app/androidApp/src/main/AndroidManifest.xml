@@ -33,7 +33,9 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 
     <!-- Required to read the current Wi-Fi SSID for cloud local/external URL switching.
+         Android 12+ requires coarse and fine location to be requested together.
          Stripped from the offline variant (see manifestConfig in app/build.gradle.kts). -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- Remove unwanted permissions from being added -->

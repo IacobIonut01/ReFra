@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,18 +73,23 @@ import com.dot.gallery.generated.resources.cloud_net_wifi_sheet_desc
 fun WifiSsidPickerSheet(
     state: AppBottomSheetState,
     currentSsid: String,
-    onSave: (String) -> Unit
+    onSave: (String) -> Unit,
+    onPermissionResult: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val requestPermission = rememberWifiSsidPermissionRequester()
+    var ssidRefreshTick by remember { mutableIntStateOf(0) }
+    val requestPermission = rememberWifiSsidPermissionRequester { granted ->
+        ssidRefreshTick++
+        onPermissionResult(granted)
+    }
 
     if (state.isVisible) {
         // Ask for location as soon as the sheet opens so we can read the connected SSID.
         LaunchedEffect(Unit) { requestPermission() }
 
         var text by remember { mutableStateOf(currentSsid) }
-        val connectedSsid = remember(state.isVisible) { context.currentWifiSsid() }
+        val connectedSsid = remember(state.isVisible, ssidRefreshTick) { context.currentWifiSsid() }
 
         ModalBottomSheet(
             sheetState = state.sheetState,

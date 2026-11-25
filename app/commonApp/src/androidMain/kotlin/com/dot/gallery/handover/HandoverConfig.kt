@@ -7,6 +7,7 @@ package com.dot.gallery.handover
 
 import android.content.Context
 import com.dot.gallery.core.Settings
+import com.dot.gallery.core.network.resolveLocalNetworkUrl
 import com.dot.gallery.core.presentation.util.currentWifiSsid
 import com.dot.gallery.core.presentation.util.isOnLocalNetwork
 import kotlinx.coroutines.flow.Flow
@@ -52,20 +53,24 @@ data class HandoverConfig(
 
     /**
      * Effective base URL. Mirrors ServerUrlResolver semantics: when auto-switch
-     * is on and a local URL + SSID are configured, the local URL is used while
-     * on that network; an unreadable SSID degrades to "any local network counts".
+     * is on and a local URL + SSID are configured, the local URL is used only after
+     * the current network is positively identified as that SSID. An unreadable SSID
+     * fails closed to the remote URL.
      */
-    fun effectiveUrl(context: Context): String {
-        if (!autoUrlSwitch || localUrl.isBlank()) return remoteUrl.trimEnd('/')
-        val targetSsid = localWifiSsid.trim()
-        if (targetSsid.isBlank()) return remoteUrl.trimEnd('/')
-        if (!context.isOnLocalNetwork()) return remoteUrl.trimEnd('/')
-        val currentSsid = context.currentWifiSsid()
-        if (currentSsid != null && !currentSsid.equals(targetSsid, ignoreCase = true)) {
-            return remoteUrl.trimEnd('/')
-        }
-        return localUrl.trimEnd('/')
-    }
+    fun effectiveUrl(context: Context): String = effectiveUrl(
+        onLocalNetwork = context.isOnLocalNetwork(),
+        currentSsid = context.currentWifiSsid(),
+    )
+
+    internal fun effectiveUrl(onLocalNetwork: Boolean, currentSsid: String?): String =
+        resolveLocalNetworkUrl(
+            remoteUrl = remoteUrl.trimEnd('/'),
+            localUrl = localUrl,
+            localWifiSsid = localWifiSsid,
+            autoUrlSwitch = autoUrlSwitch,
+            onLocalNetwork = onLocalNetwork,
+            currentSsid = currentSsid,
+        )
 
     companion object {
         const val AUTH_BEARER = "bearer"

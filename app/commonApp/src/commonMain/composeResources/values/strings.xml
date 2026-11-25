@@ -1028,6 +1028,8 @@
     <string name="cloud_net_wifi_manual_hint">Enter Wi-Fi name</string>
     <string name="cloud_net_wifi_disable">Disable switching</string>
     <string name="cloud_net_wifi_blank_summary">No network — switching disabled</string>
+    <string name="wifi_ssid_unverified_title">Wi-Fi name can’t be verified</string>
+    <string name="wifi_ssid_unverified_summary">Using the remote URL until ReFra can read the network name. Tap to allow location access or turn on Location.</string>
 
     <!-- ============================ Setup wizard ============================ -->
     <!-- App logo -->

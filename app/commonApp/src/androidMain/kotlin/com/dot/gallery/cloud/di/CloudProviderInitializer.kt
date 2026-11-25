@@ -5,6 +5,8 @@
 
 package com.dot.gallery.cloud.di
 
+import android.content.Context
+import android.net.ConnectivityManager
 import com.dot.gallery.cloud.core.CloudRuntimeSettings
 import com.dot.gallery.cloud.core.ConnectionState
 import com.dot.gallery.cloud.core.auth.CloudConnectionErrorKind
@@ -20,6 +22,7 @@ import com.dot.gallery.data.dao.CloudTagDao
 import com.dot.gallery.data.entity.CloudMediaTagEntity
 import com.dot.gallery.data.entity.CloudTagEntity
 import com.dot.gallery.cloud.data.repository.CloudRepository
+import com.dot.gallery.cloud.sync.CloudCellularPolicy
 import com.dot.gallery.cloud.sync.shouldStartCloudIndex
 import com.dot.gallery.core.Resource
 import com.dot.gallery.data.entity.SmartScanFeature
@@ -109,6 +112,7 @@ private fun Throwable.isRetryableCloudAuthenticationFailure(): Boolean {
  */
 @Singleton
 class CloudProviderInitializer @Inject constructor(
+    private val context: Context,
     private val providerFactories: Set<@JvmSuppressWildcards ProviderInstanceFactory> = emptySet(),
     private val registry: ProviderRegistry,
     private val configDao: CloudServerConfigDao,
@@ -151,6 +155,12 @@ class CloudProviderInitializer @Inject constructor(
     private fun prefetchProviderData(provider: RemoteMediaProvider, label: String, configId: Long) {
         prefetchScope.launch {
             if (!shouldStartCloudIndex(offlineModeManager.effectiveOfflineNow)) return@launch
+            val config = configDao.getById(configId) ?: return@launch
+            val isMetered = runCatching {
+                (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)
+                    ?.isActiveNetworkMetered == true
+            }.getOrDefault(false)
+            if (isMetered && !CloudCellularPolicy.allowsSync(config)) return@launch
             indexProgressManager.start(configId, label)
             try {
                 val previousSmartFeatureRevisions = cloudMediaDao.getSmartFeatureRevisions(configId)
@@ -384,6 +394,11 @@ class CloudProviderInitializer @Inject constructor(
         reconfigureScope.launch { reconfigureAccount(configId) }
     }
 
+    /** Re-resolve all auto-switching providers without tying authentication to a UI lifecycle. */
+    fun reconfigureActiveProvidersAsync() {
+        reconfigureScope.launch { reconfigureActiveProviders() }
+    }
+
     suspend fun applyRestoredAccount(configId: Long) {
         val entity = configDao.getById(configId) ?: return
         CloudRuntimeSettings.apply(entity.toCloudServerConfig())
@@ -490,6 +505,7 @@ class CloudProviderInitializer @Inject constructor(
                     registry.updateConnectionState(entity.id, ConnectionState.CONNECTED)
                     configDao.updateLastConnected(entity.id, System.currentTimeMillis())
                     cloudRepository.notifyProviderConnected(entity.providerType, ConnectionState.CONNECTED)
+                    prefetchProviderData(provider, entity.displayName.ifBlank { entity.providerType.displayName }, entity.id)
                     printDebug("CloudProviderInitializer: Reconfigured ${entity.providerType} #${entity.id} -> ${resolved.serverUrl}")
                 } catch (e: CancellationException) {
                     throw e

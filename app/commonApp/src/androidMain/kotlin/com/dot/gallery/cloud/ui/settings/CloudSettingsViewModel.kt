@@ -96,6 +96,11 @@ class CloudSettingsViewModel @Inject constructor(
                 urlResolver.isOnConfiguredLocalNetwork(cfg)
     }
 
+    /** Re-applies effective URLs after SSID readability changes. */
+    fun reapplyEffectiveUrl() {
+        providerInitializer.reconfigureActiveProvidersAsync()
+    }
+
     fun updateConfig(transform: CloudServerConfigEntity.() -> CloudServerConfigEntity) {
         val current = _config.value ?: return
         val targets = globalConfigs.ifEmpty { listOf(current) }

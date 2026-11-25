@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.dot.gallery.cloud.ui.WifiSsidAccessState
 import com.dot.gallery.cloud.ui.WifiSsidPickerSheet
 import com.dot.gallery.core.ui.components.settings
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
@@ -96,6 +97,8 @@ import com.dot.gallery.generated.resources.handover_title
 import com.dot.gallery.generated.resources.handover_url_hint
 import com.dot.gallery.generated.resources.handover_url_insecure
 import com.dot.gallery.generated.resources.handover_wifi
+import com.dot.gallery.generated.resources.wifi_ssid_unverified_summary
+import com.dot.gallery.generated.resources.wifi_ssid_unverified_title
 import com.dot.gallery.handover.EngineInfo
 import com.dot.gallery.handover.HandoverConfig
 import com.dot.gallery.handover.HandoverEnvelope
@@ -149,6 +152,7 @@ class HandoverSettingsActions(
 fun HandoverSettingsContent(
     state: HandoverSettingsState,
     actions: HandoverSettingsActions = HandoverSettingsActions(),
+    wifiAccess: WifiSsidAccessState? = null,
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -192,6 +196,9 @@ fun HandoverSettingsContent(
         HandoverProbeState.Idle -> ""
     }
     val insecureUrlWarning = stringResource(Res.string.handover_url_insecure)
+    val wifiUnverifiedTitle = stringResource(Res.string.wifi_ssid_unverified_title)
+    val wifiUnverifiedSummary = stringResource(Res.string.wifi_ssid_unverified_summary)
+    val showWifiSsidWarning = wifiAccess?.ssidUnreadable == true
     val authModeSummary = when (state.authMode) {
         HandoverConfig.AUTH_HMAC -> stringResource(Res.string.handover_auth_hmac)
         else -> stringResource(Res.string.handover_auth_bearer)
@@ -294,6 +301,14 @@ fun HandoverSettingsContent(
                             summary = state.wifiSsid.ifBlank { notConfigured },
                             onClick = { scope.launch { wifiSheetState.show() } }
                         )
+                        if (showWifiSsidWarning) {
+                            Preference(
+                                title = wifiUnverifiedTitle,
+                                summary = wifiUnverifiedSummary,
+                                icon = Icons.Outlined.Warning,
+                                onClick = wifiAccess.requestAccess
+                            )
+                        }
                         Preference(
                             title = localUrlTitle,
                             summary = state.localUrl.ifBlank { notConfigured },
@@ -343,7 +358,8 @@ fun HandoverSettingsContent(
     WifiSsidPickerSheet(
         state = wifiSheetState,
         currentSsid = state.wifiSsid,
-        onSave = actions.onWifiSsid
+        onSave = actions.onWifiSsid,
+        onPermissionResult = { wifiAccess?.refresh() }
     )
 
     if (showUrlDialog) {

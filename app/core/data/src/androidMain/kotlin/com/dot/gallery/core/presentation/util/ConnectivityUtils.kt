@@ -94,6 +94,20 @@ fun Context.isOnLocalNetwork(): Boolean {
     }
 }
 
+/** Whether Wi-Fi is connected, even when another local transport such as Ethernet is active. */
+fun Context.isWifiConnected(): Boolean {
+    val connectivityManager =
+        getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+    return try {
+        connectivityManager.allNetworks.any { network ->
+            connectivityManager.getNetworkCapabilities(network)
+                ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        }
+    } catch (_: SecurityException) {
+        false
+    }
+}
+
 fun isLanRouteAvailable(isWifi: Boolean, isEthernet: Boolean, isVpn: Boolean): Boolean =
     isWifi || isEthernet || isVpn
 
@@ -116,8 +130,8 @@ fun Context.isLanRouteAvailable(): Boolean {
 /**
  * Best-effort current Wi-Fi SSID. Returns null when not on Wi-Fi or when the SSID cannot be
  * read (on Android 10+ a real SSID requires location permission + enabled location services;
- * without them the system returns "<unknown ssid>", which we treat as null). Callers should
- * gracefully degrade — e.g. treat a blank configured SSID as "any local network".
+ * without them the system returns "<unknown ssid>", which we treat as null). Callers using the
+ * SSID to trust a local server must treat null as failure to verify the network, never as a match.
  */
 @Suppress("DEPRECATION")
 fun Context.currentWifiSsid(): String? {
