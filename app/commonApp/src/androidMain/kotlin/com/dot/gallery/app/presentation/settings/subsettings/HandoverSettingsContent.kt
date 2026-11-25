@@ -358,7 +358,8 @@ fun HandoverSettingsContent(
     WifiSsidPickerSheet(
         state = wifiSheetState,
         currentSsid = state.wifiSsid,
-        onSave = actions.onWifiSsid
+        onSave = actions.onWifiSsid,
+        onPermissionResult = { wifiAccess?.refresh() }
     )
 
     if (showUrlDialog) {

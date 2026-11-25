@@ -254,7 +254,8 @@ fun CloudNetworkingContent(
     WifiSsidPickerSheet(
         state = wifiSheetState,
         currentSsid = wifiSsid,
-        onSave = { ssid -> onUpdateConfig { copy(localWifiSsid = ssid) } }
+        onSave = { ssid -> onUpdateConfig { copy(localWifiSsid = ssid) } },
+        onPermissionResult = { wifiAccess?.refresh() }
     )
 
     // Local URL edit dialog

@@ -30,6 +30,7 @@ fun CloudNetworkingScreen(configId: Long) {
         switchingConfigured = loaded?.let {
             it.autoUrlSwitch && it.localServerUrl.isNotBlank()
         } == true,
+        onAccessRestored = { settingsVm.reapplyEffectiveUrl() },
     )
     if (loaded == null) {
         AccountSettingsStateScreen(stringResource(Res.string.cloud_networking), loadState)

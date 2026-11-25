@@ -73,12 +73,16 @@ import com.dot.gallery.generated.resources.cloud_net_wifi_sheet_desc
 fun WifiSsidPickerSheet(
     state: AppBottomSheetState,
     currentSsid: String,
-    onSave: (String) -> Unit
+    onSave: (String) -> Unit,
+    onPermissionResult: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var ssidRefreshTick by remember { mutableIntStateOf(0) }
-    val requestPermission = rememberWifiSsidPermissionRequester { ssidRefreshTick++ }
+    val requestPermission = rememberWifiSsidPermissionRequester { granted ->
+        ssidRefreshTick++
+        onPermissionResult(granted)
+    }
 
     if (state.isVisible) {
         // Ask for location as soon as the sheet opens so we can read the connected SSID.
