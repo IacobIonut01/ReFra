@@ -22,6 +22,7 @@ import dev.brewkits.kmpworkmanager.background.domain.WorkerResult
 import com.dot.gallery.cloud.util.CloudMediaDownloader
 import com.dot.gallery.core.Settings
 import com.dot.gallery.core.util.ProgressThrottler
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.util.ext.selectedModifiedTimestamp
 import com.dot.gallery.core.util.ext.copyToCancellable
 import com.dot.gallery.core.util.ext.isVerifiedMediaCopy
@@ -51,6 +52,8 @@ import com.dot.gallery.domain.uri.path
 import com.dot.gallery.domain.uri.scheme
 import com.dot.gallery.domain.util.isVideo
 import com.dot.gallery.core.logging.printError
+import com.dot.gallery.domain.util.MediaStoreWriteCollection
+import com.dot.gallery.domain.util.mediaStoreWriteCollection
 import com.dot.gallery.domain.util.resolveMediaStoreVolume
 import me.tatarka.inject.annotations.Inject
 
@@ -206,9 +209,16 @@ class MediaCopyWorker @Inject constructor(
                 val isVideo = mediaType.startsWith("video")
                 val sourceDateModified = if (isCloudUri) 0L else cr.mediaDateModified(src)
                 val sourceSize = if (isCloudUri) -1L else cr.mediaSize(src)
+                val insertCollection = when (
+                    mediaStoreWriteCollection(mediaType, relPath, SdkCompat.hasFullFileAccess)
+                ) {
+                    MediaStoreWriteCollection.TYPED -> if (isVideo) MediaStore.Video.Media.getContentUri(volumeName)
+                    else MediaStore.Images.Media.getContentUri(volumeName)
+                    MediaStoreWriteCollection.FILES -> MediaStore.Files.getContentUri(volumeName)
+                    MediaStoreWriteCollection.UNSUPPORTED -> return@withContext null
+                }
                 val insertedUri = cr.insert(
-                    if (isVideo) MediaStore.Video.Media.getContentUri(volumeName)
-                    else MediaStore.Images.Media.getContentUri(volumeName),
+                    insertCollection,
                     ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
                         put(MediaStore.MediaColumns.MIME_TYPE, mediaType)

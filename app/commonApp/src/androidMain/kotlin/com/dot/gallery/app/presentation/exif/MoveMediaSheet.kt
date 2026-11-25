@@ -28,6 +28,7 @@ import com.dot.gallery.cloud.ui.descriptor.ProviderBrandIcon
 import com.dot.gallery.core.LocalMediaDistributor
 import com.dot.gallery.core.LocalMediaHandler
 import com.dot.gallery.core.Settings.Album.rememberAlbumGridSize
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.ui.util.AppBottomSheetState
 import com.dot.gallery.domain.model.Album
 import com.dot.gallery.domain.model.AlbumState
@@ -57,6 +58,8 @@ import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
 import com.dot.gallery.feature.exif.ui.restrictedMoveSources
 import com.dot.gallery.feature.exif.ui.resolveNewAlbumMovePath
+import com.dot.gallery.domain.util.MediaStoreWriteCollection
+import com.dot.gallery.domain.util.mediaStoreWriteCollection
 import com.dot.gallery.domain.util.resolveMediaStoreVolume
 import com.dot.gallery.feature.exif.ui.normalizeMediaStoreRelativePath
 import com.dot.gallery.domain.util.mediaStoreVolumeName
@@ -146,7 +149,7 @@ fun <T : Media> MoveMediaSheet(
     val securitySheetState = rememberAppBottomSheetState()
     var pendingLockedAlbum by remember { mutableStateOf<Album?>(null) }
     val sources = mediaList.filter { !it.isCloud }.map {
-        AlbumDestinationSource(it.mediaStoreVolumeName, it.relativePath)
+        AlbumDestinationSource(it.mediaStoreVolumeName, it.relativePath, it.mimeType)
     }
 
     fun Album.isMoveDestinationEnabled(): Boolean {
@@ -163,6 +166,7 @@ fun <T : Media> MoveMediaSheet(
             albumRelativePath = relativePath,
             sources = sources,
             isCloudAlbum = false,
+            hasAllFilesAccess = SdkCompat.hasFullFileAccess,
         )
     }
 
@@ -393,7 +397,12 @@ fun <T : Media> MoveMediaSheet(
             return
         }
         val localMedia = localMediaForDestination(albumPath)
-        val isRestrictedMove = restrictedMoveSources(hasFullMediaAccess, localMedia).isNotEmpty()
+        val destinationRelativePath = resolveMediaStoreVolume(albumPath).second
+        val isRestrictedMove = restrictedMoveSources(hasFullMediaAccess, localMedia).isNotEmpty() ||
+            (!hasFullMediaAccess && localMedia.any {
+                mediaStoreWriteCollection(it.mimeType, destinationRelativePath, false) ==
+                    MediaStoreWriteCollection.FILES
+            })
         if (isRestrictedMove && restrictedMoveJob?.isActive == true) return
         if (localMedia.isNotEmpty()) {
             if (isRestrictedMove) {

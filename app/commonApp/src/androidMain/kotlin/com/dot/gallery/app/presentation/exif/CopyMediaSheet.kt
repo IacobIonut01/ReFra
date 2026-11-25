@@ -41,7 +41,11 @@ import com.dot.gallery.domain.uri.scheme
 import com.dot.gallery.feature.exif.ui.resolveNewAlbumMovePath
 import com.dot.gallery.feature.exif.ui.resolveTransferOpenTarget
 import com.dot.gallery.core.ui.util.rememberAppBottomSheetState
+import com.dot.gallery.feature.exif.ui.AlbumDestinationSource
 import com.dot.gallery.feature.exif.ui.isAlbumCopyDestinationEnabled
+import com.dot.gallery.domain.util.isCloud
+import com.dot.gallery.domain.util.mediaStoreVolumeName
+import com.dot.gallery.core.util.SdkCompat
 import com.dot.gallery.core.rememberMediaViewerNavigate
 import com.dot.gallery.injection.injectViewModel
 import com.dot.gallery.feature.exif.generated.resources.Res as ResFeatureExif
@@ -116,6 +120,10 @@ fun <T : Media> CopyMediaSheet(
             hasFullMediaAccess = hasFullMediaAccess,
             albumRelativePath = relativePath,
             isCloudAlbum = uri.scheme == "cloud" || relativePath.startsWith("cloud/"),
+            sources = mediaList.filter { !it.isCloud }.map {
+                AlbumDestinationSource(it.mediaStoreVolumeName, it.relativePath, it.mimeType)
+            },
+            hasAllFilesAccess = SdkCompat.hasFullFileAccess,
         )
     }
 

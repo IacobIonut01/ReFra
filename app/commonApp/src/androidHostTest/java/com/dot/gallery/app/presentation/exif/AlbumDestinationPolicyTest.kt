@@ -13,8 +13,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import com.dot.gallery.domain.model.Album
-import com.dot.gallery.domain.model.Media
 import com.dot.gallery.feature.exif.ui.AlbumDestinationSource
 
 
@@ -28,9 +26,10 @@ class AlbumDestinationPolicyTest {
                 albumVolume = "external_primary",
                 albumRelativePath = "Pictures/Target/",
                 sources = listOf(
-                    AlbumDestinationSource("external_primary", "DCIM/Camera/"),
-                    AlbumDestinationSource("external_primary", "Pictures/Source/"),
+                    AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"),
+                    AlbumDestinationSource("external_primary", "Pictures/Source/", "image/jpeg"),
                 ),
+                hasAllFilesAccess = false,
             )
         )
     }
@@ -43,16 +42,19 @@ class AlbumDestinationPolicyTest {
                 albumVolume = "external_primary",
                 albumRelativePath = "Pictures/Target/",
                 sources = listOf(
-                    AlbumDestinationSource("external_primary", "DCIM/Camera/"),
-                    AlbumDestinationSource("71f8-2c0a", "Pictures/Source/"),
+                    AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"),
+                    AlbumDestinationSource("71f8-2c0a", "Pictures/Source/", "image/jpeg"),
                 ),
+                hasAllFilesAccess = false,
             )
         )
     }
 
     @Test
     fun androidMediaDestinationIsDisabledWithoutFullAccess() {
-        val regularSource = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/"))
+        val regularSource = listOf(
+            AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"),
+        )
 
         assertFalse(
             isAlbumMoveDestinationEnabled(
@@ -60,27 +62,32 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "Android/media/example.app/Pictures/",
                 regularSource,
+                hasAllFilesAccess = false,
             )
         )
         assertFalse(
             isAlbumCopyDestinationEnabled(
                 hasFullMediaAccess = false,
                 albumRelativePath = "Android/media/example.app/Pictures/",
+                hasAllFilesAccess = false,
             )
         )
     }
 
     @Test
     fun fullAccessAllowsCrossVolumeButNeverCloudDestination() {
-        val sources = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/"))
+        val sources = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"))
 
-        assertTrue(isAlbumMoveDestinationEnabled(true, "71f8-2c0a", "Pictures/Target/", sources))
+        assertTrue(
+            isAlbumMoveDestinationEnabled(true, "71f8-2c0a", "Pictures/Target/", sources, hasAllFilesAccess = true)
+        )
         assertFalse(
             isAlbumMoveDestinationEnabled(
                 true,
                 "IMMICH",
                 "cloud/IMMICH/Album",
                 sources,
+                hasAllFilesAccess = true,
                 isCloudAlbum = true,
             )
         )
@@ -90,6 +97,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "cloud/LocalAlbum/",
                 sources,
+                hasAllFilesAccess = true,
                 isCloudAlbum = false,
             )
         )
@@ -103,6 +111,7 @@ class AlbumDestinationPolicyTest {
             AlbumDestinationSource(
                 "external_primary",
                 "Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images/",
+                "image/jpeg",
             ),
         )
 
@@ -110,6 +119,7 @@ class AlbumDestinationPolicyTest {
             isAlbumCopyDestinationEnabled(
                 hasFullMediaAccess = false,
                 albumRelativePath = "Pictures/Target/",
+                hasAllFilesAccess = false,
             )
         )
         assertTrue(
@@ -118,6 +128,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "Pictures/Target/",
                 restrictedSource,
+                hasAllFilesAccess = false,
             )
         )
     }
@@ -128,6 +139,7 @@ class AlbumDestinationPolicyTest {
             isAlbumCopyDestinationEnabled(
                 hasFullMediaAccess = false,
                 albumRelativePath = "Android/media/example.app/Pictures/",
+                hasAllFilesAccess = false,
             )
         )
         assertFalse(
@@ -135,19 +147,75 @@ class AlbumDestinationPolicyTest {
                 hasFullMediaAccess = true,
                 albumRelativePath = "cloud/IMMICH/Album",
                 isCloudAlbum = true,
+                hasAllFilesAccess = true,
             )
         )
         assertTrue(
             isAlbumCopyDestinationEnabled(
                 hasFullMediaAccess = true,
                 albumRelativePath = "Android/media/example.app/Pictures/",
+                hasAllFilesAccess = true,
+            )
+        )
+    }
+
+    @Test
+    fun imageIntoMoviesIsDisabledWithoutAllFilesAccessAndEnabledWithIt() {
+        val imageSource = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"))
+
+        assertFalse(
+            isAlbumCopyDestinationEnabled(
+                hasFullMediaAccess = true,
+                albumRelativePath = "Movies/Trips/",
+                sources = imageSource,
+                hasAllFilesAccess = false,
+            )
+        )
+        assertFalse(
+            isAlbumMoveDestinationEnabled(
+                hasFullMediaAccess = true,
+                albumVolume = "external_primary",
+                albumRelativePath = "Movies/Trips/",
+                sources = imageSource,
+                hasAllFilesAccess = false,
+            )
+        )
+        assertTrue(
+            isAlbumCopyDestinationEnabled(
+                hasFullMediaAccess = true,
+                albumRelativePath = "Movies/Trips/",
+                sources = imageSource,
+                hasAllFilesAccess = true,
+            )
+        )
+    }
+
+    @Test
+    fun imageIntoDownloadIsEnabled() {
+        val imageSource = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"))
+
+        assertTrue(
+            isAlbumCopyDestinationEnabled(
+                hasFullMediaAccess = true,
+                albumRelativePath = "Download/",
+                sources = imageSource,
+                hasAllFilesAccess = true,
+            )
+        )
+        assertTrue(
+            isAlbumMoveDestinationEnabled(
+                hasFullMediaAccess = true,
+                albumVolume = "external_primary",
+                albumRelativePath = "Download/",
+                sources = imageSource,
+                hasAllFilesAccess = true,
             )
         )
     }
 
     @Test
     fun moveDisablesExactSourceFolderButAllowsDifferentSameNamedFolder() {
-        val sources = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/"))
+        val sources = listOf(AlbumDestinationSource("external_primary", "DCIM/Camera/", "image/jpeg"))
 
         assertFalse(
             isAlbumMoveDestinationEnabled(
@@ -155,6 +223,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "DCIM/Camera/",
                 sources,
+                hasAllFilesAccess = false,
             )
         )
         assertTrue(
@@ -163,6 +232,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "Pictures/Camera/",
                 sources,
+                hasAllFilesAccess = false,
             )
         )
         assertTrue(
@@ -170,7 +240,8 @@ class AlbumDestinationPolicyTest {
                 false,
                 "external_primary",
                 "DCIM/Camera/",
-                sources + AlbumDestinationSource("external_primary", "Pictures/Camera/"),
+                sources + AlbumDestinationSource("external_primary", "Pictures/Camera/", "image/jpeg"),
+                hasAllFilesAccess = false,
             )
         )
         assertFalse(
@@ -179,6 +250,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "dcim//camera/",
                 sources,
+                hasAllFilesAccess = false,
             )
         )
     }
@@ -191,6 +263,7 @@ class AlbumDestinationPolicyTest {
                 "external_primary",
                 "Pictures/Target/",
                 emptyList(),
+                hasAllFilesAccess = false,
             )
         )
     }

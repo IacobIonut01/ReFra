@@ -6,6 +6,8 @@
 package com.dot.gallery.feature.exif.ui
 
 import com.dot.gallery.domain.model.Media
+import com.dot.gallery.domain.util.MediaStoreWriteCollection
+import com.dot.gallery.domain.util.mediaStoreWriteCollection
 
 /**
  * A copy only reads the source through MediaStore and inserts a brand new file at the
@@ -16,26 +18,37 @@ fun isAlbumCopyDestinationEnabled(
     hasFullMediaAccess: Boolean,
     albumRelativePath: String,
     isCloudAlbum: Boolean = false,
+    hasAllFilesAccess: Boolean,
+    sources: List<AlbumDestinationSource> = emptyList(),
 ): Boolean {
     if (isCloudAlbum) return false
+    if (sources.any {
+            mediaStoreWriteCollection(it.mimeType, albumRelativePath, hasAllFilesAccess) ==
+                MediaStoreWriteCollection.UNSUPPORTED
+        }
+    ) return false
     if (hasFullMediaAccess) return true
     return !albumRelativePath.isAndroidMediaPath()
 }
 
 /**
  * A move needs the original gone once the destination holds it. Sources inside another app's
- * `Android/media/<package>` folder cannot be renamed, so they take the copy + delete-request
- * path instead: the destination rules are the same as for a copy, plus a source that actually
- * differs from the destination folder.
+ * `Android/media/<package>` folder cannot be renamed into an album, so they take the copy +
+ * delete-request path instead: the destination rules are the same as for a copy, plus a source
+ * that actually differs from the destination folder.
  */
 fun isAlbumMoveDestinationEnabled(
     hasFullMediaAccess: Boolean,
     albumVolume: String,
     albumRelativePath: String,
     sources: List<AlbumDestinationSource>,
+    hasAllFilesAccess: Boolean,
     isCloudAlbum: Boolean = false,
 ): Boolean {
-    if (!isAlbumCopyDestinationEnabled(hasFullMediaAccess, albumRelativePath, isCloudAlbum)) {
+    if (!isAlbumCopyDestinationEnabled(
+            hasFullMediaAccess, albumRelativePath, isCloudAlbum, hasAllFilesAccess, sources
+        )
+    ) {
         return false
     }
     if (!hasFullMediaAccess && sources.any { it.volume != albumVolume }) return false

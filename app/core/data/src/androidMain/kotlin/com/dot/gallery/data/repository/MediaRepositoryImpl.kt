@@ -175,6 +175,8 @@ import com.dot.gallery.core.startup.startupLoadFlow
 import com.dot.gallery.domain.util.compatibleMimeType
 import com.dot.gallery.core.logging.printInfo
 import com.dot.gallery.data.entity.applyTo
+import com.dot.gallery.domain.util.MediaStoreWriteCollection
+import com.dot.gallery.domain.util.mediaStoreWriteCollection
 import com.dot.gallery.domain.util.resolveMediaStoreVolume
 import com.dot.gallery.domain.util.isRawFile
 import com.dot.gallery.data.entity.metadataParsingPolicy
@@ -764,12 +766,26 @@ class MediaRepositoryImpl(
     ): Boolean {
         val (destVolume, destRelPath) = resolveMediaStoreVolume(newPath)
         val sourceVolume = media.mediaStoreVolumeName
+        val collection = mediaStoreWriteCollection(
+            mimeType = media.mimeType,
+            relativePath = destRelPath,
+            hasAllFilesAccess = SdkCompat.hasFullFileAccess
+        )
+        if (collection == MediaStoreWriteCollection.UNSUPPORTED) {
+            printWarning("Move to $newPath is not allowed for ${media.mimeType}")
+            return false
+        }
 
         if (destVolume == sourceVolume) {
-            return context.updateMedia(
-                media = media,
-                contentValues = relativePath(destRelPath)
-            )
+            if (collection == MediaStoreWriteCollection.TYPED) {
+                return context.updateMedia(
+                    media = media,
+                    contentValues = relativePath(destRelPath)
+                )
+            }
+            val filesUri = MediaStore.Files.getContentUri(destVolume, media.id)
+            if (context.updateMedia(media, relativePath(destRelPath), filesUri)) return true
+            return canDeleteMediaSilently && crossVolumeMove(media, destVolume, destRelPath)
         }
 
         return crossVolumeMove(media, destVolume, destRelPath)
@@ -822,9 +838,16 @@ class MediaRepositoryImpl(
             val sourceDateModified = if (media.isCloud) media.timestamp else cr.mediaDateModified(srcUri)
             val sourceSize = if (media.isCloud) media.size else cr.mediaSize(srcUri)
 
+            val insertCollection = when (
+                mediaStoreWriteCollection(mediaType, destRelPath, SdkCompat.hasFullFileAccess)
+            ) {
+                MediaStoreWriteCollection.TYPED -> if (isVideo) MediaStore.Video.Media.getContentUri(destVolume)
+                else MediaStore.Images.Media.getContentUri(destVolume)
+                MediaStoreWriteCollection.FILES -> MediaStore.Files.getContentUri(destVolume)
+                MediaStoreWriteCollection.UNSUPPORTED -> return@withContext null
+            }
             val insertedUri = cr.insert(
-                if (isVideo) MediaStore.Video.Media.getContentUri(destVolume)
-                else MediaStore.Images.Media.getContentUri(destVolume),
+                insertCollection,
                 ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, media.label)
                     put(MediaStore.MediaColumns.MIME_TYPE, mediaType)

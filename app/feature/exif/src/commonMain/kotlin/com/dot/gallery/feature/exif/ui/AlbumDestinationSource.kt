@@ -5,8 +5,9 @@
 
 package com.dot.gallery.feature.exif.ui
 
-/** (volume, relativePath) pair describing one source folder of a move selection. */
+/** (volume, relativePath, mimeType) of one local item in a move or copy selection. */
 data class AlbumDestinationSource(
     val volume: String,
     val relativePath: String,
+    val mimeType: String,
 )

@@ -503,10 +503,11 @@ suspend fun <T : Media> Context.renameMedia(media: T, newName: String): Boolean 
 
 suspend fun <T : Media> Context.updateMedia(
     media: T,
-    contentValues: ContentValues
+    contentValues: ContentValues,
+    targetUri: Uri = media.getUri()
 ): Boolean = withContext(Dispatchers.IO) {
     runCatching {
-        contentResolver.update(media.getUri(), contentValues, null, null) > 0
+        contentResolver.update(targetUri, contentValues, null, null) > 0
     }.onSuccess { updated ->
         if (updated) {
             // If RELATIVE_PATH changed (move), scan the new file location;
