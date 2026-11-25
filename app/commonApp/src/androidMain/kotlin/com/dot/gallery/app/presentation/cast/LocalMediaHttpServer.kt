@@ -8,22 +8,27 @@ package com.dot.gallery.app.presentation.cast
 import android.content.Context
 import android.net.Uri
 import fi.iki.elonen.NanoHTTPD
+import com.dot.gallery.core.logging.printWarning
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.Inet4Address
+import java.net.InetAddress
 import java.net.NetworkInterface
+import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
-import com.dot.gallery.core.presentation.util.clear
-import com.dot.gallery.core.presentation.util.remove
 
 
 /**
- * Lightweight HTTP server that serves local media files to FCast receivers on the LAN.
- * Each media item is registered with a unique token and served at /media/{token}.
+ * Lightweight HTTP server that serves local media files to the connected FCast receiver.
+ *
+ * Each item is served at /media/{token} with a random 128-bit token. When [receiverAddress]
+ * is set, only that address may fetch media. Only the most recently registered item is kept; registering a new
+ * item or stopping the server releases the previous one and deletes any owned temp file.
  */
 class LocalMediaHttpServer(
     private val context: Context,
+    private val receiverAddress: InetAddress?,
     port: Int = 0 // 0 = auto-assign
 ) : NanoHTTPD(port) {
 
@@ -31,7 +36,8 @@ class LocalMediaHttpServer(
         val uri: Uri?,
         val file: File?,
         val mimeType: String,
-        val size: Long
+        val size: Long,
+        val deleteFileOnRelease: Boolean
     )
 
     private val mediaEntries = ConcurrentHashMap<String, MediaEntry>()
@@ -39,25 +45,53 @@ class LocalMediaHttpServer(
     /**
      * Register a content:// URI for serving. Returns the token.
      */
-    fun registerUri(token: String, uri: Uri, mimeType: String, size: Long): String {
-        mediaEntries[token] = MediaEntry(uri = uri, file = null, mimeType = mimeType, size = size)
-        return token
-    }
+    fun registerUri(uri: Uri, mimeType: String, size: Long): String =
+        register(MediaEntry(uri = uri, file = null, mimeType = mimeType, size = size, deleteFileOnRelease = false))
 
     /**
      * Register a file for serving (e.g., decrypted vault media). Returns the token.
+     * When [deleteOnRelease] is true the file is deleted once it is no longer served.
      */
-    fun registerFile(token: String, file: File, mimeType: String): String {
-        mediaEntries[token] = MediaEntry(uri = null, file = file, mimeType = mimeType, size = file.length())
+    fun registerFile(file: File, mimeType: String, deleteOnRelease: Boolean): String =
+        register(
+            MediaEntry(
+                uri = null,
+                file = file,
+                mimeType = mimeType,
+                size = file.length(),
+                deleteFileOnRelease = deleteOnRelease
+            )
+        )
+
+    @Synchronized
+    private fun register(entry: MediaEntry): String {
+        unregisterAll()
+        val token = newToken()
+        mediaEntries[token] = entry
         return token
     }
 
+    @Synchronized
     fun unregister(token: String) {
-        mediaEntries.remove(token)
+        mediaEntries.remove(token)?.let(::release)
     }
 
+    @Synchronized
     fun unregisterAll() {
-        mediaEntries.clear()
+        val tokens = mediaEntries.keys.toList()
+        tokens.forEach { token -> mediaEntries.remove(token)?.let(::release) }
+    }
+
+    override fun stop() {
+        super.stop()
+        unregisterAll()
+    }
+
+    private fun release(entry: MediaEntry) {
+        val file = entry.file ?: return
+        if (entry.deleteFileOnRelease && file.exists() && !file.delete()) {
+            printWarning("FCast: Failed to delete cast temp file ${file.name}")
+        }
     }
 
     /**
@@ -69,7 +103,24 @@ class LocalMediaHttpServer(
         return "http://$ip:${listeningPort}/media/$token"
     }
 
+    private fun isReceiver(remoteIp: String?): Boolean {
+        val allowed = receiverAddress ?: return true
+        if (remoteIp.isNullOrBlank()) return false
+        return try {
+            val remote = InetAddress.getByName(remoteIp.substringBefore('%'))
+            remote.address.contentEquals(allowed.address)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     override fun serve(session: IHTTPSession): Response {
+        if (!isReceiver(session.remoteIpAddress)) {
+            return newFixedLengthResponse(
+                Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Forbidden"
+            )
+        }
+
         val uri = session.uri ?: return newFixedLengthResponse(
             Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found"
         )
@@ -110,10 +161,11 @@ class LocalMediaHttpServer(
                 )
             }
         } catch (e: Exception) {
+            printWarning("FCast: Failed to serve media: ${e.message}")
             newFixedLengthResponse(
                 Response.Status.INTERNAL_ERROR,
                 MIME_PLAINTEXT,
-                "Error: ${e.message}"
+                "Internal Error"
             )
         }
     }
@@ -149,6 +201,14 @@ class LocalMediaHttpServer(
     }
 
     companion object {
+        private val secureRandom = SecureRandom()
+
+        private fun newToken(): String {
+            val bytes = ByteArray(16)
+            secureRandom.nextBytes(bytes)
+            return bytes.joinToString("") { "%02x".format(it) }
+        }
+
         fun getLocalIpAddress(): String? {
             return try {
                 NetworkInterface.getNetworkInterfaces()?.toList()

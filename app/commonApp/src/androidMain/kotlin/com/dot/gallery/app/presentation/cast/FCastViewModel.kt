@@ -7,6 +7,7 @@ package com.dot.gallery.app.presentation.cast
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.dot.gallery.core.logging.printWarning
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.util.getUri
 import kotlinx.coroutines.flow.StateFlow
@@ -53,23 +54,32 @@ class FCastViewModel @Inject constructor(
 
     private fun <T : Media> castEncryptedMedia(media: T) {
         val keychainHolder = KeychainHolder(appContext)
+        var tempFile: File? = null
         try {
             val encryptedFile = File(media.getUri().path!!)
             val decrypted = keychainHolder.decryptVaultMedia(encryptedFile)
-            val tempFile = File.createTempFile("fcast_${media.id}", null, appContext.cacheDir)
-            decrypted.openStream().use { input ->
-                FileOutputStream(tempFile).use { out ->
-                    input.copyTo(out)
+            val plainFile = File.createTempFile(CAST_TEMP_FILE_PREFIX, null, appContext.cacheDir)
+            tempFile = plainFile
+            try {
+                decrypted.openStream().use { input ->
+                    FileOutputStream(plainFile).use { out ->
+                        input.copyTo(out)
+                    }
                 }
+            } finally {
+                decrypted.cleanup()
             }
-            decrypted.cleanup()
+            tempFile = null
             session.castFile(
-                file = tempFile,
+                file = plainFile,
                 mimeType = media.mimeType,
                 label = media.label,
-                mediaId = media.id
+                mediaId = media.id,
+                deleteWhenDone = true
             )
         } catch (e: Exception) {
+            tempFile?.delete()
+            printWarning("FCast: Vault media decrypt for cast failed: ${e.message}")
             // Fallback: try as regular media
             session.castMedia(media)
         }
