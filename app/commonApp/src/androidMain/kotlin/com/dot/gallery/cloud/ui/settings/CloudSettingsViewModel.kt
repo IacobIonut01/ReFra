@@ -96,9 +96,9 @@ class CloudSettingsViewModel @Inject constructor(
                 urlResolver.isOnConfiguredLocalNetwork(cfg)
     }
 
-    /** Re-applies the selected account's effective URL after SSID readability changes. */
+    /** Re-applies effective URLs after SSID readability changes. */
     fun reapplyEffectiveUrl() {
-        _config.value?.id?.let { providerInitializer.reconfigureAccountAsync(it) }
+        viewModelScope.launch(Dispatchers.IO) { providerInitializer.reconfigureActiveProviders() }
     }
 
     fun updateConfig(transform: CloudServerConfigEntity.() -> CloudServerConfigEntity) {

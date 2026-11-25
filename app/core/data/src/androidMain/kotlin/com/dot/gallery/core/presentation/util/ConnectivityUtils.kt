@@ -94,14 +94,15 @@ fun Context.isOnLocalNetwork(): Boolean {
     }
 }
 
-/** Whether the active network uses Wi-Fi specifically. */
-fun Context.isOnWifiNetwork(): Boolean {
+/** Whether Wi-Fi is connected, even when another local transport such as Ethernet is active. */
+fun Context.isWifiConnected(): Boolean {
     val connectivityManager =
         getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
     return try {
-        val network = connectivityManager.activeNetwork ?: return false
-        connectivityManager.getNetworkCapabilities(network)
-            ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        connectivityManager.allNetworks.any { network ->
+            connectivityManager.getNetworkCapabilities(network)
+                ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        }
     } catch (_: SecurityException) {
         false
     }

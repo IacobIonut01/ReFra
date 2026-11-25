@@ -26,7 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.dot.gallery.core.logging.printWarn
 import com.dot.gallery.core.presentation.util.currentWifiSsid
-import com.dot.gallery.core.presentation.util.isOnWifiNetwork
+import com.dot.gallery.core.presentation.util.isWifiConnected
 
 
 /** User-facing state and action for a configured Wi-Fi name that cannot currently be verified. */
@@ -115,7 +115,7 @@ fun rememberWifiSsidAccessState(
     }
     val ssidUnreadable = remember(targetSsid, switchingConfigured, refreshTick.intValue, context) {
         switchingConfigured && targetSsid.isNotBlank() &&
-            context.isOnWifiNetwork() && context.currentWifiSsid() == null
+            context.isWifiConnected() && context.currentWifiSsid() == null
     }
     var wasUnreadable by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(ssidUnreadable) {
