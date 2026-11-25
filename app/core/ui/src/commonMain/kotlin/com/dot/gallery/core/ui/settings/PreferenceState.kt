@@ -47,18 +47,19 @@ fun <T> rememberPreference(key: PrefKey<T>): MutableState<T> {
     val scope = rememberCoroutineScope()
     val snapshot = LocalPreferenceSnapshot.current
     val initial = snapshot[key.name]?.let(key::decode) ?: key.default
-    val stored by store.observe(key).collectAsState(initial)
-    var unsaved by remember(key) { mutableStateOf<UnsavedPreference<T>?>(null) }
-    LaunchedEffect(stored) { unsaved = null }
-    val state = unsaved.let { if (it != null) it.value else stored }
+    val storedState = store.observe(key).collectAsState(initial)
+    val unsavedState = remember(key) { mutableStateOf<UnsavedPreference<T>?>(null) }
+    LaunchedEffect(storedState.value) { unsavedState.value = null }
+    val current = { unsavedState.value.let { if (it != null) it.value else storedState.value } }
+    val state = current()
     return remember(state) {
         object : MutableState<T> {
             override var value: T
-                get() = state
+                get() = current()
                 set(value) {
                     scope.launch {
                         val saved = writePreference(key.name) { store.put(key, value) }
-                        unsaved = if (saved) null else UnsavedPreference(value)
+                        unsavedState.value = if (saved) null else UnsavedPreference(value)
                     }
                 }
 

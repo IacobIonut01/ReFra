@@ -40,18 +40,19 @@ fun <T> rememberPreference(
     val context = LocalContext.current
     val store = LocalPreferenceStore.current ?: context.activeDataStore
     val initial = LocalInitialPreferences.current?.get(key) ?: defaultValue
-    val stored by remember(store, key, defaultValue) {
+    val storedState = remember(store, key, defaultValue) {
         store.data
             .map { it[key] ?: defaultValue }
     }.collectAsStateWithLifecycle(initialValue = initial)
-    var unsaved by remember(key) { mutableStateOf<UnsavedPreference<T>?>(null) }
-    LaunchedEffect(stored) { unsaved = null }
-    val state = unsaved.let { if (it != null) it.value else stored }
+    val unsavedState = remember(key) { mutableStateOf<UnsavedPreference<T>?>(null) }
+    LaunchedEffect(storedState.value) { unsavedState.value = null }
+    val current = { unsavedState.value.let { if (it != null) it.value else storedState.value } }
+    val state = current()
 
     return remember(state) {
         object : MutableState<T> {
             override var value: T
-                get() = state
+                get() = current()
                 set(value) {
                     coroutineScope.launch {
                         val saved = writePreference(key.name) {
@@ -59,7 +60,7 @@ fun <T> rememberPreference(
                                 it[key] = value
                             }
                         }
-                        unsaved = if (saved) null else UnsavedPreference(value)
+                        unsavedState.value = if (saved) null else UnsavedPreference(value)
                     }
                 }
 
@@ -79,18 +80,19 @@ inline fun <reified T> rememberPreferenceSerializable(
     val store = LocalPreferenceStore.current ?: context.activeDataStore
     val initial = LocalInitialPreferences.current?.get(keyString)
         ?: Json.encodeToString(defaultValue)
-    val stored by remember(store, keyString, defaultValue) {
+    val storedState = remember(store, keyString, defaultValue) {
         store.data
             .map { it[keyString] ?: Json.encodeToString(defaultValue) }
     }.collectAsStateWithLifecycle(initialValue = initial)
-    var unsaved by remember(keyString) { mutableStateOf<String?>(null) }
-    LaunchedEffect(stored) { unsaved = null }
-    val state = unsaved ?: stored
+    val unsavedState = remember(keyString) { mutableStateOf<String?>(null) }
+    LaunchedEffect(storedState.value) { unsavedState.value = null }
+    val current = { unsavedState.value ?: storedState.value }
+    val state = current()
 
     return remember(state) {
         object : MutableState<T> {
             override var value: T
-                get() = Json.decodeFromString(state)
+                get() = Json.decodeFromString(current())
                 set(value) {
                     val encoded = Json.encodeToString(value)
                     coroutineScope.launch {
@@ -99,7 +101,7 @@ inline fun <reified T> rememberPreferenceSerializable(
                                 it[keyString] = encoded
                             }
                         }
-                        unsaved = if (saved) null else encoded
+                        unsavedState.value = if (saved) null else encoded
                     }
                 }
 
