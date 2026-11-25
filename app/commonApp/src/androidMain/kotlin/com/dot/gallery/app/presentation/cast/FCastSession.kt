@@ -452,6 +452,7 @@ class FCastSession @Inject constructor(
                 // Socket closed or read error
             }
             // Connection lost
+            if (isActive) stopHttpServer()
             if (_state.value.connectedDevice != null) {
                 _state.update {
                     it.copy(
