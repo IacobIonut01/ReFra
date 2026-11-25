@@ -63,6 +63,7 @@ import com.dot.gallery.data.InternalDatabase
 import com.dot.gallery.domain.model.Media
 import com.dot.gallery.domain.util.getUri
 import com.dot.gallery.app.presentation.edit.EditActivity
+import com.dot.gallery.app.presentation.wallpaper.WallpaperLaunchTokens
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -399,6 +400,9 @@ suspend fun <T: Media> Context.launchUseAsIntent(media: T) =
                 addCategory(Intent.CATEGORY_DEFAULT)
                 setDataAndType(uri, media.mimeType)
                 putExtra("mimeType", media.mimeType)
+                if (uri.authority?.equals(BuildConfig.CONTENT_AUTHORITY, ignoreCase = true) == true) {
+                    putExtra(WallpaperLaunchTokens.EXTRA_TOKEN, WallpaperLaunchTokens.issue(uri.toString()))
+                }
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, getString(Res.string.set_as)))

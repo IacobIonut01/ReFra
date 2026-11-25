@@ -42,6 +42,7 @@ import com.dot.gallery.app.presentation.frameextract.FrameSourceMaterializer
 import com.dot.gallery.domain.util.isCloud
 import com.dot.gallery.domain.util.isEncrypted
 import com.dot.gallery.domain.util.isVideo
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 import com.dot.gallery.core.presentation.util.createDecryptedTempFile
 import com.dot.gallery.domain.util.isRaw
 import com.dot.gallery.BuildConfig
@@ -220,7 +221,8 @@ class VisualSearchLauncher @Inject constructor(
     private fun fileProviderUri(file: File): Uri =
         FileProvider.getUriForFile(context, BuildConfig.CONTENT_AUTHORITY, file)
 
-    private fun tempDir(): File = File(context.cacheDir, TEMP_DIR_NAME).apply { mkdirs() }
+    private fun tempDir(): File =
+        FileProviderShareDirs.cache(context, FileProviderShareDirs.VISUAL_SEARCH_DIRECTORY)
 
     /** Best-effort sweep of stale converted frames so the cache dir does not accumulate them. */
     private fun sweepTempDir(nowMs: Long = System.currentTimeMillis()) {
@@ -230,7 +232,6 @@ class VisualSearchLauncher @Inject constructor(
     }
 
     companion object {
-        private const val TEMP_DIR_NAME = "visual_search"
         private const val MAX_TEMP_AGE_MS = 24L * 60L * 60L * 1000L
         private val ENCODE_CONFIG = ImageReencoder.ReencodeConfig(lossyQuality = 95)
 

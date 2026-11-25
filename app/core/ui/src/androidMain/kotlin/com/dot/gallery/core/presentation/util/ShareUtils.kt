@@ -39,6 +39,21 @@ import java.io.FileOutputStream
 
 private const val TAG = "media-ops.share"
 
+object FileProviderShareDirs {
+    const val ROOT_DIRECTORY = "share"
+    const val MEDIA_DIRECTORY = "media"
+    const val CUTOUT_DIRECTORY = "cutout"
+    const val VISUAL_SEARCH_DIRECTORY = "visual_search"
+    const val EDITOR_SUBJECT_DIRECTORY = "editor_subject"
+    const val LOGS_DIRECTORY = "logs"
+
+    fun cache(context: Context, child: String): File =
+        File(context.cacheDir, "$ROOT_DIRECTORY/$child").apply { mkdirs() }
+
+    fun files(baseDir: File, child: String): File =
+        File(baseDir, "$ROOT_DIRECTORY/$child").apply { mkdirs() }
+}
+
 fun Uri.authorizedUri(context: Context): Uri = when {
     this.toString().startsWith("content://") -> this
     this.scheme == "cloud" -> this // cloud URIs need async resolution; see resolveShareableUri
@@ -66,7 +81,10 @@ suspend fun <T : Media> Context.resolveShareableUri(media: T): Uri = withContext
         ?: throw Exception("Failed to download cloud media")
 
     val ext = media.label.substringAfterLast('.', "jpg")
-    val tempFile = File(cacheDir, "cloud_share_${remoteId.substringAfterLast('/').take(8)}.$ext")
+    val tempFile = File(
+        FileProviderShareDirs.cache(this@resolveShareableUri, FileProviderShareDirs.MEDIA_DIRECTORY),
+        "cloud_share_${remoteId.substringAfterLast('/').take(8)}.$ext",
+    )
     stream.use { input ->
         FileOutputStream(tempFile).use { output -> input.copyTo(output) }
     }
@@ -268,6 +286,7 @@ fun <T : Media> createDecryptedTempFile(
     keychainHolder: KeychainHolder,
     tempDirectory: File = keychainHolder.filesDir,
 ): File {
+    val shareDirectory = FileProviderShareDirs.files(tempDirectory, FileProviderShareDirs.MEDIA_DIRECTORY)
     // Get the encrypted file
     val encryptedFile = media.getUri().toFile()
     
@@ -298,7 +317,7 @@ fun <T : Media> createDecryptedTempFile(
         val createdFile = File.createTempFile(
             "shared_${media.label.replace("[^a-zA-Z0-9]".toRegex(), "_")}_",
             extension,
-            tempDirectory,
+            shareDirectory,
         )
         tempFile = createdFile
         // Write decrypted content to a worker-managed cache file (streaming for large files).

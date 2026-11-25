@@ -11,6 +11,7 @@ import androidx.core.graphics.get
 import com.dot.gallery.core.AppIdentity
 import com.dot.gallery.core.logging.printError
 import com.dot.gallery.core.ml.CutoutHelper
+import com.dot.gallery.core.presentation.util.FileProviderShareDirs
 import com.dot.gallery.core.ml.FaceHelper
 import com.dot.gallery.core.ml.ModelGroup
 import com.dot.gallery.core.ml.ModelManager
@@ -27,7 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val TAG = "editor.photo"
-private const val SUBJECT_DIR = "editor_subject"
 
 /**
  * The Gallery's on-device models and sharing behind the editor's host seam.
@@ -138,7 +138,7 @@ private suspend fun detectFaces(
 private suspend fun writeSubject(context: Context, pixels: SrgbPixels): Uri? =
     withContext(Dispatchers.IO) {
         try {
-            val directory = File(context.cacheDir, SUBJECT_DIR).apply { mkdirs() }
+            val directory = FileProviderShareDirs.cache(context, FileProviderShareDirs.EDITOR_SUBJECT_DIRECTORY)
             val file = File(directory, "subject-${System.currentTimeMillis()}.png")
             file.outputStream().use { stream ->
                 check(pixels.toArgbBitmap().compress(Bitmap.CompressFormat.PNG, 100, stream)) {
