@@ -26,7 +26,6 @@ import java.io.FileOutputStream
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -134,16 +133,20 @@ class StudioInternalEditorActivityTest {
                     settings.put(editorKey, previousEditor)
                 }
             }
-            val activity = monitor.waitForActivityWithTimeout(5_000)
-            assertNotNull("Studio editor did not launch", activity)
-            assertEquals(activityClass, activity.javaClass)
-            awaitResumed(activity)
-            if (imageEditor) {
-                awaitPhotoLoaded(activity)
-            } else {
-                awaitVideoLoaded(activity)
+            val activity = checkNotNull(monitor.waitForActivityWithTimeout(5_000)) {
+                "Studio editor did not launch"
             }
-            instrumentation.runOnMainSync { activity.finish() }
+            try {
+                assertEquals(activityClass, activity.javaClass)
+                awaitResumed(activity)
+                if (imageEditor) {
+                    awaitPhotoLoaded(activity)
+                } else {
+                    awaitVideoLoaded(activity)
+                }
+            } finally {
+                instrumentation.runOnMainSync { activity.finish() }
+            }
         } finally {
             instrumentation.removeMonitor(monitor)
         }
