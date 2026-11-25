@@ -19,8 +19,11 @@ import com.dot.gallery.domain.model.UriMedia
 import com.dot.gallery.domain.settings.DataStoreSettingsStore
 import com.dot.gallery.domain.settings.EDITOR_STUDIO
 import com.dot.gallery.domain.settings.SettingsKeys
+import com.dot.gallery.editor.android.EditorViewModel
+import com.dot.gallery.editor.android.VideoEditorViewModel
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -118,21 +121,77 @@ class StudioInternalEditorActivityTest {
         try {
             runBlocking {
                 val settings = DataStoreSettingsStore(context.activeDataStore)
-                settings.put(
-                    if (imageEditor) SettingsKeys.defaultImageEditor
-                    else SettingsKeys.defaultVideoEditor,
-                    EDITOR_STUDIO
-                )
-                newTaskContext().launchEditIntent(media)
+                val editorKey = if (imageEditor) {
+                    SettingsKeys.defaultImageEditor
+                } else {
+                    SettingsKeys.defaultVideoEditor
+                }
+                val previousEditor = settings.observe(editorKey).first()
+                try {
+                    settings.put(editorKey, EDITOR_STUDIO)
+                    newTaskContext().launchEditIntent(media)
+                } finally {
+                    settings.put(editorKey, previousEditor)
+                }
             }
             val activity = monitor.waitForActivityWithTimeout(5_000)
             assertNotNull("Studio editor did not launch", activity)
             assertEquals(activityClass, activity.javaClass)
             awaitResumed(activity)
+            if (imageEditor) {
+                awaitPhotoLoaded(activity)
+            } else {
+                awaitVideoLoaded(activity)
+            }
             instrumentation.runOnMainSync { activity.finish() }
         } finally {
             instrumentation.removeMonitor(monitor)
         }
+    }
+
+    private fun photoViewModel(activity: Activity): EditorViewModel {
+        val getter = activity.javaClass.methods.single {
+            it.returnType == EditorViewModel::class.java
+        }
+        return getter.invoke(activity) as EditorViewModel
+    }
+
+    private fun videoViewModel(activity: Activity): VideoEditorViewModel {
+        val getter = activity.javaClass.methods.single {
+            it.returnType == VideoEditorViewModel::class.java
+        }
+        return getter.invoke(activity) as VideoEditorViewModel
+    }
+
+    private fun awaitPhotoLoaded(activity: Activity, timeoutMs: Long = 10_000) {
+        val viewModel = photoViewModel(activity)
+        awaitCondition("Studio photo did not load", timeoutMs) {
+            val state = viewModel.session.state.value
+            if (state.error != null) fail("Studio photo failed to open")
+            !state.opening && state.document != null
+        }
+    }
+
+    private fun awaitVideoLoaded(activity: Activity, timeoutMs: Long = 10_000) {
+        val viewModel = videoViewModel(activity)
+        awaitCondition("Studio video did not load", timeoutMs) {
+            val state = viewModel.session.state.value
+            if (state.error != null) fail("Studio video failed to open")
+            !state.opening && state.sequence != null
+        }
+    }
+
+    private fun awaitCondition(
+        failureMessage: String,
+        timeoutMs: Long,
+        condition: () -> Boolean
+    ) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (condition()) return
+            Thread.sleep(50)
+        }
+        fail(failureMessage)
     }
 
     private fun newTaskContext(): Context = object : ContextWrapper(context) {
