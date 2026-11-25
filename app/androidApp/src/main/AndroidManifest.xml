@@ -87,7 +87,7 @@
         </intent>
         <intent>
             <action android:name="android.service.wallpaper.CROP_AND_SET_WALLPAPER" />
-            <data android:scheme="content" />
+            <data android:scheme="content" android:mimeType="image/*" />
         </intent>
     </queries>
 

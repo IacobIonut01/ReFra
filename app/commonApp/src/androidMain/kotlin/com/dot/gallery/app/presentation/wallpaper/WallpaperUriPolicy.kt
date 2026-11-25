@@ -40,8 +40,10 @@ internal object WallpaperUriPolicy {
 
     private fun isOwnProviderAuthority(authority: String, ownProviderAuthority: String): Boolean {
         if (authority.equals(ownProviderAuthority, ignoreCase = true)) return true
-        val userId = authority.substringAfterLast('@').toIntOrNull() ?: return false
-        return userId >= 0 && authority.substringBeforeLast('@').equals(
+        val separator = authority.lastIndexOf('@')
+        if (separator <= 0 || separator == authority.lastIndex) return false
+        val userId = authority.substring(0, separator).toIntOrNull() ?: return false
+        return userId >= 0 && authority.substring(separator + 1).equals(
             ownProviderAuthority,
             ignoreCase = true,
         )

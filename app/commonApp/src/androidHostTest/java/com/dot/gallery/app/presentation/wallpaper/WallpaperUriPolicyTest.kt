@@ -25,7 +25,7 @@ class WallpaperUriPolicyTest {
         assertFalse(
             WallpaperUriPolicy.shouldForward(
                 scheme = "content",
-                authority = "$OWN_AUTHORITY@10",
+                authority = "10@$OWN_AUTHORITY",
                 ownProviderAuthority = OWN_AUTHORITY,
                 callerIsSelf = false,
                 callerAccess = CallerUriAccess.UNKNOWN,
