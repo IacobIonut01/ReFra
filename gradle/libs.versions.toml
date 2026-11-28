@@ -215,7 +215,7 @@ sketch-video = { module = "io.github.panpf.sketch4:sketch-video", version.ref = 
 sketch-view = { module = "io.github.panpf.sketch4:sketch-view", version.ref = "sketch" }
 
 # Okio (transitive via sketch/ktor; declared for direct use in moved decoder sources)
-okio = { module = "com.squareup.okio:okio", version = "3.9.1" }
+okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
 
 # Kotlinx
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinCollectionsImmutable" }
