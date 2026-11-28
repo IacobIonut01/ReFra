@@ -75,7 +75,7 @@ kotlin {
             // `api`: public signatures surface AVFrame/Buffer types.
             api("org.bytedeco:javacv:1.5.13") { isTransitive = false }
             api("org.bytedeco:javacpp:1.5.13")
-            api("org.bytedeco:ffmpeg:8.0.1-1.5.13")
+            api("org.bytedeco:ffmpeg:8.1.2-1.5.14")
         }
         named("desktopMain") {
             dependencies {
