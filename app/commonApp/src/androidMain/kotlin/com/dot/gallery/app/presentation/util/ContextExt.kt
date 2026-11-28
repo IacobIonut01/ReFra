@@ -389,8 +389,8 @@ private val STUDIO_PHOTO_MIME_TYPES = setOf(
     "image/x-pentax-pef",
     "image/x-samsung-srw"
 )
-private const val STUDIO_PHOTO_ACTIVITY = "com.dot.gallery.editor.GalleryEditorActivity"
-private const val STUDIO_VIDEO_ACTIVITY = "com.dot.gallery.editor.GalleryVideoEditorActivity"
+private const val STUDIO_PHOTO_ACTIVITY = "com.dot.gallery.editor.GalleryInternalEditorActivity"
+private const val STUDIO_VIDEO_ACTIVITY = "com.dot.gallery.editor.GalleryInternalVideoEditorActivity"
 
 suspend fun <T: Media> Context.launchUseAsIntent(media: T) =
     withContext(Dispatchers.Default) {

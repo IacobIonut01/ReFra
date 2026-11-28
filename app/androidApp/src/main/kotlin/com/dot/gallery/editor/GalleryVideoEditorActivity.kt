@@ -25,7 +25,7 @@ import com.dot.gallery.ui.theme.GalleryTheme
  * any video `content://` source, new-copy result) but themed with the
  * app theme and logged through the app's diagnostics pipeline.
  */
-class GalleryVideoEditorActivity : VideoEditorActivity() {
+open class GalleryVideoEditorActivity : VideoEditorActivity() {
 
     @Composable
     override fun EditorHostTheme(content: @Composable () -> Unit) {

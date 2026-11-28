@@ -23,7 +23,7 @@ class StudioEditorRoutingTest {
         ).forEach { mime ->
             assertEquals(
                 mime,
-                "com.dot.gallery.editor.GalleryVideoEditorActivity",
+                "com.dot.gallery.editor.GalleryInternalVideoEditorActivity",
                 studioEditorActivity(mime)
             )
         }
@@ -31,8 +31,8 @@ class StudioEditorRoutingTest {
 
     @Test
     fun photosAndOtherTypesKeepTheirExistingRoutes() {
-        assertEquals("com.dot.gallery.editor.GalleryEditorActivity", studioEditorActivity("image/jpeg"))
-        assertEquals("com.dot.gallery.editor.GalleryEditorActivity", studioEditorActivity("image/x-adobe-dng"))
+        assertEquals("com.dot.gallery.editor.GalleryInternalEditorActivity", studioEditorActivity("image/jpeg"))
+        assertEquals("com.dot.gallery.editor.GalleryInternalEditorActivity", studioEditorActivity("image/x-adobe-dng"))
         assertNull(studioEditorActivity("image/heic"))
         assertNull(studioEditorActivity("audio/mpeg"))
     }

@@ -208,6 +208,28 @@ class EditorActivityIntentTest {
     }
 
     @Test
+    fun ownProviderUriIsRejectedBeforeOpen() {
+        val name = "own-provider-private.png"
+        PipeContentProvider.payloads[name] = fixtureBytes
+        try {
+            val source = PipeContentProvider.uri(name)
+            val intent = Intent(context, EditorActivity::class.java)
+                .setAction(EditorIntents.ACTION_EDIT)
+                .setDataAndType(source, "image/png")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            ActivityScenario.launchActivityForResult<EditorActivity>(intent).use { scenario ->
+                val result = awaitFinished(scenario, 5_000)
+                assertEquals(EditorIntents.RESULT_ERROR, result.resultCode)
+                assertEquals(0, PipeContentProvider.openCount(name))
+            }
+        } finally {
+            PipeContentProvider.payloads.remove(name)
+            PipeContentProvider.openCounts.remove(name)
+            PipeContentProvider.bytesWritten.remove(name)
+        }
+    }
+
+    @Test
     fun plantedSourceExtraCannotHijackTheOpen() {
         // An 8x8 "private" file the content:// caller cannot legitimately
         // point the editor at: if the planted SavedStateHandle extra wins,
